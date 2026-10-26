@@ -1,0 +1,11 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Vonage CLI local config and keys
+.vonagerc
+*.key
+
+# Local to-do list until the GitHub Project exists
+TODO.md
