@@ -86,13 +86,62 @@ The full workflow, the repository structure, the testing strategy, how we use AI
 
 ## Team
 
-| Role | Person |
-| :---- | :---- |
-| Tech lead and mentor | Irina Ichim |
-| Participant | *To be confirmed* |
-| Participant | *To be confirmed* |
-| Participant | *To be confirmed* |
-| Participant | *To be confirmed* |
+<table>
+<tr>
+<td align="center" width="120">
+<a href="https://github.com/Irina-Ichim"><img src="https://github.com/Irina-Ichim.png" width="96" alt="Irina Ichim" /></a>
+</td>
+<td>
+<strong>Irina Ichim</strong><br />
+Tech lead and mentor<br />
+<a href="https://www.linkedin.com/in/irina-ichim-desarrolladora/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
+<a href="https://github.com/Irina-Ichim"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="GitHub" /></a>
+</td>
+<td align="center" width="120">
+<a href="https://github.com/Nelicah"><img src="https://github.com/Nelicah.png" width="96" alt="Cande Zamora" /></a>
+</td>
+<td>
+<strong>Cande Zamora</strong><br />
+Participant<br />
+<a href="https://www.linkedin.com/in/cande-zamora-125301349/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
+<a href="https://github.com/Nelicah"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="GitHub" /></a>
+</td>
+<td align="center" width="120">
+<a href="https://github.com/may-leth"><img src="https://github.com/may-leth.png" width="96" alt="Mayleth Carrascal" /></a>
+</td>
+<td>
+<strong>Mayleth Carrascal</strong><br />
+Participant<br />
+<a href="https://www.linkedin.com/in/maylethcarrascal/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
+<a href="https://github.com/may-leth"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="GitHub" /></a>
+</td>
+</tr>
+<tr>
+<td align="center" width="120">
+<a href="https://github.com/Kat-lev"><img src="https://github.com/Kat-lev.png" width="96" alt="Kat Leverton" /></a>
+</td>
+<td>
+<strong>Kat Leverton</strong><br />
+Participant<br />
+<a href="https://www.linkedin.com/in/kat-leverton/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
+<a href="https://github.com/Kat-lev"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="GitHub" /></a>
+</td>
+<td align="center" width="120">
+<img src="https://github.com/ghost.png" width="96" alt="Placeholder avatar" />
+</td>
+<td>
+<strong><em>To be confirmed</em></strong><br />
+Participant
+</td>
+<td align="center" width="120">
+<img src="https://github.com/ghost.png" width="96" alt="Placeholder avatar" />
+</td>
+<td>
+<strong><em>To be confirmed</em></strong><br />
+Participant
+</td>
+</tr>
+</table>
 
 A project developed within the **FemCoders Club** program with the support of **Vonage**, which provides the API credits, a technical workshop and guidance from its team.
 
