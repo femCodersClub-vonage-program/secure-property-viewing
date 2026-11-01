@@ -45,6 +45,7 @@ secure-property-viewing/
 │   └── settings.json            # Permissions and files excluded from AI
 ├── .github/
 │   ├── ISSUE_TEMPLATE/          # Issue templates
+│   ├── scripts/                 # Scripts the CI runs, such as the migration rule checks
 │   ├── workflows/               # Continuous integration with GitHub Actions
 │   ├── CODEOWNERS               # Automatically assigned review
 │   └── PULL_REQUEST_TEMPLATE.md # Pull request template
@@ -61,6 +62,7 @@ secure-property-viewing/
 │   ├── guides/                  # Guides on problems the whole team runs into, in Spanish
 │   ├── images/                  # Images used in the documentation
 │   ├── presentations/           # Project presentations
+│   ├── setup.md                 # Local setup, step by step (setup.es.md in Spanish)
 │   ├── user-journeys.md         # User journeys, step by step
 │   └── vonage.md                # Vonage APIs and developer tools
 ├── .editorconfig                # Shared formatting across editors

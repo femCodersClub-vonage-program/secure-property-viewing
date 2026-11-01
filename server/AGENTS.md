@@ -18,7 +18,7 @@ Run them from `server/`. On Windows, use `.\mvnw.cmd` instead of `./mvnw`.
 ## Configuration
 
 - Secrets are read from `server/.env`, which is never committed. Never read it
-- A new environment variable goes in `application.properties` as `${VARIABLE}`, in `.env.example` with a placeholder value only, and in `docs/setup.md` with the value the team needs
+- A new environment variable goes in `application.properties` as `${VARIABLE}`, in `.env.example` with a placeholder value only, and in `docs/setup.md` and `docs/setup.es.md` with the value the team needs
 
 ## Database migrations
 

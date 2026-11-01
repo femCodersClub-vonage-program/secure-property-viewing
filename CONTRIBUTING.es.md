@@ -45,6 +45,7 @@ secure-property-viewing/
 │   └── settings.json            # Permisos y archivos excluidos para la IA
 ├── .github/
 │   ├── ISSUE_TEMPLATE/          # Plantillas de issues
+│   ├── scripts/                 # Scripts que ejecuta el CI, como la comprobación de las reglas de migraciones
 │   ├── workflows/               # Integración continua con GitHub Actions
 │   ├── CODEOWNERS               # Revisión asignada automáticamente
 │   └── PULL_REQUEST_TEMPLATE.md # Plantilla de pull requests
@@ -61,6 +62,7 @@ secure-property-viewing/
 │   ├── guides/                  # Guías sobre problemas comunes del equipo, en español
 │   ├── images/                  # Imágenes de la documentación
 │   ├── presentations/           # Presentaciones del proyecto
+│   ├── setup.md                 # Puesta en marcha en local, paso a paso (setup.es.md en español)
 │   ├── user-journeys.md         # Recorridos de la aplicación, paso a paso
 │   └── vonage.md                # APIs y herramientas de Vonage
 ├── .editorconfig                # Formato común entre editores

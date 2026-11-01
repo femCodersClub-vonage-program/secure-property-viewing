@@ -38,7 +38,7 @@ Suggest an update only when the change requires one. For each change, decide wit
 | Changes instructions the AI assistants must follow | The relevant `AGENTS.md` |
 | Solves a problem the rest of the team will run into too | A new guide in `docs/guides/`, in Spanish |
 
-Every `.env.example` uses placeholder values only, such as `your_database_user`. A real value or a hint, such as a host, a port, a database name or a user name, is a blocking finding: the real values belong in `docs/setup.md`.
+Every `.env.example` uses placeholder values only, such as `your_database_user`. A real value or a hint, such as a host, a port, a database name or a user name, is a blocking finding: the real values belong in `docs/setup.md` and `docs/setup.es.md`.
 
 No documentation is needed for internal refactors without behavior changes, tests only, or formatting. Say so explicitly, with the reason, so the contributor knows you checked.
 

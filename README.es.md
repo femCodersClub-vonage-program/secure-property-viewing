@@ -81,7 +81,7 @@ El flujo completo, la estructura del repositorio, la estrategia de testing, cóm
 
 ## Documentación
 
-Los documentos de `docs/` están en inglés, siguiendo las convenciones del proyecto.
+Los documentos de `docs/` están en inglés, siguiendo las convenciones del proyecto, con dos excepciones en español: la guía de puesta en marcha, que tiene las dos versiones, y las guías del equipo de `docs/guides/`.
 
 | Documento | Contenido |
 | :---- | :---- |
@@ -90,7 +90,7 @@ Los documentos de `docs/` están en inglés, siguiendo las convenciones del proy
 | [`docs/vonage.md`](docs/vonage.md) | APIs y herramientas de Vonage para el desarrollo |
 | [`docs/architecture/`](docs/architecture/README.md) | Diagramas de arquitectura, flujo principal y principios de diseño |
 | [`docs/adr/`](docs/adr/) | Decisiones de arquitectura del proyecto |
-| [`docs/guides/`](docs/guides/README.md) | Guías breves sobre problemas con los que se encuentra todo el equipo |
+| [`docs/guides/`](docs/guides/README.md) | Guías breves sobre problemas con los que se encuentra todo el equipo, escritas en español |
 | [`docs/presentations/`](docs/presentations/) | Presentaciones del proyecto, como la de la sesión de mentoría [«¿Anuncio real o estafa?»](docs/presentations/real-listing-or-scam.pdf) (en inglés) |
 | [`CONTRIBUTING.es.md`](CONTRIBUTING.es.md) | Flujo de trabajo, convenciones, testing, uso de la IA y estructura del repositorio |
 

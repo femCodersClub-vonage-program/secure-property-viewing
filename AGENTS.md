@@ -17,7 +17,7 @@ Read [`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow, [ADR 0001](docs/adr/
 ## Secrets
 
 - Never read `.env`, `.vonagerc` or `*.key` files, and never ask for their contents
-- `.env.example` files only hold placeholder values, such as `your_database_user`. Real values the team needs go in [`docs/setup.md`](docs/setup.md), and passwords are never written in the repository
+- `.env.example` files only hold placeholder values, such as `your_database_user`. Real values the team needs go in [`docs/setup.md`](docs/setup.md) and [`docs/setup.es.md`](docs/setup.es.md), and passwords are never written in the repository
 - Vonage credentials live only in `server/`. The client never receives the API secret or the private key
 
 ## Before writing code

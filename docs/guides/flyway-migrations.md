@@ -24,7 +24,7 @@ Las reglas completas están en la sección «Migraciones de base de datos» de [
 
    Entre la hora y la descripción van **dos** guiones bajos
 
-4. Arranca el servidor o lanza `./mvnw verify`: Flyway aplica la migración a tu base de datos local
+4. Arranca el servidor o lanza `.\mvnw.cmd verify` (en macOS, `./mvnw verify`): Flyway aplica la migración a tu base de datos local
 
 ## Dos personas creando tablas a la vez
 
@@ -83,11 +83,11 @@ Borra tu base local y la crea vacía: al arrancar el servidor, Flyway vuelve a a
 1. Para el servidor si está arrancado (`Ctrl+C`)
 2. Borra la base y créala de nuevo. Te pedirá tu contraseña personal de `postgres`:
 
-   ```bash
+   ```powershell
    dropdb -U postgres peephole
    createdb -U postgres --owner peephole peephole
    ```
 
    En macOS, quita `-U postgres`
 
-3. Arranca el servidor o lanza `./mvnw verify` desde `server/`
+3. Arranca el servidor o lanza `.\mvnw.cmd verify` desde `server/` (en macOS, `./mvnw verify`)
