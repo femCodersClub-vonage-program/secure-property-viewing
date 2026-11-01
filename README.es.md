@@ -83,18 +83,68 @@ Los documentos de `docs/` están en inglés, siguiendo las convenciones del proy
 | [`docs/vonage.md`](docs/vonage.md) | APIs y herramientas de Vonage para el desarrollo |
 | [`docs/architecture/`](docs/architecture/README.md) | Diagramas de arquitectura, flujo principal y principios de diseño |
 | [`docs/adr/`](docs/adr/) | Decisiones de arquitectura del proyecto |
+| [`docs/guides/`](docs/guides/README.md) | Guías breves sobre problemas con los que se encuentra todo el equipo |
 | [`docs/presentations/`](docs/presentations/) | Presentaciones del proyecto, como la de la sesión de mentoría [«¿Anuncio real o estafa?»](docs/presentations/real-listing-or-scam.pdf) (en inglés) |
 | [`CONTRIBUTING.es.md`](CONTRIBUTING.es.md) | Flujo de trabajo, convenciones, testing, uso de la IA y estructura del repositorio |
 
 ## Equipo
 
-| Rol | Persona |
-| :---- | :---- |
-| Tech lead y mentora | Irina Ichim |
-| Participante | *Por confirmar* |
-| Participante | *Por confirmar* |
-| Participante | *Por confirmar* |
-| Participante | *Por confirmar* |
+<table>
+<tr>
+<td align="center" width="120">
+<a href="https://github.com/Irina-Ichim"><img src="https://github.com/Irina-Ichim.png" width="96" alt="Irina Ichim" /></a>
+</td>
+<td>
+<strong>Irina Ichim</strong><br />
+Tech lead y mentora<br />
+<a href="https://www.linkedin.com/in/irina-ichim-desarrolladora/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
+<a href="https://github.com/Irina-Ichim"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="GitHub" /></a>
+</td>
+<td align="center" width="120">
+<a href="https://github.com/Nelicah"><img src="https://github.com/Nelicah.png" width="96" alt="Cande Zamora" /></a>
+</td>
+<td>
+<strong>Cande Zamora</strong><br />
+Participante<br />
+<a href="https://www.linkedin.com/in/cande-zamora-125301349/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
+<a href="https://github.com/Nelicah"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="GitHub" /></a>
+</td>
+<td align="center" width="120">
+<a href="https://github.com/may-leth"><img src="https://github.com/may-leth.png" width="96" alt="Mayleth Carrascal" /></a>
+</td>
+<td>
+<strong>Mayleth Carrascal</strong><br />
+Participante<br />
+<a href="https://www.linkedin.com/in/maylethcarrascal/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
+<a href="https://github.com/may-leth"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="GitHub" /></a>
+</td>
+</tr>
+<tr>
+<td align="center" width="120">
+<a href="https://github.com/Kat-lev"><img src="https://github.com/Kat-lev.png" width="96" alt="Kat Leverton" /></a>
+</td>
+<td>
+<strong>Kat Leverton</strong><br />
+Participante<br />
+<a href="https://www.linkedin.com/in/kat-leverton/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
+<a href="https://github.com/Kat-lev"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="GitHub" /></a>
+</td>
+<td align="center" width="120">
+<img src="https://github.com/ghost.png" width="96" alt="Avatar provisional" />
+</td>
+<td>
+<strong><em>Por confirmar</em></strong><br />
+Participante
+</td>
+<td align="center" width="120">
+<img src="https://github.com/ghost.png" width="96" alt="Avatar provisional" />
+</td>
+<td>
+<strong><em>Por confirmar</em></strong><br />
+Participante
+</td>
+</tr>
+</table>
 
 Proyecto desarrollado en el programa de **FemCoders Club** con el apoyo de **Vonage**, que aporta los créditos de API, un workshop técnico y el acompañamiento de su equipo.
 

@@ -32,7 +32,7 @@ We work with **Spec-Driven Development (SDD)**, so no feature starts with code:
 4. **Tasks**: the plan is broken down into issues in the GitHub Project  
 5. **Implementation**: every pull request links its issue and the spec it comes from
 
-If a relevant architectural decision comes up along the way, it is recorded as an ADR in `docs/adr/`, with its context, the decision, the discarded alternatives and its consequences.
+If a relevant architectural decision comes up along the way, it is recorded as an ADR in `docs/adr/`, with its context, the decision, the discarded alternatives and its consequences. ADRs are numbered in order (`0001-tech-stack.md`) and start from [`docs/adr/template.md`](docs/adr/template.md).
 
 ## Repository structure
 
@@ -56,6 +56,7 @@ secure-property-viewing/
 ├── docs/
 │   ├── adr/                     # Architecture decisions
 │   ├── architecture/            # Architecture overview and Mermaid diagrams
+│   ├── guides/                  # Guides on problems the whole team runs into
 │   ├── images/                  # Images used in the documentation
 │   ├── presentations/           # Project presentations
 │   ├── user-journeys.md         # User journeys, step by step
@@ -77,10 +78,10 @@ secure-property-viewing/
 
 The GitHub Project is the single source of tasks. Every issue has an assignee and links to its spec.
 
-- **Labels** by type (`feature`, `bug`, `docs`, `spec`, `adr`) and by layer (`client`, `server`, `e2e`)  
+- **Labels** by type (`enhancement`, `bug`, `documentation`, `spec`, `adr`, `accessibility`) and by group (`client`, `server`, `devops`, `qa`, `e2e`). Before creating a new label, check whether an existing one already fits  
 - **Milestones** by program week, to see at a glance what goes into each one
 
-Issues are opened using the templates in `.github/ISSUE_TEMPLATE/`.
+Issues are opened using the templates in `.github/ISSUE_TEMPLATE/`. The title starts with the group and a sequential number within that group, beginning at 01: `server-01: Add OTP verification endpoint`. The groups are `client`, `server`, `devops`, `qa` and `docs`, and each issue also carries the matching label (`documentation` for the `docs` group).
 
 ## Branches
 
@@ -152,7 +153,7 @@ Throughout the mentoring sessions we will explore how to make the most of AI, an
 - `.editorconfig` so every editor shares indentation, line endings and encoding  
 - A shared linter and formatter, to be defined together with the stack  
 - Commits following [Conventional Commits](https://www.conventionalcommits.org/), for example `feat(server): add OTP verification endpoint`  
-- Code, identifiers, branch names and documentation in American English. The README and this guide also have a Spanish version  
+- Code, identifiers, branch names and documentation in American English. The README and this guide also have a Spanish version, so any change to one language goes to the other in the same pull request  
 - **Visit** is the domain term for a video visit to a property: `Visit` in the code, *visit* in the interface and the documentation. We do not use *viewing*, *showing* or *tour*, so the same concept never has two names
 
 ## Changelog
