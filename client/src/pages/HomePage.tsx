@@ -1,6 +1,6 @@
 import { ShieldCheck } from 'lucide-react'
 
-function App() {
+function HomePage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50 p-4 text-center">
       <div className="flex items-center gap-3">
@@ -12,4 +12,4 @@ function App() {
   )
 }
 
-export default App
+export default HomePage
