@@ -1,0 +1,29 @@
+name: Task
+description: Work that needs no spec, such as CI, repository setup or documentation
+title: "group-NN: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        In the title, replace `group-NN` with the group and the next number in that group, for example `devops-02`. Groups: `client`, `server`, `devops`, `qa`, `docs`. Add the group label too.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What needs to be done and why.
+    validations:
+      required: true
+  - type: textarea
+    id: done-when
+    attributes:
+      label: Done when
+      description: How we will know this task is finished.
+      value: |
+        - [ ]
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Dependencies on other issues, open questions or useful links.

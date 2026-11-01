@@ -32,7 +32,7 @@ Trabajamos con **Spec-Driven Development (SDD)**, así que ninguna funcionalidad
 4. **Tareas**: el plan se divide en issues del GitHub Project  
 5. **Implementación**: cada PR enlaza su issue y la spec de la que parte
 
-Si durante el trabajo aparece una decisión de arquitectura relevante, se registra como ADR en `docs/adr/`, con el contexto, la decisión, las alternativas descartadas y sus consecuencias.
+Si durante el trabajo aparece una decisión de arquitectura relevante, se registra como ADR en `docs/adr/`, con el contexto, la decisión, las alternativas descartadas y sus consecuencias. Los ADR se numeran de forma correlativa (`0001-tech-stack.md`) y parten de [`docs/adr/template.md`](docs/adr/template.md).
 
 ## Estructura del repositorio
 
@@ -80,10 +80,10 @@ Los documentos de `docs/` están en inglés, siguiendo las convenciones del proy
 
 El GitHub Project es la única fuente de tareas. Cada issue tiene una persona asignada y enlaza la spec correspondiente.
 
-- **Labels** por tipo (`enhancement`, `bug`, `documentation`, `spec`, `adr`, `accessibility`) y por capa (`client`, `server`, `e2e`). Antes de crear un label nuevo, se comprueba si ya existe uno que sirva  
+- **Labels** por tipo (`enhancement`, `bug`, `documentation`, `spec`, `adr`, `accessibility`) y por grupo (`client`, `server`, `devops`, `qa`, `e2e`). Antes de crear un label nuevo, se comprueba si ya existe uno que sirva  
 - **Milestones** por semana del programa, para ver de un vistazo qué entra en cada una
 
-Las issues se abren con las plantillas de `.github/ISSUE_TEMPLATE/`.
+Las issues se abren con las plantillas de `.github/ISSUE_TEMPLATE/`. El título empieza por el grupo y un número correlativo dentro de él, a partir de 01: `server-01: Add OTP verification endpoint`. Los grupos son `client`, `server`, `devops`, `qa` y `docs`, y cada issue lleva también el label correspondiente (`documentation` para el grupo `docs`).
 
 ## Ramas
 

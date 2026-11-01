@@ -1,0 +1,43 @@
+name: Bug
+description: Something does not work as expected
+title: "group-NN: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        In the title, replace `group-NN` with the group and the next number in that group, for example `client-05`. Groups: `client`, `server`, `devops`, `qa`, `docs`. Add the group label too.
+
+        Do not include real phone numbers or other personal data: use the Vonage test numbers. To report a security vulnerability, use a private report instead of an issue (see `SECURITY.md`).
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      value: |
+        1.
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where
+      description: Journey, screen or endpoint.
+      placeholder: Journey A, step 5 (phone verification)
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Remove any personal data first.
+      render: text

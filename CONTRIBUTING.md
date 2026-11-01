@@ -32,7 +32,7 @@ We work with **Spec-Driven Development (SDD)**, so no feature starts with code:
 4. **Tasks**: the plan is broken down into issues in the GitHub Project  
 5. **Implementation**: every pull request links its issue and the spec it comes from
 
-If a relevant architectural decision comes up along the way, it is recorded as an ADR in `docs/adr/`, with its context, the decision, the discarded alternatives and its consequences.
+If a relevant architectural decision comes up along the way, it is recorded as an ADR in `docs/adr/`, with its context, the decision, the discarded alternatives and its consequences. ADRs are numbered in order (`0001-tech-stack.md`) and start from [`docs/adr/template.md`](docs/adr/template.md).
 
 ## Repository structure
 
@@ -78,10 +78,10 @@ secure-property-viewing/
 
 The GitHub Project is the single source of tasks. Every issue has an assignee and links to its spec.
 
-- **Labels** by type (`enhancement`, `bug`, `documentation`, `spec`, `adr`, `accessibility`) and by layer (`client`, `server`, `e2e`). Before creating a new label, check whether an existing one already fits  
+- **Labels** by type (`enhancement`, `bug`, `documentation`, `spec`, `adr`, `accessibility`) and by group (`client`, `server`, `devops`, `qa`, `e2e`). Before creating a new label, check whether an existing one already fits  
 - **Milestones** by program week, to see at a glance what goes into each one
 
-Issues are opened using the templates in `.github/ISSUE_TEMPLATE/`.
+Issues are opened using the templates in `.github/ISSUE_TEMPLATE/`. The title starts with the group and a sequential number within that group, beginning at 01: `server-01: Add OTP verification endpoint`. The groups are `client`, `server`, `devops`, `qa` and `docs`, and each issue also carries the matching label (`documentation` for the `docs` group).
 
 ## Branches
 

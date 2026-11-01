@@ -1,0 +1,43 @@
+name: Feature
+description: Functionality to build from an approved spec
+title: "group-NN: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        In the title, replace `group-NN` with the group and the next number in that group, for example `server-03`. Groups: `client`, `server`, `devops`, `qa`, `docs`. Add the group label too.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What needs to be built and why.
+    validations:
+      required: true
+  - type: input
+    id: spec
+    attributes:
+      label: Spec
+      description: Link to the approved spec in `specs/`.
+      placeholder: specs/otp-verification.md
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: Taken from the spec. Each one becomes at least one test.
+      value: |
+        - [ ]
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of scope
+      description: What this issue intentionally leaves out.
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Dependencies on other issues, open questions or useful links.
