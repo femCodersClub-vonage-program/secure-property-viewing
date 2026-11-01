@@ -78,7 +78,7 @@ secure-property-viewing/
 
 The GitHub Project is the single source of tasks. Every issue has an assignee and links to its spec.
 
-- **Labels** by type (`enhancement`, `bug`, `documentation`, `spec`, `adr`, `accessibility`) and by group (`client`, `server`, `devops`, `qa`, `e2e`). Before creating a new label, check whether an existing one already fits  
+- **Labels** by type (`enhancement`, `bug`, `documentation`, `spec`, `adr`, `accessibility`) and by group (`client`, `server`, `devops`, `qa`, `e2e`). `blocked` marks an issue that cannot move forward, with the reason in a comment. Before creating a new label, check whether an existing one already fits  
 - **Milestones** by program week, to see at a glance what goes into each one
 
 Issues are opened using the templates in `.github/ISSUE_TEMPLATE/`. The title starts with the group and a sequential number within that group, beginning at 01: `server-01: Add OTP verification endpoint`. The groups are `client`, `server`, `devops`, `qa` and `docs`, and each issue also carries the matching label (`documentation` for the `docs` group).
@@ -88,7 +88,7 @@ Issues are opened using the templates in `.github/ISSUE_TEMPLATE/`. The title st
 main  ◄──  dev  ◄──  each participant's branches
 
 - **`main`**: stable version. It only receives changes from `dev` when a milestone is closed  
-- **`dev`**: the team's integration branch  
+- **`dev`**: the team's integration branch and the repository's default branch  
 - **Working branches**: each participant creates their own from `dev`, named in English, such as `feature/otp-verification` or `fix/visit-reminder`
 
 `main` and `dev` are protected: direct pushes are not allowed, and changes are only accepted through pull requests, with the tech lead's review and continuous integration passing.
@@ -109,9 +109,12 @@ main  ◄──  dev  ◄──  each participant's branches
 
 - All pull requests target `dev`  
 - The description follows the repository template: what changes, why, what is intentionally left out, and how to test it  
+- The pull request links its issue with `Closes #n`, so the issue closes when it is merged  
 - `CODEOWNERS` automatically assigns the review to the tech lead  
 - If there is a debatable decision, it is explained in the description before someone finds it in the diff  
-- Reviews always distinguish blocking issues from suggestions
+- Reviews always distinguish blocking issues from suggestions  
+- Once the tech lead approves it, **the author merges the pull request into `dev`** with *Squash and merge*. The pull request title becomes the commit message. If new commits are pushed after the approval, the approval is dismissed and a new review is needed  
+- Only the tech lead merges `dev` into `main`, with a regular merge, when each milestone is closed
 
 ## Continuous integration
 
@@ -158,7 +161,7 @@ Throughout the mentoring sessions we will explore how to make the most of AI, an
 
 ## Changelog
 
-`CHANGELOG.md` is generated automatically with AI from Conventional Commits, so there is no need to edit it by hand. That is why every commit message should describe the change clearly.
+The tech lead generates `CHANGELOG.md` with AI from the commit history when each milestone is closed, so nobody edits it by hand. Since squash turns each pull request title into a commit, the title must follow Conventional Commits and describe the change clearly.
 
 ## Definition of Done
 

@@ -80,7 +80,7 @@ Los documentos de `docs/` están en inglés, siguiendo las convenciones del proy
 
 El GitHub Project es la única fuente de tareas. Cada issue tiene una persona asignada y enlaza la spec correspondiente.
 
-- **Labels** por tipo (`enhancement`, `bug`, `documentation`, `spec`, `adr`, `accessibility`) y por grupo (`client`, `server`, `devops`, `qa`, `e2e`). Antes de crear un label nuevo, se comprueba si ya existe uno que sirva  
+- **Labels** por tipo (`enhancement`, `bug`, `documentation`, `spec`, `adr`, `accessibility`) y por grupo (`client`, `server`, `devops`, `qa`, `e2e`). `blocked` marca una issue que no puede avanzar, con el motivo en un comentario. Antes de crear un label nuevo, se comprueba si ya existe uno que sirva  
 - **Milestones** por semana del programa, para ver de un vistazo qué entra en cada una
 
 Las issues se abren con las plantillas de `.github/ISSUE_TEMPLATE/`. El título empieza por el grupo y un número correlativo dentro de él, a partir de 01: `server-01: Add OTP verification endpoint`. Los grupos son `client`, `server`, `devops`, `qa` y `docs`, y cada issue lleva también el label correspondiente (`documentation` para el grupo `docs`).
@@ -90,7 +90,7 @@ Las issues se abren con las plantillas de `.github/ISSUE_TEMPLATE/`. El título 
 main  ◄──  dev  ◄──  ramas de cada participante
 
 - **`main`**: versión estable. Solo recibe cambios desde `dev` al cerrar cada hito  
-- **`dev`**: rama de integración del equipo  
+- **`dev`**: rama de integración del equipo y rama por defecto del repositorio  
 - **Ramas de trabajo**: cada participante crea las suyas desde `dev`, con nombres en inglés, como `feature/otp-verification` o `fix/visit-reminder`
 
 `main` y `dev` están protegidas: no admiten push directo y solo aceptan cambios mediante PR, con la revisión de la tech lead y la integración continua en verde.
@@ -111,9 +111,12 @@ main  ◄──  dev  ◄──  ramas de cada participante
 
 - Todas las PR van contra `dev`  
 - La descripción sigue la plantilla del repositorio: qué cambia, por qué, qué queda fuera y cómo probarlo  
+- La PR enlaza su issue con `Closes #n`, para que la issue se cierre al fusionarla  
 - `CODEOWNERS` asigna la revisión a la tech lead automáticamente  
 - Si hay una decisión discutible, se explica en la descripción antes de que alguien la encuentre en el diff  
-- En la revisión se distingue siempre lo bloqueante de las sugerencias
+- En la revisión se distingue siempre lo bloqueante de las sugerencias  
+- Cuando la tech lead la aprueba, **quien abrió la PR la fusiona en `dev`** con *Squash and merge*. El título de la PR pasa a ser el mensaje del commit. Si se suben commits después de la aprobación, la aprobación se descarta y hace falta una nueva revisión  
+- Solo la tech lead fusiona `dev` en `main`, con un merge normal, al cerrar cada hito
 
 ## Integración continua
 
@@ -160,7 +163,7 @@ A lo largo de las mentorías iremos viendo cómo sacarle partido a la IA, y esto
 
 ## Changelog
 
-El `CHANGELOG.md` se genera automáticamente con IA a partir de los Conventional Commits, así que no hace falta editarlo a mano. Por eso es importante que cada mensaje de commit describa bien el cambio.
+La tech lead genera el `CHANGELOG.md` con IA a partir del historial de commits al cerrar cada hito, así que nadie lo edita a mano. Como el squash convierte el título de cada PR en un commit, el título tiene que seguir Conventional Commits y describir bien el cambio.
 
 ## Definition of Done
 

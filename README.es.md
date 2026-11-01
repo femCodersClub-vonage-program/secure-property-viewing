@@ -97,8 +97,8 @@ Los documentos de `docs/` están en inglés, siguiendo las convenciones del proy
 <td>
 <strong>Irina Ichim</strong><br />
 Tech lead y mentora<br />
-<a href="https://www.linkedin.com/in/irina-ichim-desarrolladora/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
-<a href="https://github.com/Irina-Ichim"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="GitHub" /></a>
+<a href="https://www.linkedin.com/in/irina-ichim-desarrolladora/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="LinkedIn de Irina Ichim" /></a>
+<a href="https://github.com/Irina-Ichim"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="GitHub de Irina Ichim" /></a>
 </td>
 <td align="center" width="120">
 <a href="https://github.com/Nelicah"><img src="https://github.com/Nelicah.png" width="96" alt="Cande Zamora" /></a>
@@ -106,8 +106,8 @@ Tech lead y mentora<br />
 <td>
 <strong>Cande Zamora</strong><br />
 Participante<br />
-<a href="https://www.linkedin.com/in/cande-zamora-125301349/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
-<a href="https://github.com/Nelicah"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="GitHub" /></a>
+<a href="https://www.linkedin.com/in/cande-zamora-125301349/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="LinkedIn de Cande Zamora" /></a>
+<a href="https://github.com/Nelicah"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="GitHub de Cande Zamora" /></a>
 </td>
 <td align="center" width="120">
 <a href="https://github.com/may-leth"><img src="https://github.com/may-leth.png" width="96" alt="Mayleth Carrascal" /></a>
@@ -115,8 +115,8 @@ Participante<br />
 <td>
 <strong>Mayleth Carrascal</strong><br />
 Participante<br />
-<a href="https://www.linkedin.com/in/maylethcarrascal/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
-<a href="https://github.com/may-leth"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="GitHub" /></a>
+<a href="https://www.linkedin.com/in/maylethcarrascal/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="LinkedIn de Mayleth Carrascal" /></a>
+<a href="https://github.com/may-leth"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="GitHub de Mayleth Carrascal" /></a>
 </td>
 </tr>
 <tr>
@@ -126,18 +126,18 @@ Participante<br />
 <td>
 <strong>Kat Leverton</strong><br />
 Participante<br />
-<a href="https://www.linkedin.com/in/kat-leverton/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
-<a href="https://github.com/Kat-lev"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="GitHub" /></a>
+<a href="https://www.linkedin.com/in/kat-leverton/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="LinkedIn de Kat Leverton" /></a>
+<a href="https://github.com/Kat-lev"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="GitHub de Kat Leverton" /></a>
 </td>
 <td align="center" width="120">
-<img src="https://github.com/ghost.png" width="96" alt="Avatar provisional" />
+<img src="https://github.com/ghost.png" width="96" alt="" />
 </td>
 <td>
 <strong><em>Por confirmar</em></strong><br />
 Participante
 </td>
 <td align="center" width="120">
-<img src="https://github.com/ghost.png" width="96" alt="Avatar provisional" />
+<img src="https://github.com/ghost.png" width="96" alt="" />
 </td>
 <td>
 <strong><em>Por confirmar</em></strong><br />
