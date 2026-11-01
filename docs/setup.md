@@ -126,4 +126,5 @@ Open `http://localhost:5173`. Stop it with `Ctrl+C`.
 | `The server requested SCRAM-based authentication, but no password was provided` | `DB_PASSWORD` in `server/.env` is empty | Set it to the password from step 3, with no quotes or spaces |
 | `password authentication failed for user "peephole"` | `DB_PASSWORD` in `server/.env` does not match the password from step 3 | Fix the value in `server/.env` |
 | `database "peephole" does not exist` | Step 3 was not completed | Run the `createdb` command from step 3 |
+| `npm error code EBADENGINE` in `client/` | Your Node.js version is older than the one the project needs | Install a newer version (step 2) and run `npm ci` again |
 | `Connection refused` on port `5432` | PostgreSQL is not running | Windows: start the `postgresql-x64-17` service. macOS: `brew services start postgresql@17` |
