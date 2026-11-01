@@ -4,6 +4,25 @@ A web platform for remote property visits with anti-fraud verification, built wi
 
 Read [`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow, [ADR 0001](docs/adr/0001-tech-stack.md) for the stack and [ADR 0002](docs/adr/0002-deployment-railway.md) for the deployment on Railway.
 
+## Where files go
+
+Every file has a fixed place, so nothing is left lying around. The folder structure of each application is in [`client/AGENTS.md`](client/AGENTS.md#folder-structure) and [`server/AGENTS.md`](server/AGENTS.md#folder-structure).
+
+| What | Where |
+| :---- | :---- |
+| Specification of a feature | `specs/`, named after the feature in English and in kebab-case, such as `specs/visit-request.md` |
+| Architecture decision | `docs/adr/`, numbered from `docs/adr/template.md` |
+| Diagram | `docs/architecture/` |
+| Team guide, in Spanish | `docs/guides/` |
+| Image used in the documentation | `docs/images/` |
+| End-to-end test | `e2e/` |
+| AI agent | `.claude/agents/` |
+
+Never:
+
+- Add a file to the root of the repository. The root only holds `AGENTS.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `CONTRIBUTING.es.md`, `LICENSE`, `README.md`, `README.es.md`, `SECURITY.md` and the configuration files that start with a dot
+- Leave notes, drafts, exports or screenshots in the repository. If a document is worth keeping, it goes in its folder from the table above
+
 ## Language
 
 - Code, identifiers, comments, commit messages, branch names and documentation are in American English

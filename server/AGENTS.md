@@ -12,11 +12,43 @@ Run them from `server/`. On Windows, use `.\mvnw.cmd` instead of `./mvnw`.
 - Format the Java code: `./mvnw spotless:apply`
 - Start the server: `./mvnw spring-boot:run`
 
-## Code structure
+## Folder structure
 
-- Code is organized by feature, not by layer: `com.peephole.server.visit` holds the visit controller, service, repository, entity and DTOs
-- Cross-cutting configuration lives in `com.peephole.server.config`, like `CorsConfig`
-- Vonage is reached only through interfaces in `com.peephole.server.vonage`, such as a `PhoneVerifier`, so features never depend on the SDK directly and tests can use test doubles
+The server is organized by feature, like the client: everything one feature needs lives in one package.
+
+```text
+src/main/java/com/peephole/server/
+├── ServerApplication.java
+├── config/                    Cross-cutting configuration, such as CorsConfig
+├── common/                    Shared code, such as the @RestControllerAdvice for errors
+├── vonage/                    Interfaces to Vonage, such as PhoneVerifier, and their implementations
+└── visit/                     One package per business feature
+    ├── VisitController.java
+    ├── VisitService.java
+    ├── VisitRepository.java
+    ├── Visit.java             The JPA entity
+    └── dto/                   Request and response records, such as CreateVisitRequest
+src/main/resources/
+├── application.properties
+└── db/migration/              Flyway migrations
+src/test/java/com/peephole/server/
+└── visit/                     Tests mirror the main packages
+```
+
+Packages are created when the first class needs them: `common/`, `vonage/` and the feature packages do not exist yet.
+
+Always:
+
+- Name packages in English, lowercase and singular, such as `visit` or `listing`
+- Name classes after their feature and role: `VisitController`, `VisitService`, `VisitRepository`
+- Put each test in the same package as the class it tests, under `src/test/java`
+- Reach Vonage only through the interfaces in `vonage/`, so features never depend on the SDK directly and tests can use test doubles
+
+Never:
+
+- Create packages by layer at the top level, such as `controllers/`, `services/` or `repositories/`
+- Use another feature's repository or entity directly: call its service. Code shared by several features goes to `common/`
+- Add classes next to `ServerApplication.java`
 
 ## Java and Spring
 

@@ -15,12 +15,48 @@ Run them from `client/`.
 - Format: `npm run format`
 - Type-check and build: `npm run build`
 
-## Structure
+## Folder structure
 
-- A page lives in `src/pages/` and is registered in `src/routes.tsx`
-- A shared interface component lives in `src/components/ui/`, such as `Button`, `Link` or `Input`. The folder and the first components are created in the design system issue
-- Pages compose components; they do not style elements themselves
-- Calls to the server live in `src/api/`, one module per resource. It is created with the first API call
+The client is organized by feature: everything one feature needs lives in one folder, so two people working on different features do not touch the same files.
+
+```text
+src/
+├── main.tsx              Entry point
+├── routes.tsx            Every route, in one place
+├── routes.test.tsx       Its test, next to it
+├── index.css             The only stylesheet: the design tokens
+├── test-setup.ts         Test configuration
+├── pages/                One page per route. It only composes features and components
+│   └── VisitPage.tsx
+├── features/             One folder per business feature
+│   └── visits/
+│       ├── components/   Components used only by this feature
+│       ├── hooks/        Hooks used only by this feature, such as useVisit.ts
+│       ├── api.ts        This feature's calls to /api
+│       └── types.ts      This feature's types, such as Visit
+├── components/
+│   └── ui/               The design system: Button, Link, Input. No business logic
+├── lib/                  Generic helpers with no business logic, such as the HTTP client
+└── assets/               Images and fonts
+```
+
+Folders are created when the first file needs them: `features/`, `components/ui/`, `lib/` and `assets/` do not exist yet. `components/ui/` is created in the design system issue.
+
+Always:
+
+- Name folders in English, lowercase and with hyphens, such as `agency-dashboard`
+- Name components and pages in PascalCase, one per file, such as `VisitCard.tsx`, and hooks with `use`, such as `useVisit.ts`
+- Put a test next to the file it tests: `VisitCard.test.tsx` beside `VisitCard.tsx`
+- Register every page in `routes.tsx`
+- Make the HTTP calls of a feature in its `api.ts`, using the shared HTTP client in `lib/`
+- Move something to `components/ui/` or `lib/` when a second feature needs it
+
+Never:
+
+- Add files to the root of `src/` other than the ones above
+- Import from inside another feature, such as `features/listings/components/`. Shared code goes to `components/ui/` or `lib/`
+- Create folders by file type at the root of `src/`, such as `src/hooks/`, `src/types/` or `src/utils/`
+- Put business logic or calls to the server in `components/ui/`
 
 ## TypeScript
 
@@ -47,7 +83,7 @@ Always:
 - Function components and hooks
 - Derive values during render instead of copying them into state
 - Keep state in the closest component that needs it
-- Call the server only through `src/api/`, never with a `fetch` inside a component
+- Call the server only through the `api.ts` of a feature, never with a `fetch` inside a component
 - Show an explicit loading state and an explicit error state for every call to the server, so the screen never stays blank
 - Give every item in a list a stable `key` from the data, never the array index
 
