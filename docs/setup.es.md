@@ -43,6 +43,8 @@ El instalador no añade PostgreSQL al `PATH`. Añádelo con este comando y abre 
 
 ### macOS (Homebrew)
 
+> Los pasos de macOS todavía no se han probado. Si usas Mac y algún paso falla o algún comando cambia, corrígelo en esta guía y en `setup.md` en tu próxima pull request, para que a la siguiente persona no le pase lo mismo.
+
 ```bash
 brew install --cask temurin@21
 brew install node
