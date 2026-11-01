@@ -78,7 +78,7 @@ secure-property-viewing/
 
 The GitHub Project is the single source of tasks. Every issue has an assignee and links to its spec.
 
-- **Labels** by type (`enhancement`, `bug`, `documentation`, `spec`, `adr`, `accessibility`) and by group (`client`, `server`, `devops`, `qa`, `e2e`). Before creating a new label, check whether an existing one already fits  
+- **Labels** by type (`enhancement`, `bug`, `documentation`, `spec`, `adr`, `accessibility`) and by group (`client`, `server`, `devops`, `qa`, `e2e`). `blocked` marks an issue that cannot move forward, with the reason in a comment. Before creating a new label, check whether an existing one already fits  
 - **Milestones** by program week, to see at a glance what goes into each one
 
 Issues are opened using the templates in `.github/ISSUE_TEMPLATE/`. The title starts with the group and a sequential number within that group, beginning at 01: `server-01: Add OTP verification endpoint`. The groups are `client`, `server`, `devops`, `qa` and `docs`, and each issue also carries the matching label (`documentation` for the `docs` group).

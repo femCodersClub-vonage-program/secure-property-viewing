@@ -80,7 +80,7 @@ Los documentos de `docs/` están en inglés, siguiendo las convenciones del proy
 
 El GitHub Project es la única fuente de tareas. Cada issue tiene una persona asignada y enlaza la spec correspondiente.
 
-- **Labels** por tipo (`enhancement`, `bug`, `documentation`, `spec`, `adr`, `accessibility`) y por grupo (`client`, `server`, `devops`, `qa`, `e2e`). Antes de crear un label nuevo, se comprueba si ya existe uno que sirva  
+- **Labels** por tipo (`enhancement`, `bug`, `documentation`, `spec`, `adr`, `accessibility`) y por grupo (`client`, `server`, `devops`, `qa`, `e2e`). `blocked` marca una issue que no puede avanzar, con el motivo en un comentario. Antes de crear un label nuevo, se comprueba si ya existe uno que sirva  
 - **Milestones** por semana del programa, para ver de un vistazo qué entra en cada una
 
 Las issues se abren con las plantillas de `.github/ISSUE_TEMPLATE/`. El título empieza por el grupo y un número correlativo dentro de él, a partir de 01: `server-01: Add OTP verification endpoint`. Los grupos son `client`, `server`, `devops`, `qa` y `docs`, y cada issue lleva también el label correspondiente (`documentation` para el grupo `docs`).
