@@ -51,6 +51,10 @@ sequenceDiagram
 - **All communication with users goes through the server**, so every verification, message and visit is recorded and traceable  
 - **Vonage webhooks** notify the server of message status, so the agency dashboard reflects what actually happened
 
+## Deployment
+
+The client, the server and the database run on Railway as three separate services. The server is the only one with Vonage credentials, and its public URL is where Vonage sends the webhooks. The details are in [ADR 0002](../adr/0002-deployment-railway.md).
+
 ## Diagrams as code
 
 Diagrams are written in [Mermaid](https://mermaid.js.org/), which GitHub renders natively, and live in this folder. We generate them with the help of AI from the specs and ADRs, and they are reviewed in the pull request like any other change, because an outdated diagram is more confusing than having none at all.

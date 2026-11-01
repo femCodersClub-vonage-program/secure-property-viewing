@@ -1,0 +1,139 @@
+# Local setup
+
+🇪🇸 [Leer en español](setup.es.md)
+
+Everything you need to run Peephole on your own computer, step by step. Docker is not needed.
+
+Everyone uses the same PostgreSQL version, the same database name, the same database user and the same password for that user, so the project behaves the same on every machine. The tables are created by the Flyway migrations in `server/`, never by hand.
+
+## 1. Prerequisites
+
+| Tool | Version | Check it with |
+| :---- | :---- | :---- |
+| Git | Any recent version | `git --version` |
+| Java (JDK) | 21 | `java -version` |
+| Node.js | 22.22.2 or later | `node --version` |
+| PostgreSQL | 17 (any 17.x) | `psql --version` |
+
+If all four commands print the right version, skip to [step 3](#3-create-the-database).
+
+## 2. Install what is missing
+
+Open a new terminal after each installation so it picks up the new commands.
+
+### Windows (PowerShell)
+
+```powershell
+winget install EclipseAdoptium.Temurin.21.JDK
+winget install OpenJS.NodeJS.LTS
+winget install PostgreSQL.PostgreSQL.17 --interactive
+```
+
+The PostgreSQL installer opens a wizard:
+
+- Keep port `5432`
+- Choose your own password for the `postgres` superuser and keep it somewhere safe: you need it in step 3. This one is personal, not shared
+- Skip Stack Builder at the end
+
+The installer does not add PostgreSQL to your `PATH`. Add it with this command, then open a new terminal:
+
+```powershell
+[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path","User") + ";C:\Program Files\PostgreSQL\17\bin", "User")
+```
+
+### macOS (Homebrew)
+
+> The macOS steps have not been tested yet. If you use a Mac and a step fails or a command changes, fix it in this guide and in `setup.es.md` in your next pull request, so the next person does not run into the same problem.
+
+```bash
+brew install --cask temurin@21
+brew install node
+brew install postgresql@17
+brew services start postgresql@17
+echo 'export PATH="$(brew --prefix postgresql@17)/bin:$PATH"' >> ~/.zshrc
+```
+
+Open a new terminal afterwards. On macOS the PostgreSQL superuser is your own macOS user, not `postgres`, so leave out `-U postgres` in the next step.
+
+## 3. Create the database
+
+Create the `peephole` user and the `peephole` database it owns.
+
+The password for the `peephole` user is the same for the whole team and is kept in the team's shared Drive folder, which the tech lead shares with you. It is never written in the repository.
+
+```bash
+createuser -U postgres --pwprompt peephole
+createdb -U postgres --owner peephole peephole
+```
+
+The first command asks twice for the new user's password: type the shared one from the Drive folder. Then it may ask for your own `postgres` password from step 2.
+
+Check that you can connect as the new user:
+
+```bash
+psql -U peephole -d peephole -c "select version();"
+```
+
+It should print `PostgreSQL 17`.
+
+## 4. Configure the server
+
+The server reads its secrets from `server/.env`, which is never committed. Create it from the template:
+
+```bash
+cd server
+cp .env.example .env
+```
+
+On Windows PowerShell, use `copy` instead of `cp`.
+
+Open `server/.env` and replace the three placeholders:
+
+| Variable | Value |
+| :---- | :---- |
+| `DB_URL` | `jdbc:postgresql://localhost:5432/peephole` |
+| `DB_USERNAME` | `peephole` |
+| `DB_PASSWORD` | The shared password from the Drive folder |
+
+## 5. Run the server
+
+From `server/`, build it and run the tests:
+
+```bash
+./mvnw verify
+```
+
+On Windows, use `.\mvnw.cmd` instead of `./mvnw`. The first run takes a few minutes because Maven downloads its dependencies.
+
+Start it:
+
+```bash
+./mvnw spring-boot:run
+```
+
+It runs on `http://localhost:8080`. Stop it with `Ctrl+C`.
+
+## 6. Run the client
+
+From `client/`, install the exact dependency versions from `package-lock.json` and start the development server:
+
+```bash
+cd client
+npm ci
+npm run dev
+```
+
+Open `http://localhost:5173`. Stop it with `Ctrl+C`.
+
+## Troubleshooting
+
+| What you see | Cause | Fix |
+| :---- | :---- | :---- |
+| `psql`, `createuser` or `createdb` is not recognized | PostgreSQL is not in your `PATH` | Repeat the `PATH` step for your system and open a new terminal |
+| `Could not resolve placeholder 'DB_URL'` | `server/.env` is missing or you ran the server from another folder | Create `server/.env` (step 4) and run the commands from `server/` |
+| `'url' must start with "jdbc"` | `server/.env` still has the placeholders from `.env.example` | Replace them with the values from step 4 |
+| `The server requested SCRAM-based authentication, but no password was provided` | `DB_PASSWORD` in `server/.env` is empty | Set it to the shared password, with no quotes or spaces |
+| `password authentication failed for user "peephole"` | `DB_PASSWORD` in `server/.env` does not match the password of the `peephole` user | Check that both are the shared password from the Drive folder |
+| `database "peephole" does not exist` | Step 3 was not completed | Run the `createdb` command from step 3 |
+| `npm error code EBADENGINE` in `client/` | Your Node.js version is older than the one the project needs | Install a newer version (step 2) and run `npm ci` again |
+| `Connection refused` on port `5432` | PostgreSQL is not running | Windows: start the `postgresql-x64-17` service. macOS: `brew services start postgresql@17` |

@@ -14,7 +14,7 @@ You review a contributor's branch in the Peephole repository before they open a 
 2. The changes on the branch: run `git fetch origin dev`, then `git diff origin/dev...HEAD --name-only` and `git diff origin/dev...HEAD`.
 3. The spec linked from the issue, if any, in `specs/`.
 
-Never read `.env`, `.env.*`, `.vonagerc` or `*.key`.
+Never read `.env`, any `.env.*` file other than `.env.example`, `.vonagerc` or `*.key`.
 
 ## 1. Scope
 
@@ -33,10 +33,12 @@ Suggest an update only when the change requires one. For each change, decide wit
 | Adds or changes how a Vonage API is used | `docs/vonage.md` |
 | Adds or changes a component, a data flow or an integration | The Mermaid diagrams in `docs/architecture/` |
 | Makes an architecture, dependency or security decision | A new ADR in `docs/adr/` |
-| Adds or changes setup steps, commands or environment variables | `README.md` and `README.es.md`, `docs/setup.md`, `.env.example` (variable names only) |
+| Adds or changes setup steps, commands or environment variables | `README.md` and `README.es.md`, `docs/setup.md` and `docs/setup.es.md`, `.env.example` (variable names only) |
 | Changes the workflow or the conventions | `CONTRIBUTING.md` and `CONTRIBUTING.es.md` |
 | Changes instructions the AI assistants must follow | The relevant `AGENTS.md` |
-| Solves a problem the rest of the team will run into too | A new guide in `docs/guides/` |
+| Solves a problem the rest of the team will run into too | A new guide in `docs/guides/`, in Spanish |
+
+Every `.env.example` uses placeholder values only, such as `your_database_user`. A real value or a hint, such as a host, a port, a database name or a user name, is a blocking finding: the real values belong in `docs/setup.md` and `docs/setup.es.md`.
 
 No documentation is needed for internal refactors without behavior changes, tests only, or formatting. Say so explicitly, with the reason, so the contributor knows you checked.
 
@@ -44,10 +46,14 @@ Never suggest editing `CHANGELOG.md`: the tech lead generates it when each miles
 
 ## 3. Language
 
-All repository content is in American English: code, identifiers, comments, commit messages, branch names, documentation and the pull request title.
+All repository content is in American English: code, identifiers, comments, commit messages, branch names, documentation and the pull request title. There are two exceptions:
 
-- `README.es.md` and `CONTRIBUTING.es.md` are the only files in Spanish, and they must stay in Spanish
-- If `README.md` or `CONTRIBUTING.md` changed, its Spanish version must change in the same pull request, and the other way round. Leaving it for a later change is not allowed: report it as a blocking finding
+- Files ending in `.es.md`, such as `README.es.md`, `CONTRIBUTING.es.md` and `docs/setup.es.md`, are the Spanish versions of their English file. They must stay in Spanish
+- `docs/guides/` is written in Spanish only, with no English version. Flag a guide written in English
+
+Also check that:
+
+- If a file that has a `.es.md` version changed, its Spanish version must change in the same pull request, and the other way round. Leaving it for a later change is not allowed: report it as a blocking finding
 - The domain term is **Visit** (`Visit` in code, *visit* in the interface and docs). Flag *viewing*, *showing* or *tour* used for the same concept
 - Flag British spellings such as *behaviour* or *colour*
 

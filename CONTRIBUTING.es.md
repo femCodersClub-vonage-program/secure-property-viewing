@@ -18,9 +18,10 @@ Algunas de estas prácticas son estándar en la industria, y otras las mantenemo
 8. [Testing](#testing)  
 9. [IA en el proyecto: agentes, skills y tools](#ia-en-el-proyecto-agentes-skills-y-tools)  
 10. [Convenciones](#convenciones)  
-11. [Changelog](#changelog)  
-12. [Definition of Done](#definition-of-done)  
-13. [Seguimiento y dudas](#seguimiento-y-dudas)
+11. [Migraciones de base de datos](#migraciones-de-base-de-datos)  
+12. [Changelog](#changelog)  
+13. [Definition of Done](#definition-of-done)  
+14. [Seguimiento y dudas](#seguimiento-y-dudas)
 
 ## Del problema al código
 
@@ -44,25 +45,27 @@ secure-property-viewing/
 │   └── settings.json            # Permisos y archivos excluidos para la IA
 ├── .github/
 │   ├── ISSUE_TEMPLATE/          # Plantillas de issues
+│   ├── scripts/                 # Scripts que ejecuta el CI, como la comprobación de las reglas de migraciones
 │   ├── workflows/               # Integración continua con GitHub Actions
 │   ├── CODEOWNERS               # Revisión asignada automáticamente
 │   └── PULL_REQUEST_TEMPLATE.md # Plantilla de pull requests
 ├── client/
 │   └── AGENTS.md                # Instrucciones específicas del cliente
 ├── server/
+│   ├── .env.example             # Plantilla de variables de entorno del servidor, sin valores reales
 │   └── AGENTS.md                # Instrucciones específicas del servidor
 ├── e2e/                         # Tests end-to-end de los recorridos
 ├── specs/                       # Especificaciones de cada funcionalidad
 ├── docs/
 │   ├── adr/                     # Decisiones de arquitectura
 │   ├── architecture/            # Visión general y diagramas en Mermaid
-│   ├── guides/                  # Guías sobre problemas comunes del equipo
+│   ├── guides/                  # Guías sobre problemas comunes del equipo, en español
 │   ├── images/                  # Imágenes de la documentación
 │   ├── presentations/           # Presentaciones del proyecto
+│   ├── setup.md                 # Puesta en marcha en local, paso a paso (setup.es.md en español)
 │   ├── user-journeys.md         # Recorridos de la aplicación, paso a paso
 │   └── vonage.md                # APIs y herramientas de Vonage
 ├── .editorconfig                # Formato común entre editores
-├── .env.example                 # Plantilla de variables de entorno, sin valores reales
 ├── .gitignore
 ├── AGENTS.md                    # Instrucciones generales del proyecto
 ├── CHANGELOG.md                 # Registro de cambios, generado automáticamente
@@ -120,7 +123,7 @@ main  ◄──  dev  ◄──  ramas de cada participante
 
 ## Integración continua
 
-Cada PR ejecuta en GitHub Actions el lint, el formateo y los tests. Si es viable, también lanzará los agentes de revisión, para que ese paso no dependa solo de que cada persona lo haga en local.
+Cada PR ejecuta [`.github/workflows/ci.yml`](.github/workflows/ci.yml) en GitHub Actions: el lint, el formato, los tests y la compilación del cliente, el formato, la compilación y los tests del servidor contra una base de datos PostgreSQL vacía, y la comprobación de las [reglas de migraciones](#migraciones-de-base-de-datos). Si es viable, también lanzará los agentes de revisión, para que ese paso no dependa solo de que cada persona lo haga en local.
 
 ## Testing
 
@@ -132,7 +135,7 @@ Cada funcionalidad se entrega con sus tests, y los criterios de aceptación de l
 | **Integración** | Endpoints del servidor y su relación con la base de datos y con Vonage, usando dobles de prueba en lugar de llamadas reales |
 | **End-to-end** | Los recorridos completos de la aplicación, desde el punto de vista de quien la usa |
 
-Estamos valorando trabajar con **TDD** en la lógica de negocio. Las herramientas de testing se decidirán junto con el stack.
+Estamos valorando trabajar con **TDD** en la lógica de negocio. El servidor se prueba con JUnit, Spring Boot Test y Mockito, y el cliente con Vitest y Testing Library, según el [ADR 0001](docs/adr/0001-tech-stack.md). Los tests de integración se lanzan contra una base de datos PostgreSQL real, nunca contra un sustituto en memoria.
 
 ## IA en el proyecto: agentes, skills y tools
 
@@ -156,10 +159,21 @@ A lo largo de las mentorías iremos viendo cómo sacarle partido a la IA, y esto
 ## Convenciones
 
 - `.editorconfig` para que todos los editores compartan indentación, finales de línea y codificación  
-- Linter y formatter comunes, que se concretarán junto con el stack  
+- oxlint y Prettier en `client/`, y Spotless con palantir-java-format en `server/`. Formatea antes de cada commit con `npm run format` o `./mvnw spotless:apply`: el CI falla si el código no está formateado  
 - Commits siguiendo [Conventional Commits](https://www.conventionalcommits.org/), por ejemplo `feat(server): add OTP verification endpoint`  
-- Código, identificadores, nombres de rama y documentación en inglés americano. El README y esta guía tienen también versión en español, así que cualquier cambio en un idioma se lleva al otro en la misma pull request  
+- Código, identificadores, nombres de rama y documentación en inglés americano. El README, esta guía y las guías paso a paso que sigue todo el equipo, como [`docs/setup.es.md`](docs/setup.es.md), tienen también versión en español terminada en `.es.md`, así que cualquier cambio en un idioma se lleva al otro en la misma pull request. Las guías del equipo de [`docs/guides/`](docs/guides/README.md) son la excepción: se escriben solo en español  
 - **Visit** es el término del dominio para la visita por vídeo a un inmueble: `Visit` en el código y *visit* en la interfaz y la documentación. No usamos *viewing*, *showing* ni *tour*, para que un mismo concepto no tenga dos nombres
+
+## Migraciones de base de datos
+
+El esquema de la base de datos solo cambia mediante migraciones de Flyway en `server/src/main/resources/db/migration/`. Si dos personas cambian la base de datos a la vez, es fácil que choquen, así que seguimos cuatro reglas:
+
+- **Avisarlo en el plan técnico.** Si una funcionalidad crea o cambia una tabla, su plan técnico dice qué tabla y qué columnas. Los solapamientos se ven en la revisión, antes de que nadie escriba código  
+- **Nombrar las migraciones con la fecha y la hora en UTC**, como `V20261101_1430__create_visits_table.sql`. Es difícil que dos ramas coincidan en el mismo minuto, mientras que con números seguidos como `V3` y `V4` chocan constantemente  
+- **No editar nunca una migración que ya esté en `dev`.** Flyway guarda una huella (checksum) de cada migración aplicada y se niega a arrancar si alguna cambia. Para corregir algo, se añade una migración nueva  
+- **Antes de hacer merge, actualizar la rama desde `dev`.** Si tu migración es más antigua que la más reciente de `dev`, renómbrala con la fecha y hora actuales, o Flyway la dará por desordenada
+
+El CI comprueba estas reglas en cada pull request y falla si se incumple alguna. La guía [`docs/guides/flyway-migrations.md`](docs/guides/flyway-migrations.md) explica cómo crear una migración y cómo salir de los errores más habituales.
 
 ## Changelog
 

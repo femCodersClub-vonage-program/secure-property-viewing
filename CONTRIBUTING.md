@@ -18,9 +18,10 @@ Some of these practices are industry standard, and others we keep for their lear
 8. [Testing](#testing)  
 9. [AI in the project: agents, skills and tools](#ai-in-the-project-agents-skills-and-tools)  
 10. [Conventions](#conventions)  
-11. [Changelog](#changelog)  
-12. [Definition of Done](#definition-of-done)  
-13. [Follow-up and questions](#follow-up-and-questions)
+11. [Database migrations](#database-migrations)  
+12. [Changelog](#changelog)  
+13. [Definition of Done](#definition-of-done)  
+14. [Follow-up and questions](#follow-up-and-questions)
 
 ## From problem to code
 
@@ -44,25 +45,27 @@ secure-property-viewing/
 │   └── settings.json            # Permissions and files excluded from AI
 ├── .github/
 │   ├── ISSUE_TEMPLATE/          # Issue templates
+│   ├── scripts/                 # Scripts the CI runs, such as the migration rule checks
 │   ├── workflows/               # Continuous integration with GitHub Actions
 │   ├── CODEOWNERS               # Automatically assigned review
 │   └── PULL_REQUEST_TEMPLATE.md # Pull request template
 ├── client/
 │   └── AGENTS.md                # Client-specific instructions
 ├── server/
+│   ├── .env.example             # Server environment variables template, with no real values
 │   └── AGENTS.md                # Server-specific instructions
 ├── e2e/                         # End-to-end tests of the user journeys
 ├── specs/                       # Specification for each feature
 ├── docs/
 │   ├── adr/                     # Architecture decisions
 │   ├── architecture/            # Architecture overview and Mermaid diagrams
-│   ├── guides/                  # Guides on problems the whole team runs into
+│   ├── guides/                  # Guides on problems the whole team runs into, in Spanish
 │   ├── images/                  # Images used in the documentation
 │   ├── presentations/           # Project presentations
+│   ├── setup.md                 # Local setup, step by step (setup.es.md in Spanish)
 │   ├── user-journeys.md         # User journeys, step by step
 │   └── vonage.md                # Vonage APIs and developer tools
 ├── .editorconfig                # Shared formatting across editors
-├── .env.example                 # Environment variables template, with no real values
 ├── .gitignore
 ├── AGENTS.md                    # General project instructions
 ├── CHANGELOG.md                 # Change log, generated automatically
@@ -118,7 +121,7 @@ main  ◄──  dev  ◄──  each participant's branches
 
 ## Continuous integration
 
-Every pull request runs linting, formatting and tests in GitHub Actions. If feasible, it will also run the review agents, so that step does not rely solely on each person running it locally.
+Every pull request runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml) in GitHub Actions: linting, formatting, testing and building the client, formatting, building and testing the server against an empty PostgreSQL database, and checking the [database migration rules](#database-migrations). If feasible, it will also run the review agents, so that step does not rely solely on each person running it locally.
 
 ## Testing
 
@@ -130,7 +133,7 @@ Every feature is delivered with its tests, and the acceptance criteria in the sp
 | **Integration** | Server endpoints and their interaction with the database and with Vonage, using test doubles instead of real calls |
 | **End-to-end** | The complete user journeys, from the point of view of the person using the application |
 
-We are considering working with **TDD** on the business logic. The testing tools will be decided together with the stack.
+We are considering working with **TDD** on the business logic. The server is tested with JUnit, Spring Boot Test and Mockito, and the client with Vitest and Testing Library, as decided in [ADR 0001](docs/adr/0001-tech-stack.md). Integration tests run against a real PostgreSQL database, never an in-memory replacement.
 
 ## AI in the project: agents, skills and tools
 
@@ -154,10 +157,21 @@ Throughout the mentoring sessions we will explore how to make the most of AI, an
 ## Conventions
 
 - `.editorconfig` so every editor shares indentation, line endings and encoding  
-- A shared linter and formatter, to be defined together with the stack  
+- oxlint and Prettier in `client/`, and Spotless with palantir-java-format in `server/`. Format before committing with `npm run format` or `./mvnw spotless:apply`: the CI fails on unformatted code  
 - Commits following [Conventional Commits](https://www.conventionalcommits.org/), for example `feat(server): add OTP verification endpoint`  
-- Code, identifiers, branch names and documentation in American English. The README and this guide also have a Spanish version, so any change to one language goes to the other in the same pull request  
+- Code, identifiers, branch names and documentation in American English. The README, this guide and the step-by-step guides the whole team follows, such as [`docs/setup.md`](docs/setup.md), also have a Spanish version ending in `.es.md`, so any change to one language goes to the other in the same pull request. The team guides in [`docs/guides/`](docs/guides/README.md) are the exception: they are written in Spanish only  
 - **Visit** is the domain term for a video visit to a property: `Visit` in the code, *visit* in the interface and the documentation. We do not use *viewing*, *showing* or *tour*, so the same concept never has two names
+
+## Database migrations
+
+The database schema only changes through Flyway migrations in `server/src/main/resources/db/migration/`. Two people changing the database at the same time can easily collide, so we follow four rules:
+
+- **Announce it in the technical plan.** If a feature creates or changes a table, its technical plan says which table and which columns. Overlaps show up in the review, before anyone writes code  
+- **Name migrations with the date and time in UTC**, such as `V20261101_1430__create_visits_table.sql`. Two branches rarely pick the same minute, whereas sequential numbers like `V3` and `V4` collide all the time  
+- **Never edit a migration that is already in `dev`.** Flyway stores a checksum of every applied migration and refuses to start if one changes. To fix something, add a new migration  
+- **Before merging, update your branch from `dev`.** If your migration is older than the newest one in `dev`, rename it with the current date and time, or Flyway will report it as out of order
+
+The CI checks these rules on every pull request and fails if one is broken. The guide [`docs/guides/flyway-migrations.md`](docs/guides/flyway-migrations.md) (in Spanish) explains how to create a migration and how to get out of the most common errors.
 
 ## Changelog
 

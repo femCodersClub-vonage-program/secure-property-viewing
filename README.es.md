@@ -2,9 +2,13 @@
 
 🇬🇧 [Read in English](README.md)
 
+[![Estado del CI en dev](https://img.shields.io/github/actions/workflow/status/femCodersClub-vonage-program/secure-property-viewing/ci.yml?branch=dev&label=CI%20dev&logo=githubactions&logoColor=white&labelColor=1f2937&style=flat-square)](https://github.com/femCodersClub-vonage-program/secure-property-viewing/actions/workflows/ci.yml?query=branch%3Adev)
+[![Estado del CI en main](https://img.shields.io/github/actions/workflow/status/femCodersClub-vonage-program/secure-property-viewing/ci.yml?branch=main&label=CI%20main&logo=githubactions&logoColor=white&labelColor=1f2937&style=flat-square)](https://github.com/femCodersClub-vonage-program/secure-property-viewing/actions/workflows/ci.yml?query=branch%3Amain)
+[![Licencia MIT](https://img.shields.io/badge/license-MIT-1f2937?style=flat-square)](LICENSE)
+
 Plataforma web de visitas de pisos en remoto con verificación antiestafa, desarrollada con las APIs de Vonage dentro del programa de proyectos y mentorías de **FemCoders Club con Vonage**.
 
-> Estado: borrador inicial. Las APIs de Vonage están decididas y el stack tecnológico se cerrará en equipo.
+> Estado: borrador inicial. Las APIs de Vonage están decididas y el stack tecnológico está decidido en el [ADR 0001](docs/adr/0001-tech-stack.md).
 
 ## Índice
 
@@ -52,6 +56,10 @@ El programa dura seis semanas, así que el MVP se centra en lo que da sentido al
 
 ## Qué resuelve y cómo integramos Vonage
 
+[![Vonage Verify API](https://img.shields.io/badge/Verify%20API-1f2937?logo=vonage&logoColor=white&style=for-the-badge)](docs/vonage.md#verify-api)
+[![Vonage Video API](https://img.shields.io/badge/Video%20API-1f2937?logo=vonage&logoColor=white&style=for-the-badge)](docs/vonage.md#video-api)
+[![Vonage Messages API](https://img.shields.io/badge/Messages%20API-1f2937?logo=vonage&logoColor=white&style=for-the-badge)](docs/vonage.md#messages-api)
+
 | Vector de fraude | Riesgo | Módulo de Vonage que lo mitiga |
 | :---- | :---- | :---- |
 | **Anuncio fantasma o identidad falsa**: anunciante con número desechable o bot | Anunciante no verificado: no se sabe si la persona es real o usa un número temporal | **Verify API**: OTP por SMS para verificar el teléfono del anunciante, con Silent Authentication como evolución |
@@ -63,27 +71,49 @@ Cómo usamos cada API, y los SDK, el CLI y los servidores MCP de Vonage que apoy
 
 ## Stack tecnológico
 
-Por definir en equipo. Lo único cerrado es la capa de comunicaciones con Vonage, y la versión concreta del Server SDK dependerá del lenguaje que elijamos para `server/`.
+![React](https://img.shields.io/badge/React-1f2937?logo=react&logoColor=white&style=for-the-badge)
+![TypeScript](https://img.shields.io/badge/TypeScript-1f2937?logo=typescript&logoColor=white&style=for-the-badge)
+![Vite](https://img.shields.io/badge/Vite-1f2937?logo=vite&logoColor=white&style=for-the-badge)
+![React Router](https://img.shields.io/badge/React%20Router-1f2937?logo=reactrouter&logoColor=white&style=for-the-badge)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-1f2937?logo=tailwindcss&logoColor=white&style=for-the-badge)
+![Vitest](https://img.shields.io/badge/Vitest-1f2937?logo=vitest&logoColor=white&style=for-the-badge)
+![Java](https://img.shields.io/badge/Java-1f2937?logo=openjdk&logoColor=white&style=for-the-badge)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-1f2937?logo=springboot&logoColor=white&style=for-the-badge)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-1f2937?logo=postgresql&logoColor=white&style=for-the-badge)
+![Flyway](https://img.shields.io/badge/Flyway-1f2937?logo=flyway&logoColor=white&style=for-the-badge)
+![Railway](https://img.shields.io/badge/Railway-1f2937?logo=railway&logoColor=white&style=for-the-badge)
 
-La decisión quedará registrada en el primer ADR. La [arquitectura](docs/architecture/README.md) de alto nivel ya está definida y es independiente del stack.
+| Capa | Tecnología |
+| :---- | :---- |
+| `client/` | React 19, TypeScript 7, Vite 8, React Router 8 y Tailwind CSS 4, con oxlint, Prettier y Vitest |
+| `server/` | Java 21, Spring Boot 4.1 y Maven, con Spotless |
+| Base de datos | PostgreSQL 17 con migraciones de Flyway |
+| Comunicaciones | Vonage, mediante el Java Server SDK y el Video Client SDK |
+| Despliegue | Railway, con el cliente, el servidor y PostgreSQL como servicios separados |
+
+Los motivos, las alternativas descartadas y lo que se sacrifica están en el [ADR 0001](docs/adr/0001-tech-stack.md), y el despliegue en el [ADR 0002](docs/adr/0002-deployment-railway.md) (los dos en inglés). La [arquitectura](docs/architecture/README.md) de alto nivel es independiente del stack.
 
 ## Cómo trabajamos
 
-Trabajamos con Spec-Driven Development, registramos las decisiones técnicas como ADR, gestionamos las tareas en un GitHub Project e integramos cada cambio mediante pull requests revisadas contra `dev`. La IA forma parte del trabajo diario, con su propia configuración y sus reglas versionadas en el repositorio.
+[![Tablero del GitHub Project](https://img.shields.io/badge/GitHub%20Project-board-1f2937?logo=github&logoColor=white&style=flat-square)](https://github.com/orgs/femCodersClub-vonage-program/projects/3)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-1f2937?logo=conventionalcommits&logoColor=white&style=flat-square)](https://www.conventionalcommits.org/)
+
+Trabajamos con Spec-Driven Development, registramos las decisiones técnicas como ADR, gestionamos las tareas en un [GitHub Project](https://github.com/orgs/femCodersClub-vonage-program/projects/3) e integramos cada cambio mediante pull requests revisadas contra `dev`. La IA forma parte del trabajo diario, con su propia configuración y sus reglas versionadas en el repositorio.
 
 El flujo completo, la estructura del repositorio, la estrategia de testing, cómo usamos la IA y la Definition of Done están en [`CONTRIBUTING.es.md`](CONTRIBUTING.es.md).
 
 ## Documentación
 
-Los documentos de `docs/` están en inglés, siguiendo las convenciones del proyecto.
+Los documentos de `docs/` están en inglés, siguiendo las convenciones del proyecto, con dos excepciones en español: la guía de puesta en marcha, que tiene las dos versiones, y las guías del equipo de `docs/guides/`.
 
 | Documento | Contenido |
 | :---- | :---- |
+| [`docs/setup.es.md`](docs/setup.es.md) | Cómo poner en marcha el proyecto en tu ordenador, paso a paso |
 | [`docs/user-journeys.md`](docs/user-journeys.md) | Los recorridos de visitante, propietaria y panel de la agencia, paso a paso |
 | [`docs/vonage.md`](docs/vonage.md) | APIs y herramientas de Vonage para el desarrollo |
 | [`docs/architecture/`](docs/architecture/README.md) | Diagramas de arquitectura, flujo principal y principios de diseño |
 | [`docs/adr/`](docs/adr/) | Decisiones de arquitectura del proyecto |
-| [`docs/guides/`](docs/guides/README.md) | Guías breves sobre problemas con los que se encuentra todo el equipo |
+| [`docs/guides/`](docs/guides/README.md) | Guías breves sobre problemas con los que se encuentra todo el equipo, escritas en español |
 | [`docs/presentations/`](docs/presentations/) | Presentaciones del proyecto, como la de la sesión de mentoría [«¿Anuncio real o estafa?»](docs/presentations/real-listing-or-scam.pdf) (en inglés) |
 | [`CONTRIBUTING.es.md`](CONTRIBUTING.es.md) | Flujo de trabajo, convenciones, testing, uso de la IA y estructura del repositorio |
 
@@ -153,7 +183,7 @@ Proyecto desarrollado en el programa de **FemCoders Club** con el apoyo de **Von
 La aplicación trabaja con números de teléfono, así que aunque sea un proyecto de portfolio lo tratamos con el mismo cuidado que uno real:
 
 - Durante el desarrollo solo se usan **datos de prueba**: teléfonos del propio equipo con su consentimiento o los números de prueba de Vonage  
-- Las credenciales nunca se suben al repositorio: `.env` está en `.gitignore` y `.env.example` solo recoge los nombres de las variables  
+- Las credenciales nunca se suben al repositorio: `.env` está en `.gitignore` y `.env.example` solo recoge los nombres de las variables, con valores de ejemplo y sin pistas como hosts, usuarios o nombres de bases de datos  
 - Los archivos sensibles quedan excluidos del alcance de los asistentes de IA en `.claude/settings.json`  
 - Si encuentras una vulnerabilidad, la forma de reportarla está en [`SECURITY.md`](SECURITY.md)
 

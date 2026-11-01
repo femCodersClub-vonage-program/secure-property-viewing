@@ -5,14 +5,14 @@
       "Bash(gh issue view *)"
     ],
     "deny": [
-      "Read(.env)",
-      "Read(.env.local)",
-      "Read(.env.development)",
-      "Read(.env.production)",
-      "Read(.env.test)",
-      "Read(.env.*.local)",
-      "Read(.vonagerc)",
-      "Read(*.key)"
+      "Read(**/.env)",
+      "Read(**/.env.local)",
+      "Read(**/.env.development)",
+      "Read(**/.env.production)",
+      "Read(**/.env.test)",
+      "Read(**/.env.*.local)",
+      "Read(**/.vonagerc)",
+      "Read(**/*.key)"
     ]
   }
 }
