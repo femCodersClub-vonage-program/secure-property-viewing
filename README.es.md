@@ -4,7 +4,7 @@
 
 Plataforma web de visitas de pisos en remoto con verificación antiestafa, desarrollada con las APIs de Vonage dentro del programa de proyectos y mentorías de **FemCoders Club con Vonage**.
 
-> Estado: borrador inicial. Las APIs de Vonage están decididas y el stack tecnológico se cerrará en equipo.
+> Estado: borrador inicial. Las APIs de Vonage están decididas y el stack tecnológico está propuesto en el [ADR 0001](docs/adr/0001-tech-stack.md).
 
 ## Índice
 
@@ -63,9 +63,14 @@ Cómo usamos cada API, y los SDK, el CLI y los servidores MCP de Vonage que apoy
 
 ## Stack tecnológico
 
-Por definir en equipo. Lo único cerrado es la capa de comunicaciones con Vonage, y la versión concreta del Server SDK dependerá del lenguaje que elijamos para `server/`.
+| Capa | Tecnología |
+| :---- | :---- |
+| `client/` | React 19, TypeScript 7, Vite 8, Tailwind CSS 4 y oxlint |
+| `server/` | Java 21, Spring Boot 4.1 y Maven |
+| Base de datos | PostgreSQL 17 con migraciones de Flyway |
+| Comunicaciones | Vonage, mediante el Java Server SDK y el Video Client SDK |
 
-La decisión quedará registrada en el primer ADR. La [arquitectura](docs/architecture/README.md) de alto nivel ya está definida y es independiente del stack.
+Los motivos, las alternativas descartadas y lo que se sacrifica están en el [ADR 0001](docs/adr/0001-tech-stack.md) (en inglés). La [arquitectura](docs/architecture/README.md) de alto nivel es independiente del stack.
 
 ## Cómo trabajamos
 

@@ -4,7 +4,7 @@
 
 A web platform for remote property visits with anti-fraud verification, built with Vonage APIs as part of the **FemCoders Club with Vonage** projects and mentoring program.
 
-> Status: initial draft. The Vonage APIs have been chosen, and the tech stack will be agreed as a team.
+> Status: initial draft. The Vonage APIs have been chosen, and the tech stack is proposed in [ADR 0001](docs/adr/0001-tech-stack.md).
 
 ## Table of contents
 
@@ -63,9 +63,14 @@ How we use each API, and the Vonage SDKs, CLI and MCP servers that support devel
 
 ## Tech stack
 
-To be agreed as a team. The only settled part is the communications layer with Vonage, and the specific Server SDK version will depend on the language we choose for `server/`.
+| Layer | Technology |
+| :---- | :---- |
+| `client/` | React 19, TypeScript 7, Vite 8, Tailwind CSS 4 and oxlint |
+| `server/` | Java 21, Spring Boot 4.1 and Maven |
+| Database | PostgreSQL 17 with Flyway migrations |
+| Communications | Vonage, through the Java Server SDK and the Video Client SDK |
 
-The decision will be recorded in the first ADR. The high-level [architecture](docs/architecture/README.md) is already defined and independent of the stack.
+The reasons, the alternatives we discarded and the trade-offs are in [ADR 0001](docs/adr/0001-tech-stack.md). The high-level [architecture](docs/architecture/README.md) is independent of the stack.
 
 ## How we work
 
