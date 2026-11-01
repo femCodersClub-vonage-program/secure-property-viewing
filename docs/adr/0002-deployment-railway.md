@@ -26,6 +26,7 @@ We deploy on [Railway](https://railway.com), in one project with three services:
   | `DB_URL` | `jdbc:postgresql://${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}` |
   | `DB_USERNAME` | `${{Postgres.PGUSER}}` |
   | `DB_PASSWORD` | `${{Postgres.PGPASSWORD}}` |
+  | `CORS_ALLOWED_ORIGINS` | `https://${{client.RAILWAY_PUBLIC_DOMAIN}}` |
 
 - The server listens on `PORT` when it is set and on `8080` otherwise (`server.port=${PORT:8080}`)
 - Vonage credentials are Railway variables of the server service only, never of the client
@@ -41,7 +42,7 @@ We deploy on [Railway](https://railway.com), in one project with three services:
   - The Vonage webhooks get a stable public URL, with no local tunnel for the deployed environment
   - Each folder deploys on its own
 - **Harder:**
-  - The client and the server run on different domains, so the server has to allow the client domain through CORS, and the client needs the server URL at build time (a `VITE_` variable, which is public and never holds a secret). Both are set up with the first API call from the client
+  - The client and the server run on different domains. The server already allows `http://localhost:5173` through CORS, and on Railway `CORS_ALLOWED_ORIGINS` must be set to the client domain. The client needs the server URL at build time (a `VITE_` variable, which is public and never holds a secret), which is set up with the first deployment
   - The client service must answer every unknown path with `index.html`, so React Router can handle routes such as `/visits/12` on reload. This is configured on the first deployment
   - Railway charges by usage once the trial credit is spent, so someone has to own the account and its billing
 - **To check on the first deployment:**

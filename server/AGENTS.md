@@ -13,6 +13,7 @@ Run them from `server/`. On Windows, use `.\mvnw.cmd` instead of `./mvnw`.
 ## API
 
 - Every endpoint lives under `/api`, because that is the path the client proxies in development
+- CORS is configured once in `config/CorsConfig.java` for `/api/**`. The allowed origins come from `CORS_ALLOWED_ORIGINS`, with `http://localhost:5173` by default. Never add `@CrossOrigin` to a controller
 - The server listens on `PORT` when it is set, as on Railway, and on `8080` otherwise. Deployment is described in [ADR 0002](../docs/adr/0002-deployment-railway.md)
 
 ## Configuration
