@@ -53,7 +53,7 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
-      - name: Build, apply every migration to an empty database and run the tests
+      - name: Build, check the formatting, apply every migration to an empty database and run the tests
         run: ./mvnw --batch-mode verify
 
   client:
@@ -71,5 +71,7 @@ jobs:
           cache-dependency-path: client/package-lock.json
       - run: npm ci
       - run: npm run lint
+      - run: npm run format:check
+      - run: npm test
       - name: Type-check and build
         run: npm run build
