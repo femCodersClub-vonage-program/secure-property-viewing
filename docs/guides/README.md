@@ -1,20 +1,24 @@
-# Guides
+# Guías
 
-Short guides on things the whole team runs into. When someone solves a problem that others will face too, such as a Vonage setup step, a tricky test double or a Git situation, they write it down here so nobody has to solve it twice.
+Guías breves para el equipo sobre lo que nos encontramos todas. Cuando alguien resuelve un problema que también tendrán las demás, como un paso de configuración de Vonage, un doble de test complicado o una situación con Git, lo escribe aquí para que nadie tenga que resolverlo dos veces.
 
-## When to add a guide
+Esta carpeta es la excepción al idioma del repositorio: las guías se escriben solo en español.
 
-- You spent time on something that was not obvious and others will need it
-- The same question came up more than once in Slack or in a mentoring session
-- The `docs-reviewer` agent suggested one for your change
+Para poner en marcha el proyecto en tu ordenador, empieza por [`docs/setup.es.md`](../setup.es.md).
 
-Decisions do not belong here: they go in an ADR in [`docs/adr/`](../adr/). Guides explain *how*, ADRs explain *why*.
+## Cuándo añadir una guía
 
-## How to write one
+- Has dedicado tiempo a algo que no era evidente y las demás lo van a necesitar
+- La misma pregunta ha salido más de una vez en Slack o en una mentoría
+- El agente `docs-reviewer` ha sugerido una para tu cambio
 
-- One topic per file, named in kebab-case, such as `vonage-test-numbers.md`
-- Start with the problem in one or two sentences, then the steps
-- In English, like the rest of `docs/`. A step-by-step guide the whole team must follow can also have a Spanish version ending in `.es.md`, such as [`docs/setup.es.md`](../setup.es.md), kept in sync in the same pull request
-- No credentials, keys or real phone numbers: use the Vonage test numbers
+Las decisiones no van aquí: van en un ADR en [`docs/adr/`](../adr/). Las guías explican el *cómo*; los ADR, el *porqué*.
 
-Guides go through a pull request like any other change.
+## Cómo escribirla
+
+- Un tema por archivo, con el nombre en inglés y en kebab-case, como `vonage-test-numbers.md`
+- Empieza por el problema en una o dos frases, y después los pasos
+- Solo en español, sin versión en inglés
+- Sin credenciales, claves ni números de teléfono reales: usa los números de prueba de Vonage. Si una guía necesita una contraseña compartida, indica que está en la carpeta compartida del Drive del equipo, sin enlazarla
+
+Las guías pasan por una pull request como cualquier otro cambio.

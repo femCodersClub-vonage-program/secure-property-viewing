@@ -82,7 +82,7 @@ The full workflow, the repository structure, the testing strategy, how we use AI
 | [`docs/vonage.md`](docs/vonage.md) | Vonage APIs and developer tools |
 | [`docs/architecture/`](docs/architecture/README.md) | Architecture diagrams, main flow and design principles |
 | [`docs/adr/`](docs/adr/) | The project's architecture decisions |
-| [`docs/guides/`](docs/guides/README.md) | Short guides on problems the whole team runs into |
+| [`docs/guides/`](docs/guides/README.md) | Short guides on problems the whole team runs into, written in Spanish |
 | [`docs/presentations/`](docs/presentations/) | Project presentations, such as the one from the mentoring session [*Is this a real rental listing or a scam?*](docs/presentations/real-listing-or-scam.pdf) |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Workflow, conventions, testing, AI usage and repository structure |
 

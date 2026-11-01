@@ -58,7 +58,7 @@ secure-property-viewing/
 ├── docs/
 │   ├── adr/                     # Decisiones de arquitectura
 │   ├── architecture/            # Visión general y diagramas en Mermaid
-│   ├── guides/                  # Guías sobre problemas comunes del equipo
+│   ├── guides/                  # Guías sobre problemas comunes del equipo, en español
 │   ├── images/                  # Imágenes de la documentación
 │   ├── presentations/           # Presentaciones del proyecto
 │   ├── user-journeys.md         # Recorridos de la aplicación, paso a paso
@@ -159,7 +159,7 @@ A lo largo de las mentorías iremos viendo cómo sacarle partido a la IA, y esto
 - `.editorconfig` para que todos los editores compartan indentación, finales de línea y codificación  
 - Linter y formatter comunes, que se concretarán junto con el stack  
 - Commits siguiendo [Conventional Commits](https://www.conventionalcommits.org/), por ejemplo `feat(server): add OTP verification endpoint`  
-- Código, identificadores, nombres de rama y documentación en inglés americano. El README, esta guía y las guías paso a paso que sigue todo el equipo, como [`docs/setup.es.md`](docs/setup.es.md), tienen también versión en español terminada en `.es.md`, así que cualquier cambio en un idioma se lleva al otro en la misma pull request  
+- Código, identificadores, nombres de rama y documentación en inglés americano. El README, esta guía y las guías paso a paso que sigue todo el equipo, como [`docs/setup.es.md`](docs/setup.es.md), tienen también versión en español terminada en `.es.md`, así que cualquier cambio en un idioma se lleva al otro en la misma pull request. Las guías del equipo de [`docs/guides/`](docs/guides/README.md) son la excepción: se escriben solo en español  
 - **Visit** es el término del dominio para la visita por vídeo a un inmueble: `Visit` en el código y *visit* en la interfaz y la documentación. No usamos *viewing*, *showing* ni *tour*, para que un mismo concepto no tenga dos nombres
 
 ## Migraciones de base de datos
