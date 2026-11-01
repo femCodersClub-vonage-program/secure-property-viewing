@@ -104,7 +104,7 @@ main  ◄──  dev  ◄──  ramas de cada participante
 
 1. Actualiza tu rama con los últimos cambios de `dev`  
 2. Pasa los tests en local  
-3. Pasa los **agentes de revisión** sobre tus cambios y resuelve lo que señalen  
+3. Pasa los **agentes de revisión** sobre tus cambios y resuelve lo que señalen: `docs-reviewer` siempre, y `ui-reviewer` cuando el cambio toca `client/`  
 4. Revisa que entiendes y puedes explicar cada línea, también la que haya generado la IA
 
 >   
@@ -144,7 +144,7 @@ La IA forma parte del trabajo diario, y por eso la tratamos como una herramienta
 | Elemento | Para qué sirve | Dónde |
 | :---- | :---- | :---- |
 | **Instrucciones** | Contexto y convenciones del proyecto, generales y por carpeta | `AGENTS.md` en la raíz, en `client/` y en `server/` |
-| **Agentes** | Asistentes especializados, por ejemplo de revisión de código, de seguridad o de cobertura de tests | `.claude/agents/` |
+| **Agentes** | Asistentes especializados que revisan una rama antes de su pull request: `docs-reviewer` para la documentación y el idioma, y `ui-reviewer` para la interfaz del cliente, que lanza `design-system-reviewer` y `accessibility-reviewer` | `.claude/agents/` |
 | **Skills** | Procedimientos reutilizables del equipo, como redactar una spec o un ADR | `.claude/skills/` |
 | **Tools** | Conexiones externas que pueden usar los agentes, empezando por los servidores MCP de Vonage | Configuración de MCP del proyecto |
 
@@ -162,7 +162,10 @@ A lo largo de las mentorías iremos viendo cómo sacarle partido a la IA, y esto
 - oxlint y Prettier en `client/`, y Spotless con palantir-java-format en `server/`. Formatea antes de cada commit con `npm run format` o `./mvnw spotless:apply`: el CI falla si el código no está formateado  
 - Commits siguiendo [Conventional Commits](https://www.conventionalcommits.org/), por ejemplo `feat(server): add OTP verification endpoint`  
 - Código, identificadores, nombres de rama y documentación en inglés americano. El README, esta guía y las guías paso a paso que sigue todo el equipo, como [`docs/setup.es.md`](docs/setup.es.md), tienen también versión en español terminada en `.es.md`, así que cualquier cambio en un idioma se lleva al otro en la misma pull request. Las guías del equipo de [`docs/guides/`](docs/guides/README.md) son la excepción: se escriben solo en español  
-- **Visit** es el término del dominio para la visita por vídeo a un inmueble: `Visit` en el código y *visit* en la interfaz y la documentación. No usamos *viewing*, *showing* ni *tour*, para que un mismo concepto no tenga dos nombres
+- **Visit** es el término del dominio para la visita por vídeo a un inmueble: `Visit` en el código y *visit* en la interfaz y la documentación. No usamos *viewing*, *showing* ni *tour*, para que un mismo concepto no tenga dos nombres  
+- **Accesibilidad:** el objetivo es WCAG 2.1 AA, con las reglas concretas en el [`AGENTS.md`](AGENTS.md#accessibility) de la raíz  
+- **Design system:** el cliente reutiliza los componentes de `client/src/components/ui/` y los tokens de diseño de `client/src/index.css`. No se añaden estilos fuera del design system salvo que de verdad hagan falta, como explica [`client/AGENTS.md`](client/AGENTS.md#design-system)  
+- **Dependencias:** cada dependencia nueva se justifica en la descripción de la pull request: por qué hace falta, su licencia y si está bien mantenida. Si algo que ya usamos, o algo parecido, resuelve el problema, la pull request se rechaza
 
 ## Migraciones de base de datos
 

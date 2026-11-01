@@ -33,6 +33,7 @@ Suggest an update only when the change requires one. For each change, decide wit
 | Adds or changes how a Vonage API is used | `docs/vonage.md` |
 | Adds or changes a component, a data flow or an integration | The Mermaid diagrams in `docs/architecture/` |
 | Makes an architecture, dependency or security decision | A new ADR in `docs/adr/` |
+| Adds a dependency to `client/package.json` or `server/pom.xml` | The pull request description: why it is needed, its license and its maintenance. If something already in the stack solves the problem, report it as blocking |
 | Adds or changes setup steps, commands or environment variables | `README.md` and `README.es.md`, `docs/setup.md` and `docs/setup.es.md`, `.env.example` (variable names only) |
 | Changes the workflow or the conventions | `CONTRIBUTING.md` and `CONTRIBUTING.es.md` |
 | Changes instructions the AI assistants must follow | The relevant `AGENTS.md` |
