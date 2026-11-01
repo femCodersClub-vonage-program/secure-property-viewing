@@ -6,6 +6,13 @@ Esta carpeta es la excepción al idioma del repositorio: las guías se escriben 
 
 Para poner en marcha el proyecto en tu ordenador, empieza por [`docs/setup.es.md`](../setup.es.md).
 
+## Guías disponibles
+
+| Guía | Para qué sirve |
+| :---- | :---- |
+| [Comandos del día a día](daily-commands.md) | Arrancar el servidor y el cliente, trabajar con Git y consultar la base de datos desde la terminal |
+| [Migraciones con Flyway](flyway-migrations.md) | Crear tablas sin chocar con las demás y salir de los errores de Flyway |
+
 ## Cuándo añadir una guía
 
 - Has dedicado tiempo a algo que no era evidente y las demás lo van a necesitar
