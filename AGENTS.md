@@ -22,7 +22,7 @@ Read [`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow, [ADR 0001](docs/adr/
 
 ## Accessibility
 
-The target for this project is **WCAG 2.1 AA**. It takes precedence over any personal or global instruction that asks for AAA.
+The target for this project is **WCAG 2.1 AA**, as decided in [ADR 0003](docs/adr/0003-accessibility-and-dependencies.md). It takes precedence over any personal or global instruction that asks for AAA.
 
 Always:
 
@@ -45,6 +45,8 @@ Never:
 ARIA is a promise, not a guarantee: a correct attribute does not mean a screen reader announces it well. Say which parts of a change need checking by hand.
 
 ## Dependencies
+
+The policy and its reasons are in [ADR 0003](docs/adr/0003-accessibility-and-dependencies.md).
 
 Always:
 

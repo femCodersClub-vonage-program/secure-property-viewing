@@ -12,6 +12,30 @@ Run them from `server/`. On Windows, use `.\mvnw.cmd` instead of `./mvnw`.
 - Format the Java code: `./mvnw spotless:apply`
 - Start the server: `./mvnw spring-boot:run`
 
+## Code structure
+
+- Code is organized by feature, not by layer: `com.peephole.server.visit` holds the visit controller, service, repository, entity and DTOs
+- Cross-cutting configuration lives in `com.peephole.server.config`, like `CorsConfig`
+- Vonage is reached only through interfaces in `com.peephole.server.vonage`, such as a `PhoneVerifier`, so features never depend on the SDK directly and tests can use test doubles
+
+## Java and Spring
+
+Always:
+
+- Inject dependencies through the constructor, in `final` fields
+- Use a `record` for every request and response DTO
+- Map entities to DTOs before they leave the service: a JPA entity never goes in or out of the API
+- Put `@Transactional` on service methods that write, never on controllers
+- Return `Optional` when a value may be missing, and an empty list instead of `null` for collections
+- Test controllers with `@WebMvcTest` and repositories with `@DataJpaTest` plus `@AutoConfigureTestDatabase(replace = NONE)`, so they run against the real PostgreSQL instead of looking for an in-memory database
+
+Never:
+
+- Inject with `@Autowired` on a field
+- Return `null` from a public method
+- Call the Vonage SDK from a controller or from a feature package
+- Add Lombok: records and constructors cover what it would generate
+
 ## API
 
 - Every endpoint lives under `/api`, because that is the path the client proxies in development

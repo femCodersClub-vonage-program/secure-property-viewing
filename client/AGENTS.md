@@ -20,6 +20,39 @@ Run them from `client/`.
 - A page lives in `src/pages/` and is registered in `src/routes.tsx`
 - A shared interface component lives in `src/components/ui/`, such as `Button`, `Link` or `Input`. The folder and the first components are created in the design system issue
 - Pages compose components; they do not style elements themselves
+- Calls to the server live in `src/api/`, one module per resource. It is created with the first API call
+
+## TypeScript
+
+TypeScript runs in strict mode, and oxlint fails the CI on `any`, `!` and `@ts-ignore`.
+
+Always:
+
+- Type what comes from outside, such as an API response, a URL parameter or `localStorage`, as `unknown` and check its shape before using it
+- Model states that exclude each other as a discriminated union, such as `{ status: 'loading' } | { status: 'error'; message: string } | { status: 'success'; data: Visit }`
+- Handle `null` and `undefined` explicitly, with an early return or a clear error
+
+Never:
+
+- Use `any`, explicit or implicit
+- Force a type with `as`, or with `as unknown as`. Only `as const` is allowed; to check a value against a type, use `satisfies`
+- Use the non-null assertion `!`
+- Silence the compiler with `@ts-ignore`. If an error cannot be fixed, use `@ts-expect-error` with the reason on the same line
+
+## React
+
+Always:
+
+- Function components and hooks
+- Derive values during render instead of copying them into state
+- Keep state in the closest component that needs it
+- Call the server only through `src/api/`, never with a `fetch` inside a component
+- Give every item in a list a stable `key` from the data, never the array index
+
+Never:
+
+- Use `useEffect` to compute a value from props or state: compute it during render
+- Disable a hooks lint rule to make a warning go away
 
 ## Design system
 
