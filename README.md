@@ -2,6 +2,10 @@
 
 🇪🇸 [Leer en español](README.es.md)
 
+[![CI status on dev](https://img.shields.io/github/actions/workflow/status/femCodersClub-vonage-program/secure-property-viewing/ci.yml?branch=dev&label=CI%20dev&logo=githubactions&logoColor=white&labelColor=1f2937&style=flat-square)](https://github.com/femCodersClub-vonage-program/secure-property-viewing/actions/workflows/ci.yml?query=branch%3Adev)
+[![CI status on main](https://img.shields.io/github/actions/workflow/status/femCodersClub-vonage-program/secure-property-viewing/ci.yml?branch=main&label=CI%20main&logo=githubactions&logoColor=white&labelColor=1f2937&style=flat-square)](https://github.com/femCodersClub-vonage-program/secure-property-viewing/actions/workflows/ci.yml?query=branch%3Amain)
+[![MIT license](https://img.shields.io/badge/license-MIT-1f2937?style=flat-square)](LICENSE)
+
 A web platform for remote property visits with anti-fraud verification, built with Vonage APIs as part of the **FemCoders Club with Vonage** projects and mentoring program.
 
 > Status: initial draft. The Vonage APIs have been chosen, and the tech stack is decided in [ADR 0001](docs/adr/0001-tech-stack.md).
@@ -52,6 +56,10 @@ The program lasts six weeks, so the MVP focuses on what gives the project its pu
 
 ## What it solves and how we integrate Vonage
 
+[![Vonage Verify API](https://img.shields.io/badge/Verify%20API-1f2937?logo=vonage&logoColor=white&style=for-the-badge)](docs/vonage.md#verify-api)
+[![Vonage Video API](https://img.shields.io/badge/Video%20API-1f2937?logo=vonage&logoColor=white&style=for-the-badge)](docs/vonage.md#video-api)
+[![Vonage Messages API](https://img.shields.io/badge/Messages%20API-1f2937?logo=vonage&logoColor=white&style=for-the-badge)](docs/vonage.md#messages-api)
+
 | Fraud vector | Risk | Vonage module that mitigates it |
 | :---- | :---- | :---- |
 | **Ghost listing or fake identity**: advertiser using a disposable number or a bot | Unverified advertiser: there is no way to know whether the person is real or using a temporary number | **Verify API**: SMS OTP to verify the advertiser's phone number, with Silent Authentication as a later step |
@@ -62,6 +70,18 @@ The program lasts six weeks, so the MVP focuses on what gives the project its pu
 How we use each API, and the Vonage SDKs, CLI and MCP servers that support development, are described in [`docs/vonage.md`](docs/vonage.md).
 
 ## Tech stack
+
+![React](https://img.shields.io/badge/React-1f2937?logo=react&logoColor=white&style=for-the-badge)
+![TypeScript](https://img.shields.io/badge/TypeScript-1f2937?logo=typescript&logoColor=white&style=for-the-badge)
+![Vite](https://img.shields.io/badge/Vite-1f2937?logo=vite&logoColor=white&style=for-the-badge)
+![React Router](https://img.shields.io/badge/React%20Router-1f2937?logo=reactrouter&logoColor=white&style=for-the-badge)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-1f2937?logo=tailwindcss&logoColor=white&style=for-the-badge)
+![Vitest](https://img.shields.io/badge/Vitest-1f2937?logo=vitest&logoColor=white&style=for-the-badge)
+![Java](https://img.shields.io/badge/Java-1f2937?logo=openjdk&logoColor=white&style=for-the-badge)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-1f2937?logo=springboot&logoColor=white&style=for-the-badge)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-1f2937?logo=postgresql&logoColor=white&style=for-the-badge)
+![Flyway](https://img.shields.io/badge/Flyway-1f2937?logo=flyway&logoColor=white&style=for-the-badge)
+![Railway](https://img.shields.io/badge/Railway-1f2937?logo=railway&logoColor=white&style=for-the-badge)
 
 | Layer | Technology |
 | :---- | :---- |
@@ -75,7 +95,10 @@ The reasons, the alternatives we discarded and the trade-offs are in [ADR 0001](
 
 ## How we work
 
-We follow Spec-Driven Development, record technical decisions as ADRs, track tasks in a GitHub Project and integrate every change through reviewed pull requests against `dev`. AI is part of our daily work, with its own configuration and rules versioned in the repository.
+[![GitHub Project board](https://img.shields.io/badge/GitHub%20Project-board-1f2937?logo=github&logoColor=white&style=flat-square)](https://github.com/orgs/femCodersClub-vonage-program/projects/3)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-1f2937?logo=conventionalcommits&logoColor=white&style=flat-square)](https://www.conventionalcommits.org/)
+
+We follow Spec-Driven Development, record technical decisions as ADRs, track tasks in a [GitHub Project](https://github.com/orgs/femCodersClub-vonage-program/projects/3) and integrate every change through reviewed pull requests against `dev`. AI is part of our daily work, with its own configuration and rules versioned in the repository.
 
 The full workflow, the repository structure, the testing strategy, how we use AI and the Definition of Done are in [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
