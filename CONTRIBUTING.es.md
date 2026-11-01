@@ -56,6 +56,7 @@ secure-property-viewing/
 ├── docs/
 │   ├── adr/                     # Decisiones de arquitectura
 │   ├── architecture/            # Visión general y diagramas en Mermaid
+│   ├── guides/                  # Guías sobre problemas comunes del equipo
 │   ├── images/                  # Imágenes de la documentación
 │   ├── presentations/           # Presentaciones del proyecto
 │   ├── user-journeys.md         # Recorridos de la aplicación, paso a paso
@@ -79,7 +80,7 @@ Los documentos de `docs/` están en inglés, siguiendo las convenciones del proy
 
 El GitHub Project es la única fuente de tareas. Cada issue tiene una persona asignada y enlaza la spec correspondiente.
 
-- **Labels** por tipo (`feature`, `bug`, `docs`, `spec`, `adr`) y por capa (`client`, `server`, `e2e`)  
+- **Labels** por tipo (`enhancement`, `bug`, `documentation`, `spec`, `adr`, `accessibility`) y por capa (`client`, `server`, `e2e`). Antes de crear un label nuevo, se comprueba si ya existe uno que sirva  
 - **Milestones** por semana del programa, para ver de un vistazo qué entra en cada una
 
 Las issues se abren con las plantillas de `.github/ISSUE_TEMPLATE/`.
@@ -154,7 +155,7 @@ A lo largo de las mentorías iremos viendo cómo sacarle partido a la IA, y esto
 - `.editorconfig` para que todos los editores compartan indentación, finales de línea y codificación  
 - Linter y formatter comunes, que se concretarán junto con el stack  
 - Commits siguiendo [Conventional Commits](https://www.conventionalcommits.org/), por ejemplo `feat(server): add OTP verification endpoint`  
-- Código, identificadores, nombres de rama y documentación en inglés americano. El README y esta guía tienen también versión en español  
+- Código, identificadores, nombres de rama y documentación en inglés americano. El README y esta guía tienen también versión en español, así que cualquier cambio en un idioma se lleva al otro en la misma pull request  
 - **Visit** es el término del dominio para la visita por vídeo a un inmueble: `Visit` en el código y *visit* en la interfaz y la documentación. No usamos *viewing*, *showing* ni *tour*, para que un mismo concepto no tenga dos nombres
 
 ## Changelog
