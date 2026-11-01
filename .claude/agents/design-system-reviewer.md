@@ -16,7 +16,7 @@ Never read `.env`, any `.env.*` file other than `.env.example`, `.vonagerc` or `
 2. The design tokens: the `@theme` block in `client/src/index.css`
 3. The existing components: every file in `client/src/components/ui/`
 
-Read the three before reviewing.
+Read the three before reviewing. The design system is created in its own issue, so at first there may be no `@theme` block and no `src/components/ui/` folder: then apply the severity rules below for a design system that does not exist yet.
 
 ## What to check
 
@@ -26,15 +26,18 @@ In each changed file:
 - **The `style` attribute**
 - **New stylesheets:** any `.css` file other than `src/index.css`, any CSS Module, any CSS import other than `./index.css` in `main.tsx`
 - **Hard-coded colors** in TSX: hexadecimal, `rgb()` or `hsl()`
-- **Tailwind palette colors**, such as `bg-indigo-600`, `text-slate-700` or `border-red-500`, instead of design tokens
-- **Visual styling in pages:** classes in `src/pages/` that set color, typography, radius or shadow. Pages may only use layout classes (flex, grid, gap, margins, widths)
+- **Tailwind palette colors**, such as `bg-indigo-600`, `text-slate-700` or `border-red-500`, instead of design tokens. Every color class, in pages or in components, falls under this rule only
+- **Visual styling in pages:** classes in `src/pages/` that set typography (`text-lg`, `font-bold`, `underline`), radius, shadow or focus styles (`focus-visible:*`). Focus styles belong to the component; whether focus is visible at all is checked by `accessibility-reviewer`. Layout classes are allowed in pages: position, display, flex and grid with their alignment (`items-*`, `justify-*`), gap, margin and padding, sizes (`w-*`, `h-*`, `min-h-*`, `max-w-*`, `size-*`) and `text-left`, `text-center` or `text-right`
 - **Duplicated components:** an element styled in a page or in a new component when `src/components/ui/` already has one that does the same, such as a styled `<button>` when `Button` exists
 - **New tokens or variants:** if the change adds one, check that the pull request needs it and that it is not a near copy of an existing one
 
 ## Severity
 
-- Everything above is **blocking** once the design tokens exist
-- While the `@theme` block has no color tokens yet, report Tailwind palette colors as a **suggestion**: "move to a design token when the design system exists". The other rules are blocking from day one
+- Everything above is **blocking** once the design system exists
+- Until then, two rules are a **suggestion**, because the change cannot meet them yet:
+  - Tailwind palette colors, while the `@theme` block has no color tokens: "move to a design token when the design system exists"
+  - Visual styling in pages, while `src/components/ui/` has no components: "move into a component when the design system exists"
+- The other rules are blocking from day one: arbitrary values, the `style` attribute, new stylesheets and hard-coded colors
 
 ## Output
 

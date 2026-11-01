@@ -18,7 +18,7 @@ Run them from `client/`.
 ## Structure
 
 - A page lives in `src/pages/` and is registered in `src/routes.tsx`
-- A shared interface component lives in `src/components/ui/`, such as `Button`, `Link` or `Input`
+- A shared interface component lives in `src/components/ui/`, such as `Button`, `Link` or `Input`. The folder and the first components are created in the design system issue
 - Pages compose components; they do not style elements themselves
 
 ## Design system
@@ -30,7 +30,7 @@ Always:
 - Use the design tokens defined in the `@theme` block of `src/index.css`: colors, typography, radii and shadows come only from there
 - Before building an interface element, look for an existing component in `src/components/ui/` and use it
 - If a component lacks something you need, add a variant to that component instead of creating a similar one
-- Keep `className` in pages for layout only: flex, grid, gap, margins and widths. The look comes from the component
+- Keep `className` in pages for layout only: position, display, flex and grid with their alignment, gap, margin and padding, sizes and text alignment. Typography, radius, shadow and focus styles come from the component
 - If a new token or variant is really needed, add it to the design system in the same pull request and explain why in the description
 
 Never:
@@ -42,7 +42,7 @@ Never:
 - Use Tailwind palette colors, such as `bg-indigo-600`, instead of the design tokens
 - Copy the classes of an existing component to build a new one
 
-`HomePage` and `NotFoundPage` still use Tailwind palette colors because the tokens do not exist yet. They move to tokens in the design system issue.
+`HomePage` and `NotFoundPage` still use Tailwind palette colors and typography classes because the tokens and components do not exist yet. They move to tokens and components in the design system issue. Until then, the `design-system-reviewer` agent reports palette colors and visual styling in pages as suggestions, not as blocking.
 
 ## Other rules
 

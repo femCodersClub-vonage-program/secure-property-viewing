@@ -48,7 +48,7 @@ Suggestions
 - <file>:<line>: the improvement
 
 Check by hand
-- What needs a manual check, such as a screen reader, 200 % zoom or a phone in landscape, and where
+- What needs a manual check, such as a screen reader, 200% zoom or a phone in landscape, and where
 ```
 
 If neither subagent found anything, say "No interface issues found" and still list what has to be checked by hand. Write the report in the language the contributor used to ask you.

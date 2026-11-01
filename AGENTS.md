@@ -33,7 +33,7 @@ Always:
 - Native HTML elements first: a `<button>` for actions and an `<a>` for navigation, before any ARIA role
 - A label for every form field, and error messages that say what went wrong and how to fix it
 - Alternative text that says what an image communicates; decorative images and icons get an empty `alt` or `aria-hidden="true"`
-- Layouts that still work at 200 % zoom, at 320 px wide and on a phone in landscape
+- Layouts that still work at 200% zoom, at 320 px wide and on a phone in landscape
 - Animations that respect `prefers-reduced-motion`
 
 Never:
