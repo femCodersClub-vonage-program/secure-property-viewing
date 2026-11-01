@@ -91,7 +91,7 @@ Cómo usamos cada API, y los SDK, el CLI y los servidores MCP de Vonage que apoy
 | Comunicaciones | Vonage, mediante el Java Server SDK y el Video Client SDK |
 | Despliegue | Railway, con el cliente, el servidor y PostgreSQL como servicios separados |
 
-Los motivos, las alternativas descartadas y lo que se sacrifica están en el [ADR 0001](docs/adr/0001-tech-stack.md), y el despliegue en el [ADR 0002](docs/adr/0002-deployment-railway.md) (los dos en inglés). La [arquitectura](docs/architecture/README.md) de alto nivel es independiente del stack.
+Los motivos, las alternativas descartadas y lo que se sacrifica están en el [ADR 0001](docs/adr/0001-tech-stack.md), el despliegue en el [ADR 0002](docs/adr/0002-deployment-railway.md), y el objetivo de accesibilidad y la política de dependencias en el [ADR 0003](docs/adr/0003-accessibility-and-dependencies.md) (los tres en inglés). La [arquitectura](docs/architecture/README.md) de alto nivel es independiente del stack.
 
 ## Cómo trabajamos
 

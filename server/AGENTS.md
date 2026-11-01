@@ -31,7 +31,7 @@ Always:
 
 Never:
 
-- Inject with `@Autowired` on a field
+- Inject with `@Autowired` on a field in production code. Test classes may use it, as Spring tests usually do with `MockMvc`
 - Return `null` from a public method
 - Call the Vonage SDK from a controller or from a feature package
 - Add Lombok: records and constructors cover what it would generate

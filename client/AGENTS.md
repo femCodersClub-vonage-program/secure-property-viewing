@@ -28,7 +28,8 @@ TypeScript runs in strict mode, and oxlint fails the CI on `any`, `!` and `@ts-i
 
 Always:
 
-- Type what comes from outside, such as an API response, a URL parameter or `localStorage`, as `unknown` and check its shape before using it
+- Validate what comes from outside before using it, such as an API response, a URL parameter or `localStorage`
+- Assign `await response.json()` and `JSON.parse()` to a variable typed `unknown`: both return `any`, and neither TypeScript nor oxlint catches it
 - Model states that exclude each other as a discriminated union, such as `{ status: 'loading' } | { status: 'error'; message: string } | { status: 'success'; data: Visit }`
 - Handle `null` and `undefined` explicitly, with an early return or a clear error
 
@@ -47,6 +48,7 @@ Always:
 - Derive values during render instead of copying them into state
 - Keep state in the closest component that needs it
 - Call the server only through `src/api/`, never with a `fetch` inside a component
+- Show an explicit loading state and an explicit error state for every call to the server, so the screen never stays blank
 - Give every item in a list a stable `key` from the data, never the array index
 
 Never:
