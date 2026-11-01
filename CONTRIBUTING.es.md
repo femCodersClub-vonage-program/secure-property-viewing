@@ -121,7 +121,7 @@ main  ◄──  dev  ◄──  ramas de cada participante
 
 ## Integración continua
 
-Cada PR ejecuta en GitHub Actions el lint, el formateo y los tests. Si es viable, también lanzará los agentes de revisión, para que ese paso no dependa solo de que cada persona lo haga en local.
+Cada PR ejecuta [`.github/workflows/ci.yml`](.github/workflows/ci.yml) en GitHub Actions: el lint y la compilación del cliente, la compilación y los tests del servidor contra una base de datos PostgreSQL vacía, y la comprobación de las [reglas de migraciones](#migraciones-de-base-de-datos). El formateo se añadirá cuando se decida el formatter. Si es viable, también lanzará los agentes de revisión, para que ese paso no dependa solo de que cada persona lo haga en local.
 
 ## Testing
 
@@ -170,6 +170,8 @@ El esquema de la base de datos solo cambia mediante migraciones de Flyway en `se
 - **Nombrar las migraciones con la fecha y la hora en UTC**, como `V20261101_1430__create_visits_table.sql`. Es difícil que dos ramas coincidan en el mismo minuto, mientras que con números seguidos como `V3` y `V4` chocan constantemente  
 - **No editar nunca una migración que ya esté en `dev`.** Flyway guarda una huella (checksum) de cada migración aplicada y se niega a arrancar si alguna cambia. Para corregir algo, se añade una migración nueva  
 - **Antes de hacer merge, actualizar la rama desde `dev`.** Si tu migración es más antigua que la más reciente de `dev`, renómbrala con la fecha y hora actuales, o Flyway la dará por desordenada
+
+El CI comprueba estas reglas en cada pull request y falla si se incumple alguna. La guía [`docs/guides/flyway-migrations.md`](docs/guides/flyway-migrations.md) explica cómo crear una migración y cómo salir de los errores más habituales.
 
 ## Changelog
 

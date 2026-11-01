@@ -119,7 +119,7 @@ main  ◄──  dev  ◄──  each participant's branches
 
 ## Continuous integration
 
-Every pull request runs linting, formatting and tests in GitHub Actions. If feasible, it will also run the review agents, so that step does not rely solely on each person running it locally.
+Every pull request runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml) in GitHub Actions: linting and building the client, building and testing the server against an empty PostgreSQL database, and checking the [database migration rules](#database-migrations). Formatting will be added once the formatter is decided. If feasible, it will also run the review agents, so that step does not rely solely on each person running it locally.
 
 ## Testing
 
@@ -168,6 +168,8 @@ The database schema only changes through Flyway migrations in `server/src/main/r
 - **Name migrations with the date and time in UTC**, such as `V20261101_1430__create_visits_table.sql`. Two branches rarely pick the same minute, whereas sequential numbers like `V3` and `V4` collide all the time  
 - **Never edit a migration that is already in `dev`.** Flyway stores a checksum of every applied migration and refuses to start if one changes. To fix something, add a new migration  
 - **Before merging, update your branch from `dev`.** If your migration is older than the newest one in `dev`, rename it with the current date and time, or Flyway will report it as out of order
+
+The CI checks these rules on every pull request and fails if one is broken. The guide [`docs/guides/flyway-migrations.md`](docs/guides/flyway-migrations.md) (in Spanish) explains how to create a migration and how to get out of the most common errors.
 
 ## Changelog
 

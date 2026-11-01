@@ -55,7 +55,7 @@ How we keep every machine on the same versions:
 ## Consequences
 
 - **Easier:** cloning the repository, installing PostgreSQL 17 and following one guide is enough to run the project, and the versions cannot drift between machines
-- **Harder:** everyone installs and starts PostgreSQL by hand, and the integration tests need that local database. The CI workflow will need a PostgreSQL service
+- **Harder:** everyone installs and starts PostgreSQL by hand, and the integration tests need that local database. In CI, the workflow starts a throwaway PostgreSQL 17 service instead
 - **Accepted trade-offs:**
   - oxlint has fewer plugins and fewer type-aware rules than ESLint
   - TypeScript 7 is recent, so some tools may not support it yet
