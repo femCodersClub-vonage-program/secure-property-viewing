@@ -18,9 +18,10 @@ Some of these practices are industry standard, and others we keep for their lear
 8. [Testing](#testing)  
 9. [AI in the project: agents, skills and tools](#ai-in-the-project-agents-skills-and-tools)  
 10. [Conventions](#conventions)  
-11. [Changelog](#changelog)  
-12. [Definition of Done](#definition-of-done)  
-13. [Follow-up and questions](#follow-up-and-questions)
+11. [Database migrations](#database-migrations)  
+12. [Changelog](#changelog)  
+13. [Definition of Done](#definition-of-done)  
+14. [Follow-up and questions](#follow-up-and-questions)
 
 ## From problem to code
 
@@ -158,6 +159,15 @@ Throughout the mentoring sessions we will explore how to make the most of AI, an
 - Commits following [Conventional Commits](https://www.conventionalcommits.org/), for example `feat(server): add OTP verification endpoint`  
 - Code, identifiers, branch names and documentation in American English. The README and this guide also have a Spanish version, so any change to one language goes to the other in the same pull request  
 - **Visit** is the domain term for a video visit to a property: `Visit` in the code, *visit* in the interface and the documentation. We do not use *viewing*, *showing* or *tour*, so the same concept never has two names
+
+## Database migrations
+
+The database schema only changes through Flyway migrations in `server/src/main/resources/db/migration/`. Two people changing the database at the same time can easily collide, so we follow four rules:
+
+- **Announce it in the technical plan.** If a feature creates or changes a table, its technical plan says which table and which columns. Overlaps show up in the review, before anyone writes code  
+- **Name migrations with the date and time in UTC**, such as `V20261101_1430__create_visits_table.sql`. Two branches rarely pick the same minute, whereas sequential numbers like `V3` and `V4` collide all the time  
+- **Never edit a migration that is already in `dev`.** Flyway stores a checksum of every applied migration and refuses to start if one changes. To fix something, add a new migration  
+- **Before merging, update your branch from `dev`.** If your migration is older than the newest one in `dev`, rename it with the current date and time, or Flyway will report it as out of order
 
 ## Changelog
 

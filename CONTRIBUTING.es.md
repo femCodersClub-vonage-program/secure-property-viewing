@@ -18,9 +18,10 @@ Algunas de estas prácticas son estándar en la industria, y otras las mantenemo
 8. [Testing](#testing)  
 9. [IA en el proyecto: agentes, skills y tools](#ia-en-el-proyecto-agentes-skills-y-tools)  
 10. [Convenciones](#convenciones)  
-11. [Changelog](#changelog)  
-12. [Definition of Done](#definition-of-done)  
-13. [Seguimiento y dudas](#seguimiento-y-dudas)
+11. [Migraciones de base de datos](#migraciones-de-base-de-datos)  
+12. [Changelog](#changelog)  
+13. [Definition of Done](#definition-of-done)  
+14. [Seguimiento y dudas](#seguimiento-y-dudas)
 
 ## Del problema al código
 
@@ -160,6 +161,15 @@ A lo largo de las mentorías iremos viendo cómo sacarle partido a la IA, y esto
 - Commits siguiendo [Conventional Commits](https://www.conventionalcommits.org/), por ejemplo `feat(server): add OTP verification endpoint`  
 - Código, identificadores, nombres de rama y documentación en inglés americano. El README y esta guía tienen también versión en español, así que cualquier cambio en un idioma se lleva al otro en la misma pull request  
 - **Visit** es el término del dominio para la visita por vídeo a un inmueble: `Visit` en el código y *visit* en la interfaz y la documentación. No usamos *viewing*, *showing* ni *tour*, para que un mismo concepto no tenga dos nombres
+
+## Migraciones de base de datos
+
+El esquema de la base de datos solo cambia mediante migraciones de Flyway en `server/src/main/resources/db/migration/`. Si dos personas cambian la base de datos a la vez, es fácil que choquen, así que seguimos cuatro reglas:
+
+- **Avisarlo en el plan técnico.** Si una funcionalidad crea o cambia una tabla, su plan técnico dice qué tabla y qué columnas. Los solapamientos se ven en la revisión, antes de que nadie escriba código  
+- **Nombrar las migraciones con la fecha y la hora en UTC**, como `V20261101_1430__create_visits_table.sql`. Es difícil que dos ramas coincidan en el mismo minuto, mientras que con números seguidos como `V3` y `V4` chocan constantemente  
+- **No editar nunca una migración que ya esté en `dev`.** Flyway guarda una huella (checksum) de cada migración aplicada y se niega a arrancar si alguna cambia. Para corregir algo, se añade una migración nueva  
+- **Antes de hacer merge, actualizar la rama desde `dev`.** Si tu migración es más antigua que la más reciente de `dev`, renómbrala con la fecha y hora actuales, o Flyway la dará por desordenada
 
 ## Changelog
 
