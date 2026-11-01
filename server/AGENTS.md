@@ -6,8 +6,14 @@ Spring Boot 4.1 on Java 21, with PostgreSQL 17 and Flyway. Built with the Maven 
 
 Run them from `server/`. On Windows, use `.\mvnw.cmd` instead of `./mvnw`.
 
-- Build and run the tests: `./mvnw verify`
+- Build, check the formatting and run the tests: `./mvnw verify`
+- Format the Java code: `./mvnw spotless:apply`
 - Start the server: `./mvnw spring-boot:run`
+
+## API
+
+- Every endpoint lives under `/api`, because that is the path the client proxies in development
+- The server listens on `PORT` when it is set, as on Railway, and on `8080` otherwise. Deployment is described in [ADR 0002](../docs/adr/0002-deployment-railway.md)
 
 ## Configuration
 

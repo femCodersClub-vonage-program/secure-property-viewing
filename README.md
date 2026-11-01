@@ -65,12 +65,13 @@ How we use each API, and the Vonage SDKs, CLI and MCP servers that support devel
 
 | Layer | Technology |
 | :---- | :---- |
-| `client/` | React 19, TypeScript 7, Vite 8, Tailwind CSS 4 and oxlint |
-| `server/` | Java 21, Spring Boot 4.1 and Maven |
+| `client/` | React 19, TypeScript 7, Vite 8, React Router 8 and Tailwind CSS 4, with oxlint, Prettier and Vitest |
+| `server/` | Java 21, Spring Boot 4.1 and Maven, with Spotless |
 | Database | PostgreSQL 17 with Flyway migrations |
 | Communications | Vonage, through the Java Server SDK and the Video Client SDK |
+| Deployment | Railway, with the client, the server and PostgreSQL as separate services |
 
-The reasons, the alternatives we discarded and the trade-offs are in [ADR 0001](docs/adr/0001-tech-stack.md). The high-level [architecture](docs/architecture/README.md) is independent of the stack.
+The reasons, the alternatives we discarded and the trade-offs are in [ADR 0001](docs/adr/0001-tech-stack.md), and the deployment in [ADR 0002](docs/adr/0002-deployment-railway.md). The high-level [architecture](docs/architecture/README.md) is independent of the stack.
 
 ## How we work
 

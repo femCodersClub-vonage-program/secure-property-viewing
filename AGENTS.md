@@ -2,7 +2,7 @@
 
 A web platform for remote property visits with anti-fraud verification, built with Vonage APIs. `client/` is the web application and `server/` is the API; each folder has its own `AGENTS.md`.
 
-Read [`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow and [ADR 0001](docs/adr/0001-tech-stack.md) for the stack.
+Read [`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow, [ADR 0001](docs/adr/0001-tech-stack.md) for the stack and [ADR 0002](docs/adr/0002-deployment-railway.md) for the deployment on Railway.
 
 ## Language
 
@@ -25,3 +25,4 @@ Read [`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow and [ADR 0001](docs/a
 - Work from the spec in `specs/` and its technical plan. If something the change needs is not in them, such as a new table or endpoint, stop and ask
 - Check anything about Vonage against the official documentation through the Vonage Documentation MCP Server, not from memory
 - Commit messages follow Conventional Commits, such as `feat(server): add OTP verification endpoint`
+- Format the code before committing: `npm run format` in `client/` and `./mvnw spotless:apply` in `server/`. The CI fails on unformatted code

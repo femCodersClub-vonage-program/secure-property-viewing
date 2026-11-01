@@ -119,7 +119,7 @@ main  ◄──  dev  ◄──  each participant's branches
 
 ## Continuous integration
 
-Every pull request runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml) in GitHub Actions: linting and building the client, building and testing the server against an empty PostgreSQL database, and checking the [database migration rules](#database-migrations). Formatting will be added once the formatter is decided. If feasible, it will also run the review agents, so that step does not rely solely on each person running it locally.
+Every pull request runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml) in GitHub Actions: linting, formatting, testing and building the client, formatting, building and testing the server against an empty PostgreSQL database, and checking the [database migration rules](#database-migrations). If feasible, it will also run the review agents, so that step does not rely solely on each person running it locally.
 
 ## Testing
 
@@ -131,7 +131,7 @@ Every feature is delivered with its tests, and the acceptance criteria in the sp
 | **Integration** | Server endpoints and their interaction with the database and with Vonage, using test doubles instead of real calls |
 | **End-to-end** | The complete user journeys, from the point of view of the person using the application |
 
-We are considering working with **TDD** on the business logic. The server is tested with JUnit, Spring Boot Test and Mockito, and the client with Vitest, as decided in [ADR 0001](docs/adr/0001-tech-stack.md). Integration tests run against a real PostgreSQL database, never an in-memory replacement.
+We are considering working with **TDD** on the business logic. The server is tested with JUnit, Spring Boot Test and Mockito, and the client with Vitest and Testing Library, as decided in [ADR 0001](docs/adr/0001-tech-stack.md). Integration tests run against a real PostgreSQL database, never an in-memory replacement.
 
 ## AI in the project: agents, skills and tools
 
@@ -155,7 +155,7 @@ Throughout the mentoring sessions we will explore how to make the most of AI, an
 ## Conventions
 
 - `.editorconfig` so every editor shares indentation, line endings and encoding  
-- oxlint as the linter in `client/`. The formatter for `client/` and `server/` is still to be decided  
+- oxlint and Prettier in `client/`, and Spotless with palantir-java-format in `server/`. Format before committing with `npm run format` or `./mvnw spotless:apply`: the CI fails on unformatted code  
 - Commits following [Conventional Commits](https://www.conventionalcommits.org/), for example `feat(server): add OTP verification endpoint`  
 - Code, identifiers, branch names and documentation in American English. The README, this guide and the step-by-step guides the whole team follows, such as [`docs/setup.md`](docs/setup.md), also have a Spanish version ending in `.es.md`, so any change to one language goes to the other in the same pull request. The team guides in [`docs/guides/`](docs/guides/README.md) are the exception: they are written in Spanish only  
 - **Visit** is the domain term for a video visit to a property: `Visit` in the code, *visit* in the interface and the documentation. We do not use *viewing*, *showing* or *tour*, so the same concept never has two names

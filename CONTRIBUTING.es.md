@@ -121,7 +121,7 @@ main  ◄──  dev  ◄──  ramas de cada participante
 
 ## Integración continua
 
-Cada PR ejecuta [`.github/workflows/ci.yml`](.github/workflows/ci.yml) en GitHub Actions: el lint y la compilación del cliente, la compilación y los tests del servidor contra una base de datos PostgreSQL vacía, y la comprobación de las [reglas de migraciones](#migraciones-de-base-de-datos). El formateo se añadirá cuando se decida el formatter. Si es viable, también lanzará los agentes de revisión, para que ese paso no dependa solo de que cada persona lo haga en local.
+Cada PR ejecuta [`.github/workflows/ci.yml`](.github/workflows/ci.yml) en GitHub Actions: el lint, el formato, los tests y la compilación del cliente, el formato, la compilación y los tests del servidor contra una base de datos PostgreSQL vacía, y la comprobación de las [reglas de migraciones](#migraciones-de-base-de-datos). Si es viable, también lanzará los agentes de revisión, para que ese paso no dependa solo de que cada persona lo haga en local.
 
 ## Testing
 
@@ -133,7 +133,7 @@ Cada funcionalidad se entrega con sus tests, y los criterios de aceptación de l
 | **Integración** | Endpoints del servidor y su relación con la base de datos y con Vonage, usando dobles de prueba en lugar de llamadas reales |
 | **End-to-end** | Los recorridos completos de la aplicación, desde el punto de vista de quien la usa |
 
-Estamos valorando trabajar con **TDD** en la lógica de negocio. El servidor se prueba con JUnit, Spring Boot Test y Mockito, y el cliente con Vitest, según el [ADR 0001](docs/adr/0001-tech-stack.md). Los tests de integración se lanzan contra una base de datos PostgreSQL real, nunca contra un sustituto en memoria.
+Estamos valorando trabajar con **TDD** en la lógica de negocio. El servidor se prueba con JUnit, Spring Boot Test y Mockito, y el cliente con Vitest y Testing Library, según el [ADR 0001](docs/adr/0001-tech-stack.md). Los tests de integración se lanzan contra una base de datos PostgreSQL real, nunca contra un sustituto en memoria.
 
 ## IA en el proyecto: agentes, skills y tools
 
@@ -157,7 +157,7 @@ A lo largo de las mentorías iremos viendo cómo sacarle partido a la IA, y esto
 ## Convenciones
 
 - `.editorconfig` para que todos los editores compartan indentación, finales de línea y codificación  
-- oxlint como linter en `client/`. El formatter de `client/` y `server/` está pendiente de decidir  
+- oxlint y Prettier en `client/`, y Spotless con palantir-java-format en `server/`. Formatea antes de cada commit con `npm run format` o `./mvnw spotless:apply`: el CI falla si el código no está formateado  
 - Commits siguiendo [Conventional Commits](https://www.conventionalcommits.org/), por ejemplo `feat(server): add OTP verification endpoint`  
 - Código, identificadores, nombres de rama y documentación en inglés americano. El README, esta guía y las guías paso a paso que sigue todo el equipo, como [`docs/setup.es.md`](docs/setup.es.md), tienen también versión en español terminada en `.es.md`, así que cualquier cambio en un idioma se lleva al otro en la misma pull request. Las guías del equipo de [`docs/guides/`](docs/guides/README.md) son la excepción: se escriben solo en español  
 - **Visit** es el término del dominio para la visita por vídeo a un inmueble: `Visit` en el código y *visit* en la interfaz y la documentación. No usamos *viewing*, *showing* ni *tour*, para que un mismo concepto no tenga dos nombres

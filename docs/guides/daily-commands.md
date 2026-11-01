@@ -43,7 +43,8 @@ cd server
 | Para… | Comando |
 | :---- | :---- |
 | Arrancar el servidor en `http://localhost:8080` | `.\mvnw.cmd spring-boot:run` |
-| Compilar y pasar todos los tests | `.\mvnw.cmd verify` |
+| Compilar, comprobar el formato y pasar todos los tests | `.\mvnw.cmd verify` |
+| Formatear el código Java | `.\mvnw.cmd spotless:apply` |
 | Pasar solo los tests | `.\mvnw.cmd test` |
 | Pasar una sola clase de test | `.\mvnw.cmd test "-Dtest=ServerApplicationTests"` |
 | Borrar lo compilado y empezar de cero | `.\mvnw.cmd clean` |
@@ -60,11 +61,14 @@ cd client
 | :---- | :---- |
 | Instalar las dependencias exactas del proyecto | `npm ci` |
 | Arrancar el cliente en `http://localhost:5173` | `npm run dev` |
+| Pasar los tests | `npm test` |
+| Pasar los tests cada vez que guardas un archivo | `npm run test:watch` |
 | Pasar el linter | `npm run lint` |
+| Formatear el código | `npm run format` |
 | Comprobar los tipos y compilar | `npm run build` |
 | Ver la versión compilada | `npm run preview` |
 
-Mientras `npm run dev` está corriendo, los cambios que guardas se ven en el navegador sin recargar.
+Mientras `npm run dev` está corriendo, los cambios que guardas se ven en el navegador sin recargar. Las llamadas a `/api` llegan al servidor de `localhost:8080`, así que arranca también el servidor si la pantalla las necesita.
 
 ## Base de datos desde la terminal
 
@@ -108,6 +112,8 @@ git fetch origin
 git merge origin/dev
 ```
 
+Antes de cada commit, formatea el código de la carpeta que hayas tocado: `npm run format` en `client/` o `.\mvnw.cmd spotless:apply` en `server/`. Si no, el CI falla.
+
 Antes de abrir la pull request, comprueba lo mismo que comprobará el CI:
 
 ```powershell
@@ -115,6 +121,8 @@ cd server
 .\mvnw.cmd verify
 cd ..\client
 npm run lint
+npm run format:check
+npm test
 npm run build
 ```
 

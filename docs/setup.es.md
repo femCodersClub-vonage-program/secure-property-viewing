@@ -12,7 +12,7 @@ Todas usamos la misma versión de PostgreSQL, el mismo nombre de base de datos, 
 | :---- | :---- | :---- |
 | Git | Cualquier versión reciente | `git --version` |
 | Java (JDK) | 21 | `java -version` |
-| Node.js | 22.12 o superior | `node --version` |
+| Node.js | 22.22.2 o superior | `node --version` |
 | PostgreSQL | 17 (cualquier 17.x) | `psql --version` |
 
 Si los cuatro comandos muestran la versión correcta, salta al [paso 3](#3-crear-la-base-de-datos).

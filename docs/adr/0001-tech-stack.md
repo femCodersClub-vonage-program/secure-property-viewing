@@ -22,21 +22,26 @@ Three constraints shaped the decision:
 | Frontend language | TypeScript | 7.0 |
 | Styles | Tailwind CSS | 4.3 |
 | Build tool | Vite | 8.3 |
+| Routing | React Router | 8.x |
 | Icons | lucide-react | 1.x |
 | Frontend linter | oxlint | 1.x |
-| Frontend runtime | Node.js | 22.12 or later |
+| Frontend formatter | Prettier | 3.x |
+| Frontend runtime | Node.js | 22.22.2 or later |
 | Backend language | Java | 21 LTS |
 | Backend framework | Spring Boot | 4.1.2 |
 | Backend build | Maven, through the Maven Wrapper | Pinned in `server/.mvn/` |
 | Database | PostgreSQL | 17 |
 | Database migrations | Flyway | Managed by Spring Boot |
 | Vonage | Java Server SDK (`com.vonage:server-sdk`) | 9.x, added with the first Vonage feature |
+| Backend formatter | Spotless with palantir-java-format | Pinned in `pom.xml` |
 | Server tests | JUnit, Spring Boot Test and Mockito | Managed by Spring Boot |
-| Client tests | Vitest | Added with the first client test |
+| Client tests | Vitest, jsdom and Testing Library | Vitest 5.x |
+| Deployment | Railway | See [ADR 0002](0002-deployment-railway.md) |
 
 How we keep every machine on the same versions:
 
-- The client pins its dependencies in `package-lock.json`, and `npm install` refuses a Node.js version older than 22.12
+- The client pins its dependencies in `package-lock.json`, and `npm install` refuses a Node.js version older than 22.22.2, the minimum that React Router 8 and jsdom support
+- Formatting is checked in CI: `npm run format:check` in the client, and `./mvnw verify` fails on an unformatted Java file
 - The server pins its dependencies in `pom.xml`, and the Maven Wrapper downloads the same Maven version for everyone
 - Nobody needs Docker: everyone installs PostgreSQL 17 and creates the same database and user, following [`docs/setup.md`](../setup.md)
 - Secrets are read from `server/.env`, which is never committed
@@ -50,6 +55,7 @@ How we keep every machine on the same versions:
 - **Docker Compose and Testcontainers.** They give everyone an identical, disposable database. Discarded because the team does not want Docker, and with these dependencies the application would not start and the tests would fail on a computer without it
 - **H2 as an in-memory database for tests.** Discarded because it behaves differently from PostgreSQL, so tests could pass locally and fail against the real database
 - **ESLint with typescript-eslint.** The most widely used option. Discarded because typescript-eslint does not support TypeScript 7 yet, so we would have to stay on TypeScript 6. oxlint comes configured in the official Vite template and supports TypeScript 7
+- **oxfmt as the client formatter.** It comes from the same project as oxlint and is faster than Prettier. Discarded because it is still a 0.x release, while Prettier is stable and is what most of the team will find in other projects
 - **A Maven installation on each computer.** Discarded in favor of the Maven Wrapper, which pins the version in the repository and needs no installation
 
 ## Consequences
@@ -61,6 +67,5 @@ How we keep every machine on the same versions:
   - TypeScript 7 is recent, so some tools may not support it yet
   - Java 21 reaches the end of its support earlier than Java 25
 - **Still open:**
-  - The formatter for `client/` and `server/`
-  - The exact versions of Vitest and the Vonage SDK, fixed when they are first added
+  - The exact version of the Vonage SDK, fixed when it is first added
   - The macOS setup steps, not tested yet
