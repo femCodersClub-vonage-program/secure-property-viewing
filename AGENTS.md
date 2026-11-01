@@ -10,7 +10,7 @@ Every file has a fixed place, so nothing is left lying around. The folder struct
 
 | What | Where |
 | :---- | :---- |
-| Specification of a feature | `specs/`, named after the feature in English and in kebab-case, such as `specs/visit-request.md` |
+| Specification of a feature, with its technical plan | `specs/`, named after the feature in English and in kebab-case, such as `specs/visit-request.md` |
 | Architecture decision | `docs/adr/`, numbered from `docs/adr/template.md` |
 | Diagram | `docs/architecture/` |
 | Team guide, in Spanish | `docs/guides/` |
@@ -35,8 +35,8 @@ Never:
 
 ## Secrets
 
-- Never read `.env`, `.vonagerc` or `*.key` files, and never ask for their contents
-- `.env.example` files only hold placeholder values, such as `your_database_user`. Real values the team needs go in [`docs/setup.md`](docs/setup.md) and [`docs/setup.es.md`](docs/setup.es.md), and passwords are never written in the repository
+- Never read `.env` files, `.env.*` files other than `.env.example`, `.vonagerc` or `*.key` files, and never ask for their contents
+- `.env.example` files only hold placeholder values, such as `your_database_user`. Values the team shares that are not secret, such as the database name, go in [`docs/setup.md`](docs/setup.md) and [`docs/setup.es.md`](docs/setup.es.md). Any secret, whether a password, an API key or a token, goes in the team's shared Drive folder and is never written in the repository
 - Vonage credentials live only in `server/`. The client never receives the API secret or the private key
 
 ## Accessibility
@@ -85,7 +85,15 @@ Never:
 
 ## Before writing code
 
-- Work from the spec in `specs/` and its technical plan. If something the change needs is not in them, such as a new table or endpoint, stop and ask
+- A feature starts from its spec in `specs/`, which ends with a *Technical plan* section on how it is built. A bug or a task starts from its issue. If the change needs something they do not cover, such as a new table or endpoint, stop and ask
 - Check anything about Vonage against the official documentation through the Vonage Documentation MCP Server, not from memory
 - Commit messages follow Conventional Commits, such as `feat(server): add OTP verification endpoint`
 - Format the code before committing: `npm run format` in `client/` and `./mvnw spotless:apply` in `server/`. The CI fails on unformatted code
+
+## Working with the team
+
+- Check `git status` before editing. Never discard, overwrite or reformat changes you did not make
+- Change only what the spec or the issue asks for, with no refactors outside its scope
+- If a tool you need is not available, such as the Vonage Documentation MCP Server or a review agent, say so and say what is left unchecked. Never claim a check you did not run
+- When you finish, say what changed, which tests you ran and their result, and what needs checking by hand
+- Explain the reasons behind the decisions that matter: the team is learning, and everyone has to be able to explain their own code

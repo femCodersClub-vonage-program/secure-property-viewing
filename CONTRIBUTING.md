@@ -29,7 +29,7 @@ We work with **Spec-Driven Development (SDD)**, so no feature starts with code:
 
 1. **Spec**: what is being built, why, and with which acceptance criteria. It is stored in `specs/`  
 2. **Review**: the tech lead and the team validate the spec before moving on  
-3. **Technical plan**: how it will be implemented  
+3. **Technical plan**: how it will be implemented, in a *Technical plan* section at the end of the spec  
 4. **Tasks**: the plan is broken down into issues in the GitHub Project  
 5. **Implementation**: every pull request links its issue and the spec it comes from
 

@@ -2,7 +2,7 @@
 
 Spring Boot 4.1 on Java 21, with PostgreSQL 17 and Flyway. Built with the Maven Wrapper.
 
-The dependency and test rules in the root [`AGENTS.md`](../AGENTS.md) apply here too: a new dependency in `pom.xml` is justified in the pull request, and rejected if Spring Boot or something we already use solves the problem.
+Every rule in the root [`AGENTS.md`](../AGENTS.md) applies here too. For example, a new dependency in `pom.xml` is justified in the pull request, and rejected if Spring Boot or something we already use solves the problem.
 
 ## Commands
 
@@ -95,7 +95,8 @@ Never:
 ## Configuration
 
 - Secrets are read from `server/.env`, which is never committed. Never read it
-- A new environment variable goes in `application.properties` as `${VARIABLE}`, in `.env.example` with a placeholder value only, and in `docs/setup.md` and `docs/setup.es.md` with the value the team needs
+- `DB_URL` in `server/.env` always points to your local database, never to the one on Railway: the tests write to whatever database it points to
+- A new environment variable goes in `application.properties` as `${VARIABLE}`, in `.env.example` with a placeholder value only, and in `docs/setup.md` and `docs/setup.es.md` with its value if it is not secret, or a note that it is in the shared Drive folder if it is
 
 ## Database migrations
 
@@ -105,3 +106,4 @@ The schema only changes through Flyway migrations in `src/main/resources/db/migr
 - A new table or a change to an existing one must appear in the technical plan of its spec. If it does not, stop and ask before writing the migration
 - Name migrations with the date and time in UTC: `V<yyyyMMdd>_<HHmm>__<description>.sql`, for example `V20261101_1430__create_visits_table.sql`
 - Never edit a migration that is already in `dev`. To fix or change something, add a new migration
+- Before merging, update your branch from `dev`. If your migration is older than the newest one there, rename it with the current date and time. The full rules, and what the CI checks, are in [`CONTRIBUTING.md`](../CONTRIBUTING.md#database-migrations)
