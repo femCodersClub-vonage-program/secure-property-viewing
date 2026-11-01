@@ -2,6 +2,8 @@
 
 Spring Boot 4.1 on Java 21, with PostgreSQL 17 and Flyway. Built with the Maven Wrapper.
 
+The dependency and test rules in the root [`AGENTS.md`](../AGENTS.md) apply here too: a new dependency in `pom.xml` is justified in the pull request, and rejected if Spring Boot or something we already use solves the problem.
+
 ## Commands
 
 Run them from `server/`. On Windows, use `.\mvnw.cmd` instead of `./mvnw`.
@@ -15,6 +17,24 @@ Run them from `server/`. On Windows, use `.\mvnw.cmd` instead of `./mvnw`.
 - Every endpoint lives under `/api`, because that is the path the client proxies in development
 - CORS is configured once in `config/CorsConfig.java` for `/api/**`. The allowed origins come from `CORS_ALLOWED_ORIGINS`, with `http://localhost:5173` by default. Never add `@CrossOrigin` to a controller
 - The server listens on `PORT` when it is set, as on Railway, and on `8080` otherwise. Deployment is described in [ADR 0002](../docs/adr/0002-deployment-railway.md)
+
+## Validation and errors
+
+Always:
+
+- Validate every request body at the API boundary with Bean Validation: `@Valid` on the controller parameter and constraints on the request DTO
+- Return errors as `ProblemDetail`, from a single `@RestControllerAdvice`
+- Tell business errors apart from system errors. A business error is expected, such as a wrong OTP code, and returns a 4xx with a message the client can show. A system error is unexpected, returns a 500 and never exposes internal details
+
+Never:
+
+- Catch an exception and ignore it
+- Return a stack trace or a database message to the client
+
+## Logging
+
+- Never log personal data: phone numbers, names, OTP codes or Vonage tokens
+- Log what failed, where and with which identifiers, such as a visit id, so a problem can be traced without personal data
 
 ## Configuration
 

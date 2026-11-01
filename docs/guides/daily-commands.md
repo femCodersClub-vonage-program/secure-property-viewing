@@ -126,7 +126,10 @@ npm test
 npm run build
 ```
 
-Después, pasa el agente de revisión de documentación pidiéndoselo a Claude Code: «revisa mi rama con el agente docs-reviewer».
+Después, pasa los agentes de revisión pidiéndoselo a Claude Code:
+
+- Siempre, el de documentación: «revisa mi rama con el agente docs-reviewer»
+- Si has tocado `client/`, también el de interfaz: «revisa mi rama con el agente ui-reviewer». Comprueba el design system y la accesibilidad, y te dice qué tienes que probar a mano
 
 ## Si algo no va
 
