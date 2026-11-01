@@ -22,6 +22,7 @@ Three constraints shaped the decision:
 | Frontend language | TypeScript | 7.0 |
 | Styles | Tailwind CSS | 4.3 |
 | Build tool | Vite | 8.3 |
+| Icons | lucide-react | 1.x |
 | Frontend linter | oxlint | 1.x |
 | Frontend runtime | Node.js | 22.12 or later |
 | Backend language | Java | 21 LTS |
