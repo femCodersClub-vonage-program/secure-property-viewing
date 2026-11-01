@@ -1,8 +1,8 @@
 # 0001. Tech stack
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-01
-- **Issue:** #
+- **Issue:** [#5](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/5)
 
 ## Context
 

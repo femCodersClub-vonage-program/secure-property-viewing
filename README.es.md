@@ -4,7 +4,7 @@
 
 Plataforma web de visitas de pisos en remoto con verificación antiestafa, desarrollada con las APIs de Vonage dentro del programa de proyectos y mentorías de **FemCoders Club con Vonage**.
 
-> Estado: borrador inicial. Las APIs de Vonage están decididas y el stack tecnológico está propuesto en el [ADR 0001](docs/adr/0001-tech-stack.md).
+> Estado: borrador inicial. Las APIs de Vonage están decididas y el stack tecnológico está decidido en el [ADR 0001](docs/adr/0001-tech-stack.md).
 
 ## Índice
 

@@ -4,7 +4,7 @@
 
 A web platform for remote property visits with anti-fraud verification, built with Vonage APIs as part of the **FemCoders Club with Vonage** projects and mentoring program.
 
-> Status: initial draft. The Vonage APIs have been chosen, and the tech stack is proposed in [ADR 0001](docs/adr/0001-tech-stack.md).
+> Status: initial draft. The Vonage APIs have been chosen, and the tech stack is decided in [ADR 0001](docs/adr/0001-tech-stack.md).
 
 ## Table of contents
 
