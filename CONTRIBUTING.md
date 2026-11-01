@@ -157,7 +157,7 @@ Throughout the mentoring sessions we will explore how to make the most of AI, an
 - `.editorconfig` so every editor shares indentation, line endings and encoding  
 - A shared linter and formatter, to be defined together with the stack  
 - Commits following [Conventional Commits](https://www.conventionalcommits.org/), for example `feat(server): add OTP verification endpoint`  
-- Code, identifiers, branch names and documentation in American English. The README and this guide also have a Spanish version, so any change to one language goes to the other in the same pull request  
+- Code, identifiers, branch names and documentation in American English. The README, this guide and the step-by-step guides the whole team follows, such as [`docs/setup.md`](docs/setup.md), also have a Spanish version ending in `.es.md`, so any change to one language goes to the other in the same pull request  
 - **Visit** is the domain term for a video visit to a property: `Visit` in the code, *visit* in the interface and the documentation. We do not use *viewing*, *showing* or *tour*, so the same concept never has two names
 
 ## Database migrations

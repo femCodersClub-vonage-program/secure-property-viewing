@@ -1,8 +1,10 @@
 # Local setup
 
+🇪🇸 [Leer en español](setup.es.md)
+
 Everything you need to run Peephole on your own computer, step by step. Docker is not needed.
 
-Everyone uses the same PostgreSQL version, the same database name and the same database user, so the project behaves the same on every machine. The tables are created by the Flyway migrations in `server/`, never by hand.
+Everyone uses the same PostgreSQL version, the same database name, the same database user and the same password for that user, so the project behaves the same on every machine. The tables are created by the Flyway migrations in `server/`, never by hand.
 
 ## 1. Prerequisites
 
@@ -11,7 +13,7 @@ Everyone uses the same PostgreSQL version, the same database name and the same d
 | Git | Any recent version | `git --version` |
 | Java (JDK) | 21 | `java -version` |
 | Node.js | 22.12 or later | `node --version` |
-| PostgreSQL | 17 | `psql --version` |
+| PostgreSQL | 17 (any 17.x) | `psql --version` |
 
 If all four commands print the right version, skip to [step 3](#3-create-the-database).
 
@@ -30,7 +32,7 @@ winget install PostgreSQL.PostgreSQL.17 --interactive
 The PostgreSQL installer opens a wizard:
 
 - Keep port `5432`
-- Choose a password for the `postgres` superuser and keep it somewhere safe: you need it in step 3
+- Choose your own password for the `postgres` superuser and keep it somewhere safe: you need it in step 3. This one is personal, not shared
 - Skip Stack Builder at the end
 
 The installer does not add PostgreSQL to your `PATH`. Add it with this command, then open a new terminal:
@@ -53,12 +55,16 @@ Open a new terminal afterwards. On macOS the PostgreSQL superuser is your own ma
 
 ## 3. Create the database
 
-Create the `peephole` user and the `peephole` database it owns. The first command asks you to choose a password for the `peephole` user; it may then ask for the `postgres` password from step 2.
+Create the `peephole` user and the `peephole` database it owns.
+
+The password for the `peephole` user is the same for the whole team and is kept in the team's shared Drive folder, which the tech lead shares with you. It is never written in the repository.
 
 ```bash
 createuser -U postgres --pwprompt peephole
 createdb -U postgres --owner peephole peephole
 ```
+
+The first command asks twice for the new user's password: type the shared one from the Drive folder. Then it may ask for your own `postgres` password from step 2.
 
 Check that you can connect as the new user:
 
@@ -85,7 +91,7 @@ Open `server/.env` and replace the three placeholders:
 | :---- | :---- |
 | `DB_URL` | `jdbc:postgresql://localhost:5432/peephole` |
 | `DB_USERNAME` | `peephole` |
-| `DB_PASSWORD` | The password you chose for the `peephole` user in step 3 |
+| `DB_PASSWORD` | The shared password from the Drive folder |
 
 ## 5. Run the server
 
@@ -123,8 +129,9 @@ Open `http://localhost:5173`. Stop it with `Ctrl+C`.
 | :---- | :---- | :---- |
 | `psql`, `createuser` or `createdb` is not recognized | PostgreSQL is not in your `PATH` | Repeat the `PATH` step for your system and open a new terminal |
 | `Could not resolve placeholder 'DB_URL'` | `server/.env` is missing or you ran the server from another folder | Create `server/.env` (step 4) and run the commands from `server/` |
-| `The server requested SCRAM-based authentication, but no password was provided` | `DB_PASSWORD` in `server/.env` is empty | Set it to the password from step 3, with no quotes or spaces |
-| `password authentication failed for user "peephole"` | `DB_PASSWORD` in `server/.env` does not match the password from step 3 | Fix the value in `server/.env` |
+| `'url' must start with "jdbc"` | `server/.env` still has the placeholders from `.env.example` | Replace them with the values from step 4 |
+| `The server requested SCRAM-based authentication, but no password was provided` | `DB_PASSWORD` in `server/.env` is empty | Set it to the shared password, with no quotes or spaces |
+| `password authentication failed for user "peephole"` | `DB_PASSWORD` in `server/.env` does not match the password of the `peephole` user | Check that both are the shared password from the Drive folder |
 | `database "peephole" does not exist` | Step 3 was not completed | Run the `createdb` command from step 3 |
 | `npm error code EBADENGINE` in `client/` | Your Node.js version is older than the one the project needs | Install a newer version (step 2) and run `npm ci` again |
 | `Connection refused` on port `5432` | PostgreSQL is not running | Windows: start the `postgresql-x64-17` service. macOS: `brew services start postgresql@17` |

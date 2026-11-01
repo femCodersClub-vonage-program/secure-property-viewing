@@ -33,7 +33,7 @@ Suggest an update only when the change requires one. For each change, decide wit
 | Adds or changes how a Vonage API is used | `docs/vonage.md` |
 | Adds or changes a component, a data flow or an integration | The Mermaid diagrams in `docs/architecture/` |
 | Makes an architecture, dependency or security decision | A new ADR in `docs/adr/` |
-| Adds or changes setup steps, commands or environment variables | `README.md` and `README.es.md`, `docs/setup.md`, `.env.example` (variable names only) |
+| Adds or changes setup steps, commands or environment variables | `README.md` and `README.es.md`, `docs/setup.md` and `docs/setup.es.md`, `.env.example` (variable names only) |
 | Changes the workflow or the conventions | `CONTRIBUTING.md` and `CONTRIBUTING.es.md` |
 | Changes instructions the AI assistants must follow | The relevant `AGENTS.md` |
 | Solves a problem the rest of the team will run into too | A new guide in `docs/guides/` |
@@ -48,8 +48,8 @@ Never suggest editing `CHANGELOG.md`: the tech lead generates it when each miles
 
 All repository content is in American English: code, identifiers, comments, commit messages, branch names, documentation and the pull request title.
 
-- `README.es.md` and `CONTRIBUTING.es.md` are the only files in Spanish, and they must stay in Spanish
-- If `README.md` or `CONTRIBUTING.md` changed, its Spanish version must change in the same pull request, and the other way round. Leaving it for a later change is not allowed: report it as a blocking finding
+- Files ending in `.es.md`, such as `README.es.md`, `CONTRIBUTING.es.md` and `docs/setup.es.md`, are the Spanish versions of their English file. They are the only files in Spanish, and they must stay in Spanish
+- If a file that has a `.es.md` version changed, its Spanish version must change in the same pull request, and the other way round. Leaving it for a later change is not allowed: report it as a blocking finding
 - The domain term is **Visit** (`Visit` in code, *visit* in the interface and docs). Flag *viewing*, *showing* or *tour* used for the same concept
 - Flag British spellings such as *behaviour* or *colour*
 

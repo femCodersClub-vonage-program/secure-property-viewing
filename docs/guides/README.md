@@ -14,7 +14,7 @@ Decisions do not belong here: they go in an ADR in [`docs/adr/`](../adr/). Guide
 
 - One topic per file, named in kebab-case, such as `vonage-test-numbers.md`
 - Start with the problem in one or two sentences, then the steps
-- In English, like the rest of `docs/`
+- In English, like the rest of `docs/`. A step-by-step guide the whole team must follow can also have a Spanish version ending in `.es.md`, such as [`docs/setup.es.md`](../setup.es.md), kept in sync in the same pull request
 - No credentials, keys or real phone numbers: use the Vonage test numbers
 
 Guides go through a pull request like any other change.

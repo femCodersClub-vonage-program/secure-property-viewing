@@ -79,7 +79,7 @@ Los documentos de `docs/` están en inglés, siguiendo las convenciones del proy
 
 | Documento | Contenido |
 | :---- | :---- |
-| [`docs/setup.md`](docs/setup.md) | Cómo poner en marcha el proyecto en tu ordenador, paso a paso (en inglés) |
+| [`docs/setup.es.md`](docs/setup.es.md) | Cómo poner en marcha el proyecto en tu ordenador, paso a paso |
 | [`docs/user-journeys.md`](docs/user-journeys.md) | Los recorridos de visitante, propietaria y panel de la agencia, paso a paso |
 | [`docs/vonage.md`](docs/vonage.md) | APIs y herramientas de Vonage para el desarrollo |
 | [`docs/architecture/`](docs/architecture/README.md) | Diagramas de arquitectura, flujo principal y principios de diseño |
