@@ -160,12 +160,14 @@ A lo largo de las mentorías iremos viendo cómo sacarle partido a la IA, y esto
 
 - `.editorconfig` para que todos los editores compartan indentación, finales de línea y codificación  
 - oxlint y Prettier en `client/`, y Spotless con palantir-java-format en `server/`. Formatea antes de cada commit con `npm run format` o `./mvnw spotless:apply`: el CI falla si el código no está formateado  
+- TypeScript en modo estricto, sin `any`, sin aserciones de no nulo (`!`) y sin `@ts-ignore`: oxlint hace fallar el CI con cualquiera de ellos. El resto de reglas de lenguaje de cada carpeta están en [`client/AGENTS.md`](client/AGENTS.md) y [`server/AGENTS.md`](server/AGENTS.md)  
 - Commits siguiendo [Conventional Commits](https://www.conventionalcommits.org/), por ejemplo `feat(server): add OTP verification endpoint`  
 - Código, identificadores, nombres de rama y documentación en inglés americano. El README, esta guía y las guías paso a paso que sigue todo el equipo, como [`docs/setup.es.md`](docs/setup.es.md), tienen también versión en español terminada en `.es.md`, así que cualquier cambio en un idioma se lleva al otro en la misma pull request. Las guías del equipo de [`docs/guides/`](docs/guides/README.md) son la excepción: se escriben solo en español  
 - **Visit** es el término del dominio para la visita por vídeo a un inmueble: `Visit` en el código y *visit* en la interfaz y la documentación. No usamos *viewing*, *showing* ni *tour*, para que un mismo concepto no tenga dos nombres  
-- **Accesibilidad:** el objetivo es WCAG 2.1 AA, con las reglas concretas en el [`AGENTS.md`](AGENTS.md#accessibility) de la raíz  
+- **Estructura de carpetas:** las dos aplicaciones se organizan por funcionalidad y cada archivo tiene un sitio fijo, como describen el [`AGENTS.md`](AGENTS.md#where-files-go) de la raíz, [`client/AGENTS.md`](client/AGENTS.md#folder-structure) y [`server/AGENTS.md`](server/AGENTS.md#folder-structure). El agente `docs-reviewer` lo comprueba en cada pull request  
+- **Accesibilidad:** el objetivo es WCAG 2.1 AA, según el [ADR 0003](docs/adr/0003-accessibility-and-dependencies.md), con las reglas concretas en el [`AGENTS.md`](AGENTS.md#accessibility) de la raíz  
 - **Design system:** el cliente reutiliza los componentes de `client/src/components/ui/` y los tokens de diseño de `client/src/index.css`. No se añaden estilos fuera del design system salvo que de verdad hagan falta, como explica [`client/AGENTS.md`](client/AGENTS.md#design-system)  
-- **Dependencias:** cada dependencia nueva se justifica en la descripción de la pull request: por qué hace falta, su licencia y si está bien mantenida. Si algo que ya usamos, o algo parecido, resuelve el problema, la pull request se rechaza
+- **Dependencias:** cada dependencia nueva se justifica en la descripción de la pull request: por qué hace falta, su licencia y si está bien mantenida. Si algo que ya usamos, o algo parecido, resuelve el problema, la pull request se rechaza ([ADR 0003](docs/adr/0003-accessibility-and-dependencies.md))
 
 ## Migraciones de base de datos
 

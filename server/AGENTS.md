@@ -12,6 +12,62 @@ Run them from `server/`. On Windows, use `.\mvnw.cmd` instead of `./mvnw`.
 - Format the Java code: `./mvnw spotless:apply`
 - Start the server: `./mvnw spring-boot:run`
 
+## Folder structure
+
+The server is organized by feature, like the client: everything one feature needs lives in one package.
+
+```text
+src/main/java/com/peephole/server/
+├── ServerApplication.java
+├── config/                    Cross-cutting configuration, such as CorsConfig
+├── common/                    Shared code, such as the @RestControllerAdvice for errors
+├── vonage/                    Interfaces to Vonage, such as PhoneVerifier, and their implementations
+└── visit/                     One package per business feature
+    ├── VisitController.java
+    ├── VisitService.java
+    ├── VisitRepository.java
+    ├── Visit.java             The JPA entity
+    └── dto/                   Request and response records, such as CreateVisitRequest
+src/main/resources/
+├── application.properties
+└── db/migration/              Flyway migrations
+src/test/java/com/peephole/server/
+└── visit/                     Tests mirror the main packages
+```
+
+Packages are created when the first class needs them: `common/`, `vonage/` and the feature packages do not exist yet.
+
+Always:
+
+- Name packages in English, lowercase and singular, such as `visit` or `listing`
+- Name classes after their feature and role: `VisitController`, `VisitService`, `VisitRepository`
+- Put each test in the same package as the class it tests, under `src/test/java`
+- Reach Vonage only through the interfaces in `vonage/`, so features never depend on the SDK directly and tests can use test doubles
+
+Never:
+
+- Create packages by layer at the top level, such as `controllers/`, `services/` or `repositories/`
+- Use another feature's repository or entity directly: call its service. Code shared by several features goes to `common/`
+- Add classes next to `ServerApplication.java`
+
+## Java and Spring
+
+Always:
+
+- Inject dependencies through the constructor, in `final` fields
+- Use a `record` for every request and response DTO
+- Map entities to DTOs before they leave the service: a JPA entity never goes in or out of the API
+- Put `@Transactional` on service methods that write, never on controllers
+- Return `Optional` when a value may be missing, and an empty list instead of `null` for collections
+- Test controllers with `@WebMvcTest` and repositories with `@DataJpaTest` plus `@AutoConfigureTestDatabase(replace = NONE)`, so they run against the real PostgreSQL instead of looking for an in-memory database
+
+Never:
+
+- Inject with `@Autowired` on a field in production code. Test classes may use it, as Spring tests usually do with `MockMvc`
+- Return `null` from a public method
+- Call the Vonage SDK from a controller or from a feature package
+- Add Lombok: records and constructors cover what it would generate
+
 ## API
 
 - Every endpoint lives under `/api`, because that is the path the client proxies in development

@@ -158,12 +158,14 @@ Throughout the mentoring sessions we will explore how to make the most of AI, an
 
 - `.editorconfig` so every editor shares indentation, line endings and encoding  
 - oxlint and Prettier in `client/`, and Spotless with palantir-java-format in `server/`. Format before committing with `npm run format` or `./mvnw spotless:apply`: the CI fails on unformatted code  
+- TypeScript in strict mode, with no `any`, non-null assertions (`!`) or `@ts-ignore`: oxlint fails the CI on any of them. The rest of the language rules for each folder are in [`client/AGENTS.md`](client/AGENTS.md) and [`server/AGENTS.md`](server/AGENTS.md)  
 - Commits following [Conventional Commits](https://www.conventionalcommits.org/), for example `feat(server): add OTP verification endpoint`  
 - Code, identifiers, branch names and documentation in American English. The README, this guide and the step-by-step guides the whole team follows, such as [`docs/setup.md`](docs/setup.md), also have a Spanish version ending in `.es.md`, so any change to one language goes to the other in the same pull request. The team guides in [`docs/guides/`](docs/guides/README.md) are the exception: they are written in Spanish only  
 - **Visit** is the domain term for a video visit to a property: `Visit` in the code, *visit* in the interface and the documentation. We do not use *viewing*, *showing* or *tour*, so the same concept never has two names  
-- **Accessibility:** the target is WCAG 2.1 AA, with the concrete rules in the root [`AGENTS.md`](AGENTS.md#accessibility)  
+- **Folder structure:** both applications are organized by feature, and every file has a fixed place, as described in [`AGENTS.md`](AGENTS.md#where-files-go), [`client/AGENTS.md`](client/AGENTS.md#folder-structure) and [`server/AGENTS.md`](server/AGENTS.md#folder-structure). The `docs-reviewer` agent checks it in every pull request  
+- **Accessibility:** the target is WCAG 2.1 AA, as decided in [ADR 0003](docs/adr/0003-accessibility-and-dependencies.md), with the concrete rules in the root [`AGENTS.md`](AGENTS.md#accessibility)  
 - **Design system:** the client reuses the components in `client/src/components/ui/` and the design tokens in `client/src/index.css`. No new styles are added outside the design system unless they are really needed, as described in [`client/AGENTS.md`](client/AGENTS.md#design-system)  
-- **Dependencies:** a new dependency is justified in the pull request description: why it is needed, its license and how actively it is maintained. If something we already use, or something similar, solves the problem, the pull request is rejected
+- **Dependencies:** a new dependency is justified in the pull request description: why it is needed, its license and how actively it is maintained. If something we already use, or something similar, solves the problem, the pull request is rejected ([ADR 0003](docs/adr/0003-accessibility-and-dependencies.md))
 
 ## Database migrations
 
