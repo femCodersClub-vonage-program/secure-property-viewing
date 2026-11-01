@@ -32,7 +32,6 @@ Types: feat, fix, docs, test, refactor, perf, ci, chore
 
 **Every PR**
 
-- [ ] I can explain every line in this PR, including AI-generated code
 - [ ] I ran the review agents locally, including `docs-reviewer`, and addressed their findings
 - [ ] Changes stay within the scope of the linked issue
 - [ ] No secrets, Vonage credentials or real personal data (GitHub does not detect Vonage keys)
