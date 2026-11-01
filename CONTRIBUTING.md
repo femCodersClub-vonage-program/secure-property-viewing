@@ -50,6 +50,7 @@ secure-property-viewing/
 ├── client/
 │   └── AGENTS.md                # Client-specific instructions
 ├── server/
+│   ├── .env.example             # Server environment variables template, with no real values
 │   └── AGENTS.md                # Server-specific instructions
 ├── e2e/                         # End-to-end tests of the user journeys
 ├── specs/                       # Specification for each feature
@@ -62,7 +63,6 @@ secure-property-viewing/
 │   ├── user-journeys.md         # User journeys, step by step
 │   └── vonage.md                # Vonage APIs and developer tools
 ├── .editorconfig                # Shared formatting across editors
-├── .env.example                 # Environment variables template, with no real values
 ├── .gitignore
 ├── AGENTS.md                    # General project instructions
 ├── CHANGELOG.md                 # Change log, generated automatically

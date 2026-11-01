@@ -14,7 +14,7 @@ You review a contributor's branch in the Peephole repository before they open a 
 2. The changes on the branch: run `git fetch origin dev`, then `git diff origin/dev...HEAD --name-only` and `git diff origin/dev...HEAD`.
 3. The spec linked from the issue, if any, in `specs/`.
 
-Never read `.env`, `.env.*`, `.vonagerc` or `*.key`.
+Never read `.env`, any `.env.*` file other than `.env.example`, `.vonagerc` or `*.key`.
 
 ## 1. Scope
 
@@ -37,6 +37,8 @@ Suggest an update only when the change requires one. For each change, decide wit
 | Changes the workflow or the conventions | `CONTRIBUTING.md` and `CONTRIBUTING.es.md` |
 | Changes instructions the AI assistants must follow | The relevant `AGENTS.md` |
 | Solves a problem the rest of the team will run into too | A new guide in `docs/guides/` |
+
+Every `.env.example` uses placeholder values only, such as `your_database_user`. A real value or a hint, such as a host, a port, a database name or a user name, is a blocking finding: the real values belong in `docs/setup.md`.
 
 No documentation is needed for internal refactors without behavior changes, tests only, or formatting. Say so explicitly, with the reason, so the contributor knows you checked.
 

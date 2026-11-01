@@ -77,6 +77,7 @@ The full workflow, the repository structure, the testing strategy, how we use AI
 
 | Document | Content |
 | :---- | :---- |
+| [`docs/setup.md`](docs/setup.md) | How to run the project on your own computer, step by step |
 | [`docs/user-journeys.md`](docs/user-journeys.md) | The visitor, owner and agency dashboard journeys, step by step |
 | [`docs/vonage.md`](docs/vonage.md) | Vonage APIs and developer tools |
 | [`docs/architecture/`](docs/architecture/README.md) | Architecture diagrams, main flow and design principles |
@@ -151,7 +152,7 @@ A project developed within the **FemCoders Club** program with the support of **
 The application handles phone numbers, so even though it is a portfolio project we treat it with the same care as a real one:
 
 - During development only **test data** is used: the team's own phone numbers with their consent, or Vonage test numbers  
-- Credentials are never committed to the repository: `.env` is in `.gitignore`, and `.env.example` only lists the variable names  
+- Credentials are never committed to the repository: `.env` is in `.gitignore`, and `.env.example` only lists the variable names, with placeholder values and no hints such as hosts, users or database names  
 - Sensitive files are excluded from the reach of AI assistants in `.claude/settings.json`  
 - If you find a vulnerability, the way to report it is described in [`SECURITY.md`](SECURITY.md)
 

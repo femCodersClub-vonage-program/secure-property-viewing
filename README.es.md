@@ -79,6 +79,7 @@ Los documentos de `docs/` están en inglés, siguiendo las convenciones del proy
 
 | Documento | Contenido |
 | :---- | :---- |
+| [`docs/setup.md`](docs/setup.md) | Cómo poner en marcha el proyecto en tu ordenador, paso a paso (en inglés) |
 | [`docs/user-journeys.md`](docs/user-journeys.md) | Los recorridos de visitante, propietaria y panel de la agencia, paso a paso |
 | [`docs/vonage.md`](docs/vonage.md) | APIs y herramientas de Vonage para el desarrollo |
 | [`docs/architecture/`](docs/architecture/README.md) | Diagramas de arquitectura, flujo principal y principios de diseño |
@@ -153,7 +154,7 @@ Proyecto desarrollado en el programa de **FemCoders Club** con el apoyo de **Von
 La aplicación trabaja con números de teléfono, así que aunque sea un proyecto de portfolio lo tratamos con el mismo cuidado que uno real:
 
 - Durante el desarrollo solo se usan **datos de prueba**: teléfonos del propio equipo con su consentimiento o los números de prueba de Vonage  
-- Las credenciales nunca se suben al repositorio: `.env` está en `.gitignore` y `.env.example` solo recoge los nombres de las variables  
+- Las credenciales nunca se suben al repositorio: `.env` está en `.gitignore` y `.env.example` solo recoge los nombres de las variables, con valores de ejemplo y sin pistas como hosts, usuarios o nombres de bases de datos  
 - Los archivos sensibles quedan excluidos del alcance de los asistentes de IA en `.claude/settings.json`  
 - Si encuentras una vulnerabilidad, la forma de reportarla está en [`SECURITY.md`](SECURITY.md)
 
