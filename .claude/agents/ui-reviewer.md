@@ -47,8 +47,8 @@ Blocking
 Suggestions
 - <file>:<line>: the improvement
 
-Check by hand
-- What needs a manual check, such as a screen reader, 200% zoom or a phone in landscape, and where
+Interaction checks
+- Results of Tab and Shift+Tab navigation and visible focus, or what was not verified and why
 ```
 
-If neither subagent found anything, say "No interface issues found" and still list what has to be checked by hand. Write the report in the language the contributor used to ask you.
+If neither subagent found anything, say "No interface issues found in the code review" and include the interaction check results or their limitations. Do not require screen reader tests or additional manual accessibility checks. Do not present this review as proof of full WCAG conformance. Write the report in the language the contributor used to ask you.

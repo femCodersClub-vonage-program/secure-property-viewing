@@ -42,7 +42,7 @@ Types: feat, fix, docs, test, refactor, perf, ci, chore
 - [ ] Docs updated: `docs/` (specs, ADR, diagrams, guides), and both language versions of every file that has a `.es.md` version, such as README, CONTRIBUTING or `docs/setup.md`
 - [ ] ADR added for an architecture, dependency or security decision
 - [ ] New dependency: the description explains why it is needed, its license and its maintenance, and nothing we already use solves the problem
-- [ ] UI: only design system components and tokens; WCAG 2.1 AA checked (keyboard navigation, visible focus, 4.5:1 contrast, 200% zoom and landscape mobile)
+- [ ] UI: only design system components and tokens; AA code review findings addressed; agent results for Tab/Shift+Tab navigation and visible focus reported, including any checks not verified
 - [ ] Vonage: behavior checked against the official docs, and tests use test doubles
 
 ## Notes for the reviewer

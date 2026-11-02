@@ -23,6 +23,14 @@ Compare the changes with the issue and its spec:
 - Changes that fall outside the issue's scope
 - Acceptance criteria from the spec that the changes do not seem to cover
 
+Check that every new or moved file is where the folder rules say: the "Where files go" table in the root `AGENTS.md`, and the "Folder structure" sections of `client/AGENTS.md` and `server/AGENTS.md`. Report as blocking:
+
+- A file added to the root of the repository or to the root of `client/src/` that is not in their allowed list
+- A folder by file type, such as `client/src/hooks/` or a `controllers` package
+- A file from one feature placed in another feature's folder, or an import from inside another client feature
+- A folder or file name that is not in English or does not follow the naming rule, such as kebab-case for folders
+- Notes, drafts, exports or screenshots committed outside their folder
+
 ## 2. Documentation to update
 
 Suggest an update only when the change requires one. For each change, decide with this table:
