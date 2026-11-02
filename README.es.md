@@ -91,7 +91,7 @@ Cómo usamos cada API, y los SDK, el CLI y los servidores MCP de Vonage que apoy
 | Comunicaciones | Vonage, mediante el Java Server SDK y el Video Client SDK |
 | Despliegue | Railway, con el cliente, el servidor y PostgreSQL como servicios separados |
 
-Los motivos, las alternativas descartadas y lo que se sacrifica están en el [ADR 0001](docs/adr/0001-tech-stack.md), y el despliegue en el [ADR 0002](docs/adr/0002-deployment-railway.md) (los dos en inglés). La [arquitectura](docs/architecture/README.md) de alto nivel es independiente del stack.
+Los motivos, las alternativas descartadas y lo que se sacrifica están en el [ADR 0001](docs/adr/0001-tech-stack.md), el despliegue en el [ADR 0002](docs/adr/0002-deployment-railway.md), y el objetivo de accesibilidad y la política de dependencias en el [ADR 0003](docs/adr/0003-accessibility-and-dependencies.md) (los tres en inglés). La [arquitectura](docs/architecture/README.md) de alto nivel es independiente del stack.
 
 ## Cómo trabajamos
 
@@ -160,18 +160,22 @@ Participante<br />
 <a href="https://github.com/Kat-lev"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="GitHub de Kat Leverton" /></a>
 </td>
 <td align="center" width="120">
-<img src="https://github.com/ghost.png" width="96" alt="" />
+<a href="https://github.com/alvi103-png"><img src="https://github.com/alvi103-png.png" width="96" alt="Viviana Andrango" /></a>
 </td>
 <td>
-<strong><em>Por confirmar</em></strong><br />
-Participante
+<strong>Viviana Andrango</strong><br />
+Participante<br />
+<a href="https://www.linkedin.com/in/viviana-andrango/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="LinkedIn de Viviana Andrango" /></a>
+<a href="https://github.com/alvi103-png"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="GitHub de Viviana Andrango" /></a>
 </td>
 <td align="center" width="120">
-<img src="https://github.com/ghost.png" width="96" alt="" />
+<a href="https://github.com/damcb1"><img src="https://github.com/damcb1.png" width="96" alt="Damaris Castro" /></a>
 </td>
 <td>
-<strong><em>Por confirmar</em></strong><br />
-Participante
+<strong>Damaris Castro</strong><br />
+Participante<br />
+<a href="https://www.linkedin.com/in/damariscastro/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="LinkedIn de Damaris Castro" /></a>
+<a href="https://github.com/damcb1"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="GitHub de Damaris Castro" /></a>
 </td>
 </tr>
 </table>

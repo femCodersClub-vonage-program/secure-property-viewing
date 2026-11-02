@@ -91,7 +91,7 @@ How we use each API, and the Vonage SDKs, CLI and MCP servers that support devel
 | Communications | Vonage, through the Java Server SDK and the Video Client SDK |
 | Deployment | Railway, with the client, the server and PostgreSQL as separate services |
 
-The reasons, the alternatives we discarded and the trade-offs are in [ADR 0001](docs/adr/0001-tech-stack.md), and the deployment in [ADR 0002](docs/adr/0002-deployment-railway.md). The high-level [architecture](docs/architecture/README.md) is independent of the stack.
+The reasons, the alternatives we discarded and the trade-offs are in [ADR 0001](docs/adr/0001-tech-stack.md), the deployment in [ADR 0002](docs/adr/0002-deployment-railway.md), and the accessibility target and the dependency policy in [ADR 0003](docs/adr/0003-accessibility-and-dependencies.md). The high-level [architecture](docs/architecture/README.md) is independent of the stack.
 
 ## How we work
 
@@ -158,18 +158,22 @@ Participant<br />
 <a href="https://github.com/Kat-lev"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="Kat Leverton on GitHub" /></a>
 </td>
 <td align="center" width="120">
-<img src="https://github.com/ghost.png" width="96" alt="" />
+<a href="https://github.com/alvi103-png"><img src="https://github.com/alvi103-png.png" width="96" alt="Viviana Andrango" /></a>
 </td>
 <td>
-<strong><em>To be confirmed</em></strong><br />
-Participant
+<strong>Viviana Andrango</strong><br />
+Participant<br />
+<a href="https://www.linkedin.com/in/viviana-andrango/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="Viviana Andrango on LinkedIn" /></a>
+<a href="https://github.com/alvi103-png"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="Viviana Andrango on GitHub" /></a>
 </td>
 <td align="center" width="120">
-<img src="https://github.com/ghost.png" width="96" alt="" />
+<a href="https://github.com/damcb1"><img src="https://github.com/damcb1.png" width="96" alt="Damaris Castro" /></a>
 </td>
 <td>
-<strong><em>To be confirmed</em></strong><br />
-Participant
+<strong>Damaris Castro</strong><br />
+Participant<br />
+<a href="https://www.linkedin.com/in/damariscastro/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="Damaris Castro on LinkedIn" /></a>
+<a href="https://github.com/damcb1"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="Damaris Castro on GitHub" /></a>
 </td>
 </tr>
 </table>

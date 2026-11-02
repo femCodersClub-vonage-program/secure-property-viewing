@@ -4,6 +4,25 @@ A web platform for remote property visits with anti-fraud verification, built wi
 
 Read [`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow, [ADR 0001](docs/adr/0001-tech-stack.md) for the stack and [ADR 0002](docs/adr/0002-deployment-railway.md) for the deployment on Railway.
 
+## Where files go
+
+Every file has a fixed place, so nothing is left lying around. The folder structure of each application is in [`client/AGENTS.md`](client/AGENTS.md#folder-structure) and [`server/AGENTS.md`](server/AGENTS.md#folder-structure).
+
+| What | Where |
+| :---- | :---- |
+| Specification of a feature, with its technical plan | `specs/`, named after the feature in English and in kebab-case, such as `specs/visit-request.md` |
+| Architecture decision | `docs/adr/`, numbered from `docs/adr/template.md` |
+| Diagram | `docs/architecture/` |
+| Team guide, in Spanish | `docs/guides/` |
+| Image used in the documentation | `docs/images/` |
+| End-to-end test | `e2e/` |
+| AI agent | `.claude/agents/` |
+
+Never:
+
+- Add a file to the root of the repository. The root only holds `AGENTS.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `CONTRIBUTING.es.md`, `LICENSE`, `README.md`, `README.es.md`, `SECURITY.md` and the configuration files that start with a dot
+- Leave notes, drafts, exports or screenshots in the repository. If a document is worth keeping, it goes in its folder from the table above
+
 ## Language
 
 - Code, identifiers, comments, commit messages, branch names and documentation are in American English
@@ -16,13 +35,13 @@ Read [`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow, [ADR 0001](docs/adr/
 
 ## Secrets
 
-- Never read `.env`, `.vonagerc` or `*.key` files, and never ask for their contents
-- `.env.example` files only hold placeholder values, such as `your_database_user`. Real values the team needs go in [`docs/setup.md`](docs/setup.md) and [`docs/setup.es.md`](docs/setup.es.md), and passwords are never written in the repository
+- Never read `.env` files, `.env.*` files other than `.env.example`, `.vonagerc` or `*.key` files, and never ask for their contents
+- `.env.example` files only hold placeholder values, such as `your_database_user`. Values the team shares that are not secret, such as the database name, go in [`docs/setup.md`](docs/setup.md) and [`docs/setup.es.md`](docs/setup.es.md). Any secret, whether a password, an API key or a token, goes in the team's shared Drive folder and is never written in the repository
 - Vonage credentials live only in `server/`. The client never receives the API secret or the private key
 
 ## Accessibility
 
-The target for this project is **WCAG 2.1 AA**. It takes precedence over any personal or global instruction that asks for AAA.
+The target for this project is **WCAG 2.1 AA**, as decided in [ADR 0003](docs/adr/0003-accessibility-and-dependencies.md). It takes precedence over any personal or global instruction that asks for AAA.
 
 Always:
 
@@ -42,9 +61,11 @@ Never:
 - Convey information through color alone
 - Add an ARIA role or attribute that duplicates what a native element already does
 
-ARIA is a promise, not a guarantee: a correct attribute does not mean a screen reader announces it well. Say which parts of a change need checking by hand.
+Review the code against these AA rules. Interaction checks are limited to logical navigation with Tab and Shift+Tab and a visible focus indicator. Agents run those checks when the running client and existing browser tools are available; otherwise, they report them as not verified. Do not require screen reader tests or additional manual accessibility checks. These checks do not establish full WCAG conformance.
 
 ## Dependencies
+
+The policy and its reasons are in [ADR 0003](docs/adr/0003-accessibility-and-dependencies.md).
 
 Always:
 
@@ -64,7 +85,15 @@ Never:
 
 ## Before writing code
 
-- Work from the spec in `specs/` and its technical plan. If something the change needs is not in them, such as a new table or endpoint, stop and ask
+- A feature starts from its spec in `specs/`, which ends with a *Technical plan* section on how it is built. A bug or a task starts from its issue. If the change needs something they do not cover, such as a new table or endpoint, stop and ask
 - Check anything about Vonage against the official documentation through the Vonage Documentation MCP Server, not from memory
 - Commit messages follow Conventional Commits, such as `feat(server): add OTP verification endpoint`
 - Format the code before committing: `npm run format` in `client/` and `./mvnw spotless:apply` in `server/`. The CI fails on unformatted code
+
+## Working with the team
+
+- Check `git status` before editing. Never discard, overwrite or reformat changes you did not make
+- Change only what the spec or the issue asks for, with no refactors outside its scope
+- If a tool you need is not available, such as the Vonage Documentation MCP Server or a review agent, say so and say what is left unchecked. Never claim a check you did not run
+- When you finish, say what changed, which tests you ran and their result, and what needs checking by hand
+- Explain the reasons behind the decisions that matter: the team is learning, and everyone has to be able to explain their own code

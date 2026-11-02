@@ -23,7 +23,7 @@ Read the three before reviewing. The design system is created in its own issue, 
 In each changed file:
 
 - **Arbitrary values**, such as `text-[#1f2937]` or `p-[13px]`
-- **The `style` attribute**
+- **The `style` attribute**, unless it holds a value calculated while the app runs, such as the size of a video, and a comment says why
 - **New stylesheets:** any `.css` file other than `src/index.css`, any CSS Module, any CSS import other than `./index.css` in `main.tsx`
 - **Hard-coded colors** in TSX: hexadecimal, `rgb()` or `hsl()`
 - **Tailwind palette colors**, such as `bg-indigo-600`, `text-slate-700` or `border-red-500`, instead of design tokens. Every color class, in pages or in components, falls under this rule only
