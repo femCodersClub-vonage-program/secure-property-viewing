@@ -98,6 +98,8 @@ main  ◄──  dev  ◄──  ramas de cada participante
 
 `main` y `dev` están protegidas: no admiten push directo y solo aceptan cambios mediante PR, con la revisión de la tech lead y la integración continua en verde.
 
+Las pull requests de la propia tech lead pueden integrarse sin la aprobación de otra persona mediante la excepción de administradora existente. La integración continua debe seguir en verde.
+
 > Muchas empresas trabajan con trunk-based development, con ramas cortas directamente contra `main`. Mantenemos `dev` como rama intermedia porque, en un equipo en formación, da margen para integrar y probar antes de tocar la versión estable.
 
 ## Antes de abrir una pull request

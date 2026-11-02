@@ -61,7 +61,7 @@ Never:
 - Convey information through color alone
 - Add an ARIA role or attribute that duplicates what a native element already does
 
-ARIA is a promise, not a guarantee: a correct attribute does not mean a screen reader announces it well. Say which parts of a change need checking by hand.
+Review the code against these AA rules. Interaction checks are limited to logical navigation with Tab and Shift+Tab and a visible focus indicator. Agents run those checks when the running client and existing browser tools are available; otherwise, they report them as not verified. Do not require screen reader tests or additional manual accessibility checks. These checks do not establish full WCAG conformance.
 
 ## Dependencies
 

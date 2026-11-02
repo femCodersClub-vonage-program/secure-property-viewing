@@ -158,18 +158,22 @@ Participant<br />
 <a href="https://github.com/Kat-lev"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="Kat Leverton on GitHub" /></a>
 </td>
 <td align="center" width="120">
-<img src="https://github.com/ghost.png" width="96" alt="" />
+<a href="https://github.com/alvi103-png"><img src="https://github.com/alvi103-png.png" width="96" alt="Viviana Andrango" /></a>
 </td>
 <td>
-<strong><em>To be confirmed</em></strong><br />
-Participant
+<strong>Viviana Andrango</strong><br />
+Participant<br />
+<a href="https://www.linkedin.com/in/viviana-andrango/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="Viviana Andrango on LinkedIn" /></a>
+<a href="https://github.com/alvi103-png"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="Viviana Andrango on GitHub" /></a>
 </td>
 <td align="center" width="120">
-<img src="https://github.com/ghost.png" width="96" alt="" />
+<a href="https://github.com/damcb1"><img src="https://github.com/damcb1.png" width="96" alt="Damaris Castro" /></a>
 </td>
 <td>
-<strong><em>To be confirmed</em></strong><br />
-Participant
+<strong>Damaris Castro</strong><br />
+Participant<br />
+<a href="https://www.linkedin.com/in/damariscastro/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white" alt="Damaris Castro on LinkedIn" /></a>
+<a href="https://github.com/damcb1"><img src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white" alt="Damaris Castro on GitHub" /></a>
 </td>
 </tr>
 </table>

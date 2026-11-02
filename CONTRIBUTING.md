@@ -96,6 +96,8 @@ main  ◄──  dev  ◄──  each participant's branches
 
 `main` and `dev` are protected: direct pushes are not allowed, and changes are only accepted through pull requests, with the tech lead's review and continuous integration passing.
 
+The tech lead's own pull requests can be merged without another person's approval through the existing administrator exception. Continuous integration must still pass.
+
 > Many companies use trunk-based development, with short-lived branches merged directly into `main`. We keep `dev` as an intermediate branch because, in a team that is still learning, it gives room to integrate and test before touching the stable version.
 
 ## Before opening a pull request

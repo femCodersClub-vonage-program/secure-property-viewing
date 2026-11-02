@@ -19,7 +19,7 @@ Two rules shape every pull request from now on, and both need a clear reason beh
 
 **How they are checked:**
 
-- The `accessibility-reviewer` and `design-system-reviewer` agents, run through `ui-reviewer`, check every client change before its pull request, and list what has to be verified by hand, such as a screen reader or 200% zoom
+- The `accessibility-reviewer` and `design-system-reviewer` agents, run through `ui-reviewer`, review every client change against the AA code rules before its pull request. Interaction checks are limited to Tab and Shift+Tab navigation and visible focus, using the running client and existing browser tools when available. Unavailable checks are reported as not verified. Screen reader tests and additional manual accessibility checks are not required
 - The `docs-reviewer` agent checks that a new dependency is justified in the pull request
 - The tech lead reviews both in the pull request
 
@@ -32,5 +32,5 @@ Two rules shape every pull request from now on, and both need a clear reason beh
 ## Consequences
 
 - **Easier:** the team has one clear accessibility target, the design system can use a wider palette, and the stack stays small and known
-- **Harder:** AA still needs manual checks with a screen reader and at 200% zoom, which no agent can do. A participant who needs a library has to argue for it first
+- **Harder:** code review and the limited interaction checks do not establish full WCAG conformance. A participant who needs a library has to argue for it first
 - **Accepted trade-off:** the agents do not block a merge on their own. A finding is only fixed if someone reads the report, which is why the tech lead also checks it in the review
