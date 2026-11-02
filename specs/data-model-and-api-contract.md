@@ -32,7 +32,7 @@ The client and the server are built at the same time by different people. If eac
 
 ## Open questions
 
-- **Agency sign-in in the MVP.** Option A: a real sign-in with email and password for the preloaded users, with a server session. Option B: no sign-in in the MVP, with the dashboard open in the demo and sign-in as an extra. Option A is closer to a real product and gives the security game something to test; option B saves a few days. Proposal: option A, without sign-up or password reset
+- **Agency sign-in in the MVP.** Option A: a real sign-in with email and password for the preloaded users, with a server session. Option B: no sign-in in the MVP, with the dashboard open in the demo and sign-in as an extra. Option A restricts agency access to signed-in users; option B saves a few days. Proposal: option A, without sign-up or password reset
 - **Catalog map.** Proposal: out of the MVP, and back as an extra if there is time
 - **Sample data loading.** We would like to agree on the separate `db/seed` location before the first migration is written, since it also means updating the migration rules
 - **Address visibility.** Whether the full address is public in the details or shown only after booking a visit. Proposal: municipality and area in the catalog and details, full address in the visit confirmation
