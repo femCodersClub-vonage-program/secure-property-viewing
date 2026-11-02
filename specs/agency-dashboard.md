@@ -1,7 +1,7 @@
 # Agency dashboard
 
 - **Status:** In review
-- **Issue:** #14
+- **Issue:** [#14](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/14)
 - **Journey:** agency dashboard, screens 1 to 5 in [`docs/user-journeys.md`](../docs/user-journeys.md)
 
 ## Problem
@@ -20,7 +20,7 @@ The agency is the other half of Peephole: it reviews who wants to list a propert
 Layout:
 
 - [ ] Every screen shares one layout with side navigation: Dashboard, Properties, Listing requests, Calendar, Messages, Profile and Sign out
-- [ ] On mobile the navigation collapses into a menu, and the active page is announced with `aria-current`
+- [ ] On mobile the navigation collapses into a menu, and the active page is marked with `aria-current="page"`
 
 Dashboard (D1):
 
@@ -44,7 +44,7 @@ Visits calendar (D4):
 
 - [ ] It shows the visits of the week, with the option to move to the previous and next weeks
 - [ ] Each visit shows time, visitor and property, and has the same "Join visit" link as the dashboard
-- [ ] The calendar can be used with the keyboard and a screen reader
+- [ ] The calendar controls have accessible names and support keyboard use with visible focus
 
 Messages and notifications (D5):
 
@@ -62,6 +62,14 @@ All screens:
 - Editing or deleting published properties, and the Properties and Profile screens beyond a placeholder
 - Several agencies, user management and roles beyond the demo users
 - Sending messages by hand from the dashboard
+
+## Open questions
+
+- **Sign-in.** Depends on the decision in the [data model](data-model-and-api-contract.md#open-questions)
+- **In review status.** Whether a request moves to `IN_REVIEW` when an agent opens it or when the video call with the owner is scheduled. Proposal: when the video call is scheduled, since that is the step in journey B
+- **Calendar view.** Week view only, or also a day view on mobile. Proposal: week view on desktop and a list of the day on mobile
+- **Publication data.** A listing request currently lacks the title, description, area and photos used by the catalog. Agree with the owner listing spec on who supplies them and when, and update the data model and approval contract before implementing "Approve and publish"
+- **Response contracts.** Define the exact JSON fields and nullability for request lists and details, the approval and rejection responses, calendar visits and messages before those endpoints are implemented
 
 ## Technical plan
 
@@ -101,9 +109,3 @@ None directly. The dashboard shows what Messages and Video produce: message stat
 
 - Pages under `/agency` in `routes.tsx`, composed from an `agency-dashboard` feature with its `api.ts`, types and components, following the folder rules in `client/AGENTS.md`
 - The layout and D1 are built first, in issue #16, and D2 to D5 follow in the next weeks
-
-## Open questions
-
-- **Sign-in.** Depends on the decision in the [data model](data-model-and-api-contract.md#open-questions)
-- **In review status.** Whether a request moves to `IN_REVIEW` when an agent opens it or when the video call with the owner is scheduled. Proposal: when the video call is scheduled, since that is the step in journey B
-- **Calendar view.** Week view only, or also a day view on mobile. Proposal: week view on desktop and a list of the day on mobile

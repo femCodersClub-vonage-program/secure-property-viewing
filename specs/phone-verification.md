@@ -1,18 +1,18 @@
 # Phone verification
 
 - **Status:** In review
-- **Issue:** #12
+- **Issue:** [#12](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/12)
 - **Journey:** journey A step 5 and journey B step 4 in [`docs/user-journeys.md`](../docs/user-journeys.md)
 
 ## Problem
 
-Rental scams rely on anonymity. Before Peephole accepts a visit or a listing request, the person proves that the phone number is really theirs with a one-time code sent by SMS. It is the core of the anti-scam promise, and the same flow serves visitors and owners. Silent Authentication will later become the first step of this same flow, with the SMS as the fallback.
+Before Peephole accepts a visit or a listing request, the person confirms access to the phone number with a one-time code sent by SMS. This helps reduce anonymous requests and gives the agency a verified contact number. The same flow serves visitors and owners; it does not establish their identity or ownership of a property. Silent Authentication is proposed as a later first step, with SMS as the fallback.
 
 ## User stories
 
 - As a visitor, I want to verify my phone number quickly, so that I can confirm my visit without creating an account
-- As an owner, I want to verify my phone number, so that the agency knows the listing request comes from a real person
-- As the agency, I want every visit and listing request to come from a verified phone, so that I can trust who I am talking to
+- As an owner, I want to verify my phone number, so that the agency has a verified contact number for my listing request
+- As the agency, I want every visit and listing request to include a verified phone number, so that I can follow up through that contact
 
 ## Acceptance criteria
 
@@ -32,6 +32,14 @@ Rental scams rely on anonymity. Before Peephole accepts a visit or a listing req
 - Silent Authentication: planned for week 4, as its own spec and feature
 - Voice, WhatsApp or email as channels
 - Remembering a verified phone between visits
+
+## Open questions
+
+- **Maximum wrong codes per verification.** Proposal: 5, enforced by our server whatever Verify allows. We still need to check in the Vonage Documentation MCP Server what Verify does after several wrong codes
+- **Expiry time.** Proposal: 5 minutes. To confirm: how it relates to the step timeout in Verify
+- **Resend.** Whether a new code starts a new Verify request or moves the current one forward. We will look at the options in the Vonage Documentation MCP Server
+- **Limit per phone number.** Proposal: at most 3 verifications per phone number per hour, to avoid abuse and wasted credits
+- **Verification ownership and use.** Define how the verification is bound to the requesting browser and consumed atomically when a visit or listing request is created, so knowing an id and phone number is not enough to use another person's verification
 
 ## Technical plan
 
@@ -93,7 +101,7 @@ Credentials will come from the Verify group of variables in `server/.env`, docum
 
 ### Adding Silent Authentication later
 
-Silent Authentication is planned for week 4 and changes little of this design:
+Silent Authentication is planned for week 4. The following integration outline is a proposal to validate through the Vonage Documentation MCP Server before its own spec is approved:
 
 - **Server:** the Verify workflow gets `silent_auth` as its first step and keeps `sms` as the fallback. Verify then returns a `check_url` along with the `request_id`, and our start endpoint passes it to the client
 - **Client:** the browser opens the `check_url` over mobile data, shows a "verifying with your carrier" state and, if Verify falls back to SMS, moves to the code screen described here
@@ -105,13 +113,6 @@ The details belong in their own spec, written in week 3.
 ### Client
 
 - Verification screen for journey A (A5) and journey B (B4), built with the form field of the design system
-- Six-digit code entry that works with the keyboard, pasting and screen readers
-- The resend link is disabled with a visible countdown until `resendAvailableAt`
+- Six-digit code entry with a label, keyboard support and paste support
+- The resend button is disabled with a visible countdown until `resendAvailableAt`
 - Loading, error and success states, using the API client
-
-## Open questions
-
-- **Maximum wrong codes per verification.** Proposal: 5, enforced by our server whatever Verify allows. We still need to check in the Vonage Documentation MCP Server what Verify does after several wrong codes
-- **Expiry time.** Proposal: 5 minutes. To confirm: how it relates to the step timeout in Verify
-- **Resend.** Whether a new code starts a new Verify request or moves the current one forward. We will look at the options in the Vonage Documentation MCP Server
-- **Limit per phone number.** Proposal: at most 3 verifications per phone number per hour, to avoid abuse and wasted credits

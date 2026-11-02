@@ -1,7 +1,7 @@
 # Property browsing
 
 - **Status:** In review
-- **Issue:** #13
+- **Issue:** [#13](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/13)
 - **Journey:** journey A, steps 1 to 3 in [`docs/user-journeys.md`](../docs/user-journeys.md)
 
 ## Problem
@@ -11,7 +11,7 @@ People looking for an apartment arrive at Peephole wary of scams. The home page,
 ## User stories
 
 - As a visitor, I want to understand what Peephole offers as soon as I arrive, so that I can decide whether to trust it
-- As a visitor, I want to search by city or area and filter by rent or sale, so that I only see properties that interest me
+- As a visitor, I want to search by municipality and filter by rent or sale, so that I only see properties that interest me
 - As a visitor, I want to see the details and photos of a property, so that I can decide whether to request a visit
 - As an owner, I want a clear way to list my property from the home page, so that I can start journey B
 
@@ -19,7 +19,7 @@ People looking for an apartment arrive at Peephole wary of scams. The home page,
 
 Home page (A1):
 
-- [ ] It shows the headline, a search by city or area, an entry point to "List my property" and the three trust points: verified agencies, video visits and secure communication
+- [ ] It shows the headline, a search by municipality, an entry point to "List my property" and the three trust points: verified agencies, video visits and secure communication
 - [ ] Searching takes the visitor to the catalog with the search applied
 
 Catalog (A2):
@@ -38,7 +38,7 @@ All three screens:
 
 - [ ] They use only design system components and tokens
 - [ ] They work with the keyboard alone, at 320 px wide and at 200% zoom
-- [ ] Every photo has the alternative text from the API, and the gallery can be used with the keyboard and a screen reader
+- [ ] Every photo has the alternative text from the API, and gallery controls have accessible names and support keyboard use with visible focus
 - [ ] Prices and sizes are formatted for Spain, such as `950 €/month` and `70 m²`
 - [ ] Tests find elements by role and accessible name
 
@@ -47,6 +47,11 @@ All three screens:
 - The map in the catalog: an extra if there is time
 - Favorites and sharing buttons
 - Sorting the catalog
+
+## Open questions
+
+- **Search field.** A free text field or a list of the municipalities that have properties. Proposal: a list, so the search never returns nothing because of a typo
+- **Catalog map.** Out of the MVP, as proposed in the [data model](data-model-and-api-contract.md#open-questions)
 
 ## Technical plan
 
@@ -108,8 +113,3 @@ None.
 - Pages in `src/pages/` for the home page, the catalog and the details, registered in `routes.tsx`
 - A `property-browsing` feature with its `api.ts`, types and components, following the folder rules in `client/AGENTS.md`
 - Sample data in the shape above while the endpoints are not in `dev`
-
-## Open questions
-
-- **Search field.** A free text field or a list of the municipalities that have properties. Proposal: a list, so the search never returns nothing because of a typo
-- **Catalog map.** Out of the MVP, as proposed in the [data model](data-model-and-api-contract.md#open-questions)

@@ -22,6 +22,10 @@ Each criterion is something we can check, and becomes at least one test.
 
 What this spec intentionally leaves for later, so nobody builds it by accident.
 
+## Open questions
+
+Decisions still to settle, with a proposal when we have one.
+
 ## Technical plan
 
 ### Data
@@ -39,7 +43,3 @@ Which Vonage API is called, from where, and how tests replace the real calls.
 ### Client
 
 Pages, features and design system components involved.
-
-## Open questions
-
-Decisions still to settle, with a proposal when we have one.

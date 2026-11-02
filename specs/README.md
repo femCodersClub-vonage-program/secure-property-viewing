@@ -9,7 +9,11 @@ Every feature in Peephole starts with a spec: what we are building, why, and how
 3. **Approved.** Once the review is done, the author changes the status to `Approved` in the last commit, and merging the pull request makes it official
 4. **Build.** Feature issues link to the approved spec, and their acceptance criteria come from it
 
-A spec can change after it is approved. If a feature needs something the spec does not cover, such as a new table or endpoint, we update the spec in the same pull request and say so in the description.
+A spec marked `In review` can be merged into `dev` so the team can discuss it from one shared location. Merging it does not approve its open decisions. The spec issue stays open until the blocking questions are settled and the status is `Approved`; implementation waits for that approval.
+
+A spec can change after it is approved. If a feature needs something the spec does not cover, such as a new table or endpoint, stop and agree on the spec change before implementing it. The agreed spec update and its implementation go in the same pull request, with the change explained in the description.
+
+Put open questions before the final **Technical plan** section. Accessibility follows the root `AGENTS.md`: AA rules are reviewed in code, and interaction checks are limited to Tab/Shift+Tab navigation and visible focus. Screen reader tests and additional manual accessibility checks are not required.
 
 ## Naming
 

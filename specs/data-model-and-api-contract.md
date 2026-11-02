@@ -1,7 +1,7 @@
 # Data model and API contract
 
 - **Status:** In review
-- **Issue:** #11
+- **Issue:** [#11](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/11)
 - **Journey:** all three journeys in [`docs/user-journeys.md`](../docs/user-journeys.md)
 
 ## Problem
@@ -29,6 +29,14 @@ The client and the server are built at the same time by different people. If eac
 - Message sending rules: defined in the messages spec in week 2
 - Pagination: the MVP has a dozen properties, so lists return everything that matches the filters
 - Several agencies: the MVP has one demo agency, although the model keeps `agency_id` so it can grow
+
+## Open questions
+
+- **Agency sign-in in the MVP.** Option A: a real sign-in with email and password for the preloaded users, with a server session. Option B: no sign-in in the MVP, with the dashboard open in the demo and sign-in as an extra. Option A is closer to a real product and gives the security game something to test; option B saves a few days. Proposal: option A, without sign-up or password reset
+- **Catalog map.** Proposal: out of the MVP, and back as an extra if there is time
+- **Sample data loading.** We would like to agree on the separate `db/seed` location before the first migration is written, since it also means updating the migration rules
+- **Address visibility.** Whether the full address is public in the details or shown only after booking a visit. Proposal: municipality and area in the catalog and details, full address in the visit confirmation
+- **Publication data.** The listing request does not yet provide the title, description, area and photos required for publication. Agree on their source with the owner listing and agency dashboard specs, then complete the model and approval contract before implementation
 
 ## Technical plan
 
@@ -60,7 +68,7 @@ erDiagram
 | Entity | Fields | Notes |
 | :---- | :---- | :---- |
 | `agency` | id, name, email, phone, verified, created_at | One demo agency in the MVP, verified |
-| `agency_user` | id, agency_id, full_name, email, role (`ADMIN`, `AGENT`), created_at | Sign-in fields depend on the open question below |
+| `agency_user` | id, agency_id, full_name, email, role (`ADMIN`, `AGENT`), created_at | Sign-in fields depend on the [open question](#open-questions) |
 | `property` | id, agency_id, listing_request_id (nullable), title, operation (`RENT`, `SALE`), property_type (`APARTMENT`, `HOUSE`, `STUDIO`), price_euros, municipality, area, address, bedrooms, size_m2, floor (nullable), description, video_visit_available, status (`ACTIVE`, `INACTIVE`), created_at | Only `ACTIVE` properties appear in the catalog. `area` is the neighborhood or district, such as Gràcia |
 | `property_image` | id, property_id, url, alt_text, position | `alt_text` is required: it describes what the photo shows |
 | `visit_slot` | id, property_id, starts_at, ends_at, status (`AVAILABLE`, `BOOKED`) | Slots of 30 minutes in the screen map |
@@ -135,10 +143,3 @@ The `detail` of a business error is written so the client can show it as it is: 
 Proposed loading: the schema stays in `db/migration`, as the migration rules require, and the sample data lives in a separate Flyway location, `db/seed`, as a repeatable migration (`R__seed_demo_data.sql`). Repeatable migrations run again when their content changes, so the sample data can evolve without new versions. The seed location is enabled with an environment variable locally and on Railway, and stays off where it is not wanted.
 
 The client mirrors the same data in each feature's sample file while an endpoint is not ready yet.
-
-## Open questions
-
-- **Agency sign-in in the MVP.** Option A: a real sign-in with email and password for the preloaded users, with a server session. Option B: no sign-in in the MVP, with the dashboard open in the demo and sign-in as an extra. Option A is closer to a real product and gives the security game something to test; option B saves a few days. Proposal: option A, without sign-up or password reset
-- **Catalog map.** Proposal: out of the MVP, and back as an extra if there is time
-- **Sample data loading.** We would like to agree on the separate `db/seed` location before the first migration is written, since it also means updating the migration rules
-- **Address visibility.** Whether the full address is public in the details or shown only after booking a visit. Proposal: municipality and area in the catalog and details, full address in the visit confirmation
