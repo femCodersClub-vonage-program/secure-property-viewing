@@ -1,0 +1,115 @@
+# Property browsing
+
+- **Status:** In review
+- **Issue:** #13
+- **Journey:** journey A, steps 1 to 3 in [`docs/user-journeys.md`](../docs/user-journeys.md)
+
+## Problem
+
+People looking for an apartment arrive at Peephole wary of scams. The home page, the catalog and the property details are the first screens they see, and the first thing anyone sees in the demo. They have to make it easy to find a property and, at a glance, show why Peephole is safer: verified agencies, video visits and secure communication.
+
+## User stories
+
+- As a visitor, I want to understand what Peephole offers as soon as I arrive, so that I can decide whether to trust it
+- As a visitor, I want to search by city or area and filter by rent or sale, so that I only see properties that interest me
+- As a visitor, I want to see the details and photos of a property, so that I can decide whether to request a visit
+- As an owner, I want a clear way to list my property from the home page, so that I can start journey B
+
+## Acceptance criteria
+
+Home page (A1):
+
+- [ ] It shows the headline, a search by city or area, an entry point to "List my property" and the three trust points: verified agencies, video visits and secure communication
+- [ ] Searching takes the visitor to the catalog with the search applied
+
+Catalog (A2):
+
+- [ ] It lists the active properties from `GET /api/properties`, each card with photo, title, municipality and area, price, bedrooms and size
+- [ ] The visitor can filter by all, rent or sale, and by municipality, and the filters are kept in the URL so a filtered catalog can be shared
+- [ ] It shows a loading state, an empty state with a way to clear the filters, and an error state with a way to try again
+
+Property details (A3):
+
+- [ ] It shows the photo gallery, title, price, municipality and area, bedrooms, size, floor, description, the verified agency badge and whether video visits are available
+- [ ] "Request a video visit" leads to journey A step 4
+- [ ] A property that does not exist shows a not found page with a way back to the catalog
+
+All three screens:
+
+- [ ] They use only design system components and tokens
+- [ ] They work with the keyboard alone, at 320 px wide and at 200% zoom
+- [ ] Every photo has the alternative text from the API, and the gallery can be used with the keyboard and a screen reader
+- [ ] Prices and sizes are formatted for Spain, such as `950 €/month` and `70 m²`
+- [ ] Tests find elements by role and accessible name
+
+## Out of scope
+
+- The map in the catalog: an extra if there is time
+- Favorites and sharing buttons
+- Sorting the catalog
+
+## Technical plan
+
+### Data
+
+No new tables: `property` and `property_image` from the [data model](data-model-and-api-contract.md).
+
+### API
+
+`GET /api/properties?operation=RENT&municipality=Barcelona`
+
+```json
+[
+  {
+    "id": 7,
+    "title": "Apartment in Gràcia",
+    "operation": "RENT",
+    "priceEuros": 950,
+    "municipality": "Barcelona",
+    "area": "Gràcia",
+    "bedrooms": 2,
+    "sizeM2": 70,
+    "coverImage": { "url": "https://...", "altText": "Bright living room with a balcony" }
+  }
+]
+```
+
+Both filters are optional. `videoVisitAvailable` and `agency.verified` come from the `property` and `agency` tables in the data model. An unknown `operation` returns `400 VALIDATION_FAILED`.
+
+`GET /api/properties/{id}`
+
+```json
+{
+  "id": 7,
+  "title": "Apartment in Gràcia",
+  "operation": "RENT",
+  "propertyType": "APARTMENT",
+  "priceEuros": 950,
+  "municipality": "Barcelona",
+  "area": "Gràcia",
+  "bedrooms": 2,
+  "sizeM2": 70,
+  "floor": 2,
+  "description": "...",
+  "videoVisitAvailable": true,
+  "agency": { "name": "...", "verified": true },
+  "images": [{ "url": "https://...", "altText": "..." }]
+}
+```
+
+A property that does not exist or is not active returns `404 NOT_FOUND`.
+
+### Vonage
+
+None.
+
+### Client
+
+- Pages in `src/pages/` for the home page, the catalog and the details, registered in `routes.tsx`
+- A `property-browsing` feature with its `api.ts`, types and components, following the folder rules in `client/AGENTS.md`
+- Sample data in the shape above while the endpoints are not in `dev`
+
+## Open questions
+
+- **Search field.** A free text field or a list of the municipalities that have properties. Proposal: a list, so the search never returns nothing because of a typo
+- **Catalog map.** Out of the MVP, as proposed in the [data model](data-model-and-api-contract.md#open-questions)

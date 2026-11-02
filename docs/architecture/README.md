@@ -28,14 +28,15 @@ sequenceDiagram
     participant VY as Vonage Verify
     participant VV as Vonage Video
     participant VM as Vonage Messages
-    V->>C: Requests a visit with date and phone number
-    C->>S: Sends the request
+    V->>C: Chooses a date and time and enters the phone number
+    C->>S: Starts the phone verification
     S->>VY: Starts verification
     VY-->>V: OTP code by SMS
     V->>C: Enters the code
     C->>S: Sends the code
     S->>VY: Checks the code
     VY-->>S: Phone verified
+    C->>S: Books the visit with the verified phone
     S->>VV: Creates the visit session
     S->>VM: Schedules confirmation and reminder
     VM-->>V: Confirmation SMS
