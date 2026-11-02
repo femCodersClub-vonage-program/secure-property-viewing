@@ -27,9 +27,9 @@ Algunas de estas prácticas son estándar en la industria, y otras las mantenemo
 
 Trabajamos con **Spec-Driven Development (SDD)**, así que ninguna funcionalidad empieza por el código:
 
-1. **Spec**: qué se construye, por qué y con qué criterios de aceptación. Se guarda en `specs/`  
-2. **Revisión**: la tech lead y el equipo validan la spec antes de seguir  
-3. **Plan técnico**: cómo se va a implementar, en una sección *Technical plan* al final de la spec  
+1. **Spec**: qué se construye, por qué y con qué criterios de aceptación. Se guarda en `specs/`, siguiendo [`specs/README.md`](specs/README.md)  
+2. **Plan técnico**: cómo se va a implementar, en una sección *Technical plan* al final de la spec  
+3. **Revisión**: la tech lead y el equipo validan la spec y su plan en una pull request antes de seguir  
 4. **Tareas**: el plan se divide en issues del GitHub Project  
 5. **Implementación**: cada PR enlaza su issue y la spec de la que parte
 
