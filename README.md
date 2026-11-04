@@ -4,7 +4,12 @@
 
 [![CI status on dev](https://img.shields.io/github/actions/workflow/status/femCodersClub-vonage-program/secure-property-viewing/ci.yml?branch=dev&label=CI%20dev&logo=githubactions&logoColor=white&labelColor=1f2937&style=flat-square)](https://github.com/femCodersClub-vonage-program/secure-property-viewing/actions/workflows/ci.yml?query=branch%3Adev)
 [![CI status on main](https://img.shields.io/github/actions/workflow/status/femCodersClub-vonage-program/secure-property-viewing/ci.yml?branch=main&label=CI%20main&logo=githubactions&logoColor=white&labelColor=1f2937&style=flat-square)](https://github.com/femCodersClub-vonage-program/secure-property-viewing/actions/workflows/ci.yml?query=branch%3Amain)
+[![Live demo status](https://img.shields.io/website?url=https%3A%2F%2Fclient-production-c53a.up.railway.app&label=demo&up_message=online&down_message=offline&logo=railway&logoColor=white&labelColor=1f2937&style=flat-square)](https://client-production-c53a.up.railway.app)
+[![Last commit on dev](https://img.shields.io/github/last-commit/femCodersClub-vonage-program/secure-property-viewing/dev?label=last%20commit&logo=github&logoColor=white&labelColor=1f2937&style=flat-square)](https://github.com/femCodersClub-vonage-program/secure-property-viewing/commits/dev)
+[![Open issues](https://img.shields.io/github/issues/femCodersClub-vonage-program/secure-property-viewing?logo=github&logoColor=white&labelColor=1f2937&style=flat-square)](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues)
 [![MIT license](https://img.shields.io/badge/license-MIT-1f2937?style=flat-square)](LICENSE)
+[![Accessibility target: WCAG 2.1 AA](https://img.shields.io/badge/accessibility%20target-WCAG%202.1%20AA-1f2937?style=flat-square)](docs/adr/0003-accessibility-and-dependencies.md)
+[![FemCoders Club](https://img.shields.io/badge/community-FemCoders%20Club-1f2937?style=flat-square)](https://www.femcodersclub.com)
 
 A web platform for remote property visits with anti-fraud verification, built with Vonage APIs as part of the **FemCoders Club with Vonage** projects and mentoring program.
 

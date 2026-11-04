@@ -4,7 +4,12 @@
 
 [![Estado del CI en dev](https://img.shields.io/github/actions/workflow/status/femCodersClub-vonage-program/secure-property-viewing/ci.yml?branch=dev&label=CI%20dev&logo=githubactions&logoColor=white&labelColor=1f2937&style=flat-square)](https://github.com/femCodersClub-vonage-program/secure-property-viewing/actions/workflows/ci.yml?query=branch%3Adev)
 [![Estado del CI en main](https://img.shields.io/github/actions/workflow/status/femCodersClub-vonage-program/secure-property-viewing/ci.yml?branch=main&label=CI%20main&logo=githubactions&logoColor=white&labelColor=1f2937&style=flat-square)](https://github.com/femCodersClub-vonage-program/secure-property-viewing/actions/workflows/ci.yml?query=branch%3Amain)
+[![Estado de la demo](https://img.shields.io/website?url=https%3A%2F%2Fclient-production-c53a.up.railway.app&label=demo&up_message=online&down_message=offline&logo=railway&logoColor=white&labelColor=1f2937&style=flat-square)](https://client-production-c53a.up.railway.app)
+[![Último commit en dev](https://img.shields.io/github/last-commit/femCodersClub-vonage-program/secure-property-viewing/dev?label=last%20commit&logo=github&logoColor=white&labelColor=1f2937&style=flat-square)](https://github.com/femCodersClub-vonage-program/secure-property-viewing/commits/dev)
+[![Issues abiertas](https://img.shields.io/github/issues/femCodersClub-vonage-program/secure-property-viewing?logo=github&logoColor=white&labelColor=1f2937&style=flat-square)](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues)
 [![Licencia MIT](https://img.shields.io/badge/license-MIT-1f2937?style=flat-square)](LICENSE)
+[![Objetivo de accesibilidad: WCAG 2.1 AA](https://img.shields.io/badge/accessibility%20target-WCAG%202.1%20AA-1f2937?style=flat-square)](docs/adr/0003-accessibility-and-dependencies.md)
+[![FemCoders Club](https://img.shields.io/badge/community-FemCoders%20Club-1f2937?style=flat-square)](https://www.femcodersclub.com)
 
 Plataforma web de visitas de pisos en remoto con verificación antiestafa, desarrollada con las APIs de Vonage dentro del programa de proyectos y mentorías de **FemCoders Club con Vonage**.
 
