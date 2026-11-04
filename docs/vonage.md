@@ -39,7 +39,12 @@ The MCP Tooling Server acts on the real account: it sends messages and consumes 
 
 ### Enabling the Documentation MCP Server
 
-The server is configured for the whole team in [`.mcp.json`](../.mcp.json), at the root of the repository. It needs no credentials and nothing to install. The first time you open Claude Code in the project, it asks you to approve the server. Run `/mcp` in Claude Code to check that `vonage-documentation` is connected. Other assistants can use the same address, `https://documentation-mcp.vonage.dev/mcp`, in their own MCP settings.
+The server is already in the project, in [`.mcp.json`](../.mcp.json), and it needs no credentials and nothing to install. Whichever AI assistant you use, make sure it can reach the server:
+
+- If your assistant reads `.mcp.json`, such as Claude Code, approve the server the first time it asks
+- If it does not, add this address to its MCP settings, following its own documentation: `https://documentation-mcp.vonage.dev/mcp`
+
+Then check that `vonage-documentation` appears among your assistant's MCP servers. If you cannot use it, check anything about Vonage directly in the [official documentation](https://developer.vonage.com/en/tools).
 
 The Vonage CLI is not part of the automated tests. They use test doubles instead of real calls, so they neither consume credits nor depend on the network. The CLI includes a mock server (`vonage mock`), but it currently covers only the SMS API, not the Messages API we use.
 
