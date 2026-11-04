@@ -13,6 +13,7 @@ Run them from `client/`.
 - Run the tests: `npm test`
 - Lint: `npm run lint`
 - Format: `npm run format`
+- Optimize every image in the repository: `npm run images`
 - Type-check and build: `npm run build`
 
 ## Folder structure

@@ -125,7 +125,7 @@ Las pull requests de la propia tech lead pueden integrarse sin la aprobación de
 
 ## Integración continua
 
-Cada PR ejecuta [`.github/workflows/ci.yml`](.github/workflows/ci.yml) en GitHub Actions: el lint, el formato, los tests y la compilación del cliente, el formato, la compilación y los tests del servidor contra una base de datos PostgreSQL vacía, y la comprobación de las [reglas de migraciones](#migraciones-de-base-de-datos). Si es viable, también lanzará los agentes de revisión, para que ese paso no dependa solo de que cada persona lo haga en local.
+Cada PR ejecuta [`.github/workflows/ci.yml`](.github/workflows/ci.yml) en GitHub Actions: el lint, el formato, los tests y la compilación del cliente, la comprobación de que las imágenes están optimizadas, el formato, la compilación y los tests del servidor contra una base de datos PostgreSQL vacía, y la comprobación de las [reglas de migraciones](#migraciones-de-base-de-datos). Si es viable, también lanzará los agentes de revisión, para que ese paso no dependa solo de que cada persona lo haga en local.
 
 ## Testing
 

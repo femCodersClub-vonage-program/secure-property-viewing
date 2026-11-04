@@ -4,7 +4,7 @@ The application has three journeys: one for visitors, one for property owners an
 
 The screen map below is an initial mock. Screens may change during development; the specs in `specs/` are the reference for what gets built.
 
-![Screen map mock: journey A for visitors with 7 screens, journey B for property owners with 6 screens, and the agency dashboard with 5 screens, as listed below.](images/screen-map.png)
+![Screen map mock: journey A for visitors with 7 screens, journey B for property owners with 6 screens, and the agency dashboard with 5 screens, as listed below.](images/screen-map.webp)
 
 ## Journey A · Visitor
 

@@ -90,6 +90,7 @@ Never:
 - Check anything about Vonage against the official documentation through the Vonage Documentation MCP Server, not from memory
 - Commit messages follow Conventional Commits, such as `feat(server): add OTP verification endpoint`
 - Format the code before committing: `npm run format` in `client/` and `./mvnw spotless:apply` in `server/`. The CI fails on unformatted code
+- After adding an image, run `npm run images` in `client/`: it converts the image to WebP, reduces it and updates the files that mention it. The CI fails on images that are not optimized
 
 ## Working with the team
 

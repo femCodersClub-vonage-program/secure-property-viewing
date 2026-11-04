@@ -123,7 +123,7 @@ The tech lead's own pull requests can be merged without another person's approva
 
 ## Continuous integration
 
-Every pull request runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml) in GitHub Actions: linting, formatting, testing and building the client, formatting, building and testing the server against an empty PostgreSQL database, and checking the [database migration rules](#database-migrations). If feasible, it will also run the review agents, so that step does not rely solely on each person running it locally.
+Every pull request runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml) in GitHub Actions: linting, formatting, testing and building the client, checking that images are optimized, formatting, building and testing the server against an empty PostgreSQL database, and checking the [database migration rules](#database-migrations). If feasible, it will also run the review agents, so that step does not rely solely on each person running it locally.
 
 ## Testing
 

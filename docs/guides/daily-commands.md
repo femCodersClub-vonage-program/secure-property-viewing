@@ -67,6 +67,7 @@ cd client
 | Formatear el código | `npm run format` |
 | Comprobar los tipos y compilar | `npm run build` |
 | Ver la versión compilada | `npm run preview` |
+| Optimizar las imágenes después de añadir una | `npm run images` |
 
 Mientras `npm run dev` está corriendo, los cambios que guardas se ven en el navegador sin recargar. Las llamadas a `/api` llegan al servidor de `localhost:8080`, así que arranca también el servidor si la pantalla las necesita.
 
