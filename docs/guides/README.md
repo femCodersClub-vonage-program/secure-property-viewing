@@ -12,6 +12,7 @@ Para poner en marcha el proyecto en tu ordenador, empieza por [`docs/setup.es.md
 | :---- | :---- |
 | [Comandos del día a día](daily-commands.md) | Arrancar el servidor y el cliente, trabajar con Git y consultar la base de datos desde la terminal |
 | [Migraciones con Flyway](flyway-migrations.md) | Crear tablas sin chocar con las demás y salir de los errores de Flyway |
+| [Railway desde la terminal](railway.md) | Ver el estado de cada servicio, entender un despliegue que ha fallado y añadir una variable |
 | [Comandos de PostgreSQL](postgresql-commands.md) | Crear la base de datos, consultarla y resetearla desde la terminal, y dónde están tus datos de conexión |
 
 ## Cuándo añadir una guía

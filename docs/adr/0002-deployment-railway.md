@@ -45,7 +45,9 @@ We deploy on [Railway](https://railway.com), in one project with three services:
   - The client and the server run on different domains. The server already allows `http://localhost:5173` through CORS, and on Railway `CORS_ALLOWED_ORIGINS` must be set to the client domain. The client needs the server URL at build time (a `VITE_` variable, which is public and never holds a secret), which is set up with the first deployment
   - The client service must answer every unknown path with `index.html`, so React Router can handle routes such as `/visits/12` on reload. This is configured on the first deployment
   - Railway charges by usage once the trial credit is spent, so someone has to own the account and its billing
-- **To check on the first deployment:**
-  - That the PostgreSQL service runs version 17: Railway's documentation does not state its default version
-  - That Railway builds the server with Java 21
-  - Whether Railway sets `PORT` for the server: its documentation does not say, and the server works either way
+- **Checked on the first deployment:**
+  - PostgreSQL: Railway's template created version 18, so the service uses the image `ghcr.io/railwayapp-templates/postgres-ssl:17` to match the local setup and the CI
+  - Java: Railway builds and runs the server with Java 21 by default
+  - `PORT`: Railway does not set it for the server, which listens on `8080` and is reachable through its public domain
+  - Client routes: Railway detects Vite and answers unknown paths with `index.html`, with no extra configuration
+  - Server URL in the client: the `VITE_API_URL` variable is set on the `client` service, and the API client has to use it in production
