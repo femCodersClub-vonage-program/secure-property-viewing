@@ -31,7 +31,7 @@ Trabajamos con **Spec-Driven Development (SDD)**, así que ninguna funcionalidad
 2. **Plan técnico**: cómo se va a implementar, en una sección *Technical plan* al final de la spec  
 3. **Revisión**: la tech lead y el equipo validan la spec y su plan en una pull request antes de seguir  
 4. **Tareas**: el plan se divide en issues del GitHub Project  
-5. **Implementación**: cada PR enlaza su issue y la spec de la que parte
+5. **Implementación**: cada PR enlaza su issue y, si es una funcionalidad, la spec de la que parte. Un bug o una tarea parte de su issue y no necesita spec
 
 Si durante el trabajo aparece una decisión de arquitectura relevante, se registra como ADR en `docs/adr/`, con el contexto, la decisión, las alternativas descartadas y sus consecuencias. Los ADR se numeran de forma correlativa (`0001-tech-stack.md`) y parten de [`docs/adr/template.md`](docs/adr/template.md).
 
@@ -81,7 +81,7 @@ Los documentos de `docs/` están en inglés, siguiendo las convenciones del proy
 
 ## Tareas en el GitHub Project
 
-El GitHub Project es la única fuente de tareas. Cada issue tiene una persona asignada y enlaza la spec correspondiente.
+El GitHub Project es la única fuente de tareas. Cada issue tiene una persona asignada, y cada issue de una funcionalidad enlaza su spec.
 
 - **Labels** por tipo (`enhancement`, `bug`, `documentation`, `spec`, `adr`, `accessibility`) y por grupo (`client`, `server`, `devops`, `qa`, `e2e`). `blocked` marca una issue que no puede avanzar, con el motivo en un comentario. Antes de crear un label nuevo, se comprueba si ya existe uno que sirva  
 - **Milestones** por semana del programa, para ver de un vistazo qué entra en cada una
@@ -178,7 +178,7 @@ El esquema de la base de datos solo cambia mediante migraciones de Flyway en `se
 - **Avisarlo en el plan técnico.** Si una funcionalidad crea o cambia una tabla, su plan técnico dice qué tabla y qué columnas. Los solapamientos se ven en la revisión, antes de que nadie escriba código  
 - **Nombrar las migraciones con la fecha y la hora en UTC**, como `V20261101_1430__create_visits_table.sql`. Es difícil que dos ramas coincidan en el mismo minuto, mientras que con números seguidos como `V3` y `V4` chocan constantemente  
 - **No editar nunca una migración que ya esté en `dev`.** Flyway guarda una huella (checksum) de cada migración aplicada y se niega a arrancar si alguna cambia. Para corregir algo, se añade una migración nueva  
-- **Antes de hacer merge, actualizar la rama desde `dev`.** Si tu migración es más antigua que la más reciente de `dev`, renómbrala con la fecha y hora actuales, o Flyway la dará por desordenada
+- **Antes de hacer merge, actualizar la rama desde `dev`.** Si tu migración es más antigua que la más reciente de `dev`, renómbrala con la fecha y hora actuales, o Flyway la dará por desordenada. Si puedes, hazlo antes de pedir la revisión, porque los commits nuevos descartan la aprobación
 
 El CI comprueba estas reglas en cada pull request y falla si se incumple alguna. La guía [`docs/guides/flyway-migrations.md`](docs/guides/flyway-migrations.md) explica cómo crear una migración y cómo salir de los errores más habituales.
 
@@ -190,7 +190,7 @@ La tech lead genera el `CHANGELOG.md` con IA a partir del historial de commits a
 
 Una issue se da por terminada cuando cumple todo lo siguiente:
 
-- [ ] Responde a los criterios de aceptación de su spec  
+- [ ] Responde a los criterios de aceptación de su spec o, si es un bug o una tarea, a lo que pide su issue  
 - [ ] Tiene sus tests y pasan en local y en la CI  
 - [ ] Ha pasado los agentes de revisión y se ha resuelto lo que señalaron  
 - [ ] Cuenta con la aprobación de la tech lead en la PR  

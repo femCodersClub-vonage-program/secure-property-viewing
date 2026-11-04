@@ -22,7 +22,7 @@ We will acknowledge your report, keep you informed while we work on it, and let 
 
 ## Credentials
 
-Credentials are never written in the code. They live only in `.env`, which is listed in `.gitignore` together with the Vonage CLI configuration (`.vonagerc`) and private keys, and `.env.example` only lists the variable names.
+Credentials are never written in the code or anywhere else in the repository. The team shares them through its shared Drive folder, and each person uses them from their own `.env`, which is listed in `.gitignore` together with the Vonage CLI configuration (`.vonagerc`) and private keys. `.env.example` only lists the variable names, with placeholder values.
 
 If a Vonage API key, secret or private key still ends up in the repository, its history or a pull request, report it the same way. We will revoke it in the Vonage dashboard first and then remove it from the repository, because removing it from the code alone does not make it safe.
 

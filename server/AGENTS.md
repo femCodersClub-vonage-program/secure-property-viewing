@@ -47,7 +47,7 @@ Always:
 Never:
 
 - Create packages by layer at the top level, such as `controllers/`, `services/` or `repositories/`
-- Use another feature's repository or entity directly: call its service. Code shared by several features goes to `common/`
+- Use another feature's repository or entity directly: call its service. Business logic stays in its feature, and only shared code with no business logic goes to `common/`
 - Add classes next to `ServerApplication.java`
 
 ## Java and Spring
@@ -95,7 +95,7 @@ Never:
 ## Configuration
 
 - Secrets are read from `server/.env`, which is never committed. Never read it
-- `DB_URL` in `server/.env` always points to your local database, never to the one on Railway: the tests write to whatever database it points to
+- `DB_URL` in `server/.env` always points to your local database, never to the one on Railway: the tests write to whatever database it points to. A real environment variable takes precedence over `.env`, so the same applies to a `DB_URL` set in your terminal or injected by a tool such as `railway run`
 - A new environment variable goes in `application.properties` as `${VARIABLE}`, in `.env.example` with a placeholder value only, and in `docs/setup.md` and `docs/setup.es.md` with its value if it is not secret, or a note that it is in the shared Drive folder if it is
 
 ## Database migrations
@@ -106,4 +106,4 @@ The schema only changes through Flyway migrations in `src/main/resources/db/migr
 - A new table or a change to an existing one must appear in the technical plan of its spec. If it does not, stop and ask before writing the migration
 - Name migrations with the date and time in UTC: `V<yyyyMMdd>_<HHmm>__<description>.sql`, for example `V20261101_1430__create_visits_table.sql`
 - Never edit a migration that is already in `dev`. To fix or change something, add a new migration
-- Before merging, update your branch from `dev`. If your migration is older than the newest one there, rename it with the current date and time. The full rules, and what the CI checks, are in [`CONTRIBUTING.md`](../CONTRIBUTING.md#database-migrations)
+- Before merging, update your branch from `dev`. If your migration is older than the newest one there, rename it with the current date and time. When you can, do this before asking for review: new commits dismiss an approval. The full rules, and what the CI checks, are in [`CONTRIBUTING.md`](../CONTRIBUTING.md#database-migrations)

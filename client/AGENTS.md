@@ -34,7 +34,7 @@ src/
 │       ├── hooks/        Hooks used only by this feature, such as useVisit.ts
 │       ├── api.ts        This feature's calls to /api
 │       ├── types.ts      This feature's types, such as Visit
-│       └── index.ts      What this feature shares with other features, if anything
+│       └── index.ts      What this feature exports to pages and other features
 ├── components/
 │   └── ui/               The design system: Button, Link, Input. No business logic
 ├── lib/                  Generic helpers with no business logic, such as the HTTP client
@@ -55,7 +55,7 @@ Always:
 Never:
 
 - Add files to the root of `src/` other than the ones above
-- Import from inside another feature's folders, such as `features/listings/components/`. Import only what that feature exports from its `index.ts`
+- Import from inside a feature's folders from outside that feature, such as `features/listings/components/`. Pages and other features import only what it exports from its `index.ts`
 - Create folders by file type at the root of `src/`, such as `src/hooks/`, `src/types/` or `src/utils/`
 - Put business logic or calls to the server in `components/ui/`
 
@@ -100,8 +100,10 @@ Every screen uses the same components and the same tokens, so a button looks and
 Always:
 
 - Before building an interface element, look for a component in `src/components/ui/` and use it. Colors, typography, radii and shadows come from the tokens in the `@theme` block of `src/index.css`
-- To fit a component into one place, such as the width of an input or the space around it, pass layout classes through `className` where you use it: size, margin, padding, position, flex and grid. The change stays in that place
-- If the change is visual, such as color, typography, radius, shadow or focus, or several places need it, add a variant to the component instead
+- To fit a component into one place, such as the width of an input or the space around it, pass layout classes through `className` where you use it: position, display, flex and grid with their alignment, gap, margin, padding, sizes and text alignment. The change stays in that place
+- If the change is visual, such as color, typography, radius, shadow or focus, add a variant to the component instead
+- Keep `className` in pages for layout only: visual styles come from the components
+- Build only the variants the issue asks for
 - Explain in the pull request any new token or variant, and any change to an existing component or token, because it changes every screen that uses it
 
 Never:
@@ -110,6 +112,8 @@ Never:
 - Use colors or values outside the design system: Tailwind palette colors such as `bg-indigo-600`, hexadecimal or RGB colors, or arbitrary values such as `text-[#1f2937]` or `p-[13px]`
 - Create a `.css` file or a CSS Module. `src/index.css` is the only stylesheet
 - Use the `style` attribute, except for a value calculated while the app runs, such as the size of a video, with a comment that says why
+- Change a token or a shared component on your own initiative as an AI assistant: propose the change and let the team decide
+- Invent a design decision that is missing: point out the gap instead
 
 `HomePage` and `NotFoundPage` still use Tailwind palette colors and typography classes because the tokens and components do not exist yet. They move to tokens and components in the design system issue. Until then, the `design-system-reviewer` agent reports palette colors and visual styling in pages as suggestions, not as blocking.
 

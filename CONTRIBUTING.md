@@ -31,7 +31,7 @@ We work with **Spec-Driven Development (SDD)**, so no feature starts with code:
 2. **Technical plan**: how it will be implemented, in a *Technical plan* section at the end of the spec  
 3. **Review**: the tech lead and the team validate the spec and its plan in a pull request before moving on  
 4. **Tasks**: the plan is broken down into issues in the GitHub Project  
-5. **Implementation**: every pull request links its issue and the spec it comes from
+5. **Implementation**: every pull request links its issue and, for a feature, the spec it comes from. A bug or a task starts from its issue and needs no spec
 
 If a relevant architectural decision comes up along the way, it is recorded as an ADR in `docs/adr/`, with its context, the decision, the discarded alternatives and its consequences. ADRs are numbered in order (`0001-tech-stack.md`) and start from [`docs/adr/template.md`](docs/adr/template.md).
 
@@ -79,7 +79,7 @@ secure-property-viewing/
 
 ## Tasks in the GitHub Project
 
-The GitHub Project is the single source of tasks. Every issue has an assignee and links to its spec.
+The GitHub Project is the single source of tasks. Every issue has an assignee, and every feature issue links to its spec.
 
 - **Labels** by type (`enhancement`, `bug`, `documentation`, `spec`, `adr`, `accessibility`) and by group (`client`, `server`, `devops`, `qa`, `e2e`). `blocked` marks an issue that cannot move forward, with the reason in a comment. Before creating a new label, check whether an existing one already fits  
 - **Milestones** by program week, to see at a glance what goes into each one
@@ -176,7 +176,7 @@ The database schema only changes through Flyway migrations in `server/src/main/r
 - **Announce it in the technical plan.** If a feature creates or changes a table, its technical plan says which table and which columns. Overlaps show up in the review, before anyone writes code  
 - **Name migrations with the date and time in UTC**, such as `V20261101_1430__create_visits_table.sql`. Two branches rarely pick the same minute, whereas sequential numbers like `V3` and `V4` collide all the time  
 - **Never edit a migration that is already in `dev`.** Flyway stores a checksum of every applied migration and refuses to start if one changes. To fix something, add a new migration  
-- **Before merging, update your branch from `dev`.** If your migration is older than the newest one in `dev`, rename it with the current date and time, or Flyway will report it as out of order
+- **Before merging, update your branch from `dev`.** If your migration is older than the newest one in `dev`, rename it with the current date and time, or Flyway will report it as out of order. When you can, do this before asking for review, because new commits dismiss an approval
 
 The CI checks these rules on every pull request and fails if one is broken. The guide [`docs/guides/flyway-migrations.md`](docs/guides/flyway-migrations.md) (in Spanish) explains how to create a migration and how to get out of the most common errors.
 
@@ -188,7 +188,7 @@ The tech lead generates `CHANGELOG.md` with AI from the commit history when each
 
 An issue is considered done when it meets all of the following:
 
-- [ ] It meets the acceptance criteria of its spec  
+- [ ] It meets the acceptance criteria of its spec or, for a bug or a task, what its issue asks for  
 - [ ] It has tests, and they pass locally and in CI  
 - [ ] It has gone through the review agents, and their findings have been addressed  
 - [ ] It has been approved by the tech lead in the pull request  

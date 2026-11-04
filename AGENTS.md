@@ -15,6 +15,7 @@ Every file has a fixed place, so nothing is left lying around. The folder struct
 | Diagram | `docs/architecture/` |
 | Team guide, in Spanish | `docs/guides/` |
 | Image used in the documentation | `docs/images/` |
+| Project presentation | `docs/presentations/` |
 | End-to-end test | `e2e/` |
 | AI agent | `.claude/agents/` |
 
@@ -92,8 +93,9 @@ Never:
 
 ## Working with the team
 
-- Check `git status` before editing. Never discard, overwrite or reformat changes you did not make
+- Check `git status` before editing. Never discard or overwrite changes you did not make
 - Change only what the spec or the issue asks for, with no refactors outside its scope
 - If a tool you need is not available, such as the Vonage Documentation MCP Server or a review agent, say so and say what is left unchecked. Never claim a check you did not run
 - When you finish, say what changed, which tests you ran and their result, and what needs checking by hand
 - Explain the reasons behind the decisions that matter: the team is learning, and everyone has to be able to explain their own code
+- As an AI assistant, never merge a pull request unless you are asked to

@@ -43,7 +43,7 @@ El instalador no añade PostgreSQL al `PATH`. Añádelo con este comando y abre 
 
 ### macOS (Homebrew)
 
-> Los pasos de macOS todavía no se han probado. Si usas Mac y algún paso falla o algún comando cambia, corrígelo en esta guía y en `setup.md` en tu próxima pull request, para que a la siguiente persona no le pase lo mismo.
+> Los pasos de macOS todavía no se han probado. Si usas Mac y algún paso falla o algún comando cambia, abre una issue Task del grupo `docs` con la corrección, para que a la siguiente persona no le pase lo mismo.
 
 ```bash
 brew install --cask temurin@21
@@ -94,6 +94,8 @@ Abre `server/.env` y sustituye los tres valores de ejemplo:
 | `DB_URL` | `jdbc:postgresql://localhost:5432/peephole` |
 | `DB_USERNAME` | `peephole` |
 | `DB_PASSWORD` | La contraseña compartida del Drive |
+
+`DB_URL` apunta siempre a tu base de datos local, nunca a la de Railway, porque los tests escriben en la base a la que apunte. Un `DB_URL` definido en tu terminal, o inyectado por una herramienta como `railway run`, tiene prioridad sobre `.env`, así que la misma regla se aplica a él.
 
 ## 5. Arrancar el servidor
 

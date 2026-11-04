@@ -27,7 +27,7 @@ Check that every new or moved file is where the folder rules say: the "Where fil
 
 - A file added to the root of the repository or to the root of `client/src/` that is not in their allowed list
 - A folder by file type, such as `client/src/hooks/` or a `controllers` package
-- A file from one feature placed in another feature's folder, or an import from inside another client feature
+- A file from one feature placed in another feature's folder, or an import of a client feature from outside it that does not go through its `index.ts`
 - A folder or file name that is not in English or does not follow the naming rule, such as kebab-case for folders
 - Notes, drafts, exports or screenshots committed outside their folder
 
@@ -47,7 +47,7 @@ Suggest an update only when the change requires one. For each change, decide wit
 | Changes instructions the AI assistants must follow | The relevant `AGENTS.md` |
 | Solves a problem the rest of the team will run into too | A new guide in `docs/guides/`, in Spanish |
 
-Every `.env.example` uses placeholder values only, such as `your_database_user`. A real value or a hint, such as a host, a port, a database name or a user name, is a blocking finding: the real values belong in `docs/setup.md` and `docs/setup.es.md`.
+Every `.env.example` uses placeholder values only, such as `your_database_user`. A real value or a hint, such as a host, a port, a database name or a user name, is a blocking finding. Values that are not secret belong in `docs/setup.md` and `docs/setup.es.md`. A secret, whether a password, an API key or a token, belongs in the team's shared Drive folder, with a note in those two files: writing one in the repository is a blocking finding.
 
 No documentation is needed for internal refactors without behavior changes, tests only, or formatting. Say so explicitly, with the reason, so the contributor knows you checked.
 

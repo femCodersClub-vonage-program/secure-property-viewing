@@ -27,7 +27,8 @@ In each changed file:
 - **New stylesheets:** any `.css` file other than `src/index.css`, any CSS Module, any CSS import other than `./index.css` in `main.tsx`
 - **Hard-coded colors** in TSX: hexadecimal, `rgb()` or `hsl()`
 - **Tailwind palette colors**, such as `bg-indigo-600`, `text-slate-700` or `border-red-500`, instead of design tokens. Every color class, in pages or in components, falls under this rule only
-- **Visual styling in pages:** classes in `src/pages/` that set typography (`text-lg`, `font-bold`, `underline`), radius, shadow or focus styles (`focus-visible:*`). Focus styles belong to the component; whether focus is visible at all is checked by `accessibility-reviewer`. Layout classes are allowed in pages: position, display, flex and grid with their alignment (`items-*`, `justify-*`), gap, margin and padding, sizes (`w-*`, `h-*`, `min-h-*`, `max-w-*`, `size-*`) and `text-left`, `text-center` or `text-right`
+- **Visual styling in pages:** classes in `src/pages/` that set typography (`text-lg`, `font-bold`, `underline`), radius, shadow or focus styles (`focus-visible:*`). Focus styles belong to the component; whether focus is visible at all is checked by `accessibility-reviewer`. The layout classes listed in the "Design system" section of `client/AGENTS.md` are allowed, in pages and on any component
+- **Restyled components:** a component from `src/components/ui/` used anywhere in `src/` with a `className` that sets color, typography, radius, shadow or focus, instead of a variant
 - **Duplicated components:** an element styled in a page or in a new component when `src/components/ui/` already has one that does the same, such as a styled `<button>` when `Button` exists
 - **New tokens or variants:** if the change adds one, check that the pull request needs it and that it is not a near copy of an existing one
 
