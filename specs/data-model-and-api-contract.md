@@ -27,7 +27,7 @@ The client and the server are built at the same time by different people. If eac
 
 - Video sessions and tokens: defined in the video spec in week 2
 - Message sending rules: defined in the messages spec in week 2
-- Pagination: the MVP has a dozen properties, so lists return everything that matches the filters
+- Pagination: the MVP has about twenty properties, so lists return everything that matches the filters
 - Several agencies: the MVP has one demo agency, although the model keeps `agency_id` so it can grow
 - Cities other than Barcelona: every property is in Barcelona, so there is no municipality field
 - Sign-up and password reset: agency users are preloaded with the sample data
@@ -132,11 +132,14 @@ The `detail` of a business error is written so the client can show it as it is: 
 
 ### Sample data
 
-- One demo agency with two users, 12 properties in different neighborhoods of Barcelona (rent and sale, different sizes), with coordinates and two to four photos each with alternative text
-- Visit slots for the next two weeks for every property, some of them already booked
-- Listing requests in every status, and visits in the calendar for the dashboard
+- One demo agency with two users, and 20 active properties in different neighborhoods of Barcelona (10 for rent and 10 for sale, with different types and sizes), with coordinates
+- Two edge cases: one inactive property, and one approved from a listing request with no photos or coordinates
+- Two to four AI-generated photos per property, from a shared set of about 30 in `client/public/properties/`, each with alternative text
+- Visit slots until December 31, 2026 for every property, some of them already booked, and visits in every status for the calendar
+- Listing requests in every status, including two rejected scam examples, with their phone verifications
+- Messages in every status. They are only rows for the dashboard, and a scheduled sample message is never sent
 - Everything fictional: names, addresses and phone numbers are invented and do not belong to anyone
 
-Loading: the schema stays in `db/migration`, as the migration rules require, and the sample data lives in a separate Flyway location, `db/seed`, as a repeatable migration (`R__seed_demo_data.sql`). Repeatable migrations run again when their content changes, so the sample data can evolve without new versions. The seed location is enabled with an environment variable locally and on Railway, and stays off where it is not wanted.
+Loading: the schema stays in `db/migration`, as the migration rules require, and the sample data lives in a separate Flyway location, `db/seed`, as two repeatable migrations: `R__seed_01_catalog.sql` and `R__seed_02_activity.sql`. Repeatable migrations run again when their content changes, in the order of their names, so the sample data can evolve without new versions. The seed location is enabled with an environment variable locally and on Railway, and stays off where it is not wanted.
 
 The client mirrors the same data in each feature's sample file while an endpoint is not ready yet.
