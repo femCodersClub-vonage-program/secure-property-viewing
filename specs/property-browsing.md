@@ -1,6 +1,6 @@
 # Property browsing
 
-- **Status:** In review
+- **Status:** Approved
 - **Issue:** [#13](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/13)
 - **Journey:** journey A, steps 1 to 3 in [`docs/user-journeys.md`](../docs/user-journeys.md)
 
@@ -11,7 +11,7 @@ People looking for an apartment arrive at Peephole wary of scams. The home page,
 ## User stories
 
 - As a visitor, I want to understand what Peephole offers as soon as I arrive, so that I can decide whether to trust it
-- As a visitor, I want to search by municipality and filter by rent or sale, so that I only see properties that interest me
+- As a visitor, I want to filter by rent or sale and see the properties on a map of Barcelona, so that I only see what interests me and know where it is
 - As a visitor, I want to see the details and photos of a property, so that I can decide whether to request a visit
 - As an owner, I want a clear way to list my property from the home page, so that I can start journey B
 
@@ -19,18 +19,18 @@ People looking for an apartment arrive at Peephole wary of scams. The home page,
 
 Home page (A1):
 
-- [ ] It shows the headline, a search by municipality, an entry point to "List my property" and the three trust points: verified agencies, video visits and secure communication
-- [ ] Searching takes the visitor to the catalog with the search applied
+- [ ] It shows the headline, a link to the catalog, an entry point to "List my property" and the three trust points: verified agencies, video visits and secure communication
 
 Catalog (A2):
 
-- [ ] It lists the active properties from `GET /api/properties`, each card with photo, title, municipality and area, price, bedrooms and size
-- [ ] The visitor can filter by all, rent or sale, and by municipality, and the filters are kept in the URL so a filtered catalog can be shared
+- [ ] It lists the active properties from `GET /api/properties`, each card with photo, title, neighborhood, price, bedrooms and size
+- [ ] The visitor can filter by all, rent or sale, and the filter is kept in the URL so a filtered catalog can be shared
+- [ ] A map of Barcelona next to the list shows one pin per property with coordinates. Selecting a pin shows the title and price, with a link to the details
 - [ ] It shows a loading state, an empty state with a way to clear the filters, and an error state with a way to try again
 
 Property details (A3):
 
-- [ ] It shows the photo gallery, title, price, municipality and area, bedrooms, size, floor, description, the verified agency badge and whether video visits are available
+- [ ] It shows the photo gallery, title, price, neighborhood, bedrooms, size, floor, description, the verified agency badge and whether video visits are available
 - [ ] "Request a video visit" leads to journey A step 4
 - [ ] A property that does not exist shows a not found page with a way back to the catalog
 
@@ -44,14 +44,9 @@ All three screens:
 
 ## Out of scope
 
-- The map in the catalog: an extra if there is time
+- Cities other than Barcelona, and searching by location
 - Favorites and sharing buttons
 - Sorting the catalog
-
-## Open questions
-
-- **Search field.** A free text field or a list of the municipalities that have properties. Proposal: a list, so the search never returns nothing because of a typo
-- **Catalog map.** Out of the MVP, as proposed in the [data model](data-model-and-api-contract.md#open-questions)
 
 ## Technical plan
 
@@ -61,7 +56,7 @@ No new tables: `property` and `property_image` from the [data model](data-model-
 
 ### API
 
-`GET /api/properties?operation=RENT&municipality=Barcelona`
+`GET /api/properties?operation=RENT`
 
 ```json
 [
@@ -70,16 +65,17 @@ No new tables: `property` and `property_image` from the [data model](data-model-
     "title": "Apartment in Gràcia",
     "operation": "RENT",
     "priceEuros": 950,
-    "municipality": "Barcelona",
     "area": "Gràcia",
     "bedrooms": 2,
     "sizeM2": 70,
+    "latitude": 41.4036,
+    "longitude": 2.1566,
     "coverImage": { "url": "https://...", "altText": "Bright living room with a balcony" }
   }
 ]
 ```
 
-Both filters are optional. `videoVisitAvailable` and `agency.verified` come from the `property` and `agency` tables in the data model. An unknown `operation` returns `400 VALIDATION_FAILED`.
+The filter is optional. `videoVisitAvailable` and `agency.verified` come from the `property` and `agency` tables in the data model. An unknown `operation` returns `400 VALIDATION_FAILED`. A property approved from a listing request has no coordinates or photos: `latitude` and `longitude` are `null`, so it has no pin, and `coverImage` is `null`, so the client shows a generic image.
 
 `GET /api/properties/{id}`
 
@@ -90,7 +86,6 @@ Both filters are optional. `videoVisitAvailable` and `agency.verified` come from
   "operation": "RENT",
   "propertyType": "APARTMENT",
   "priceEuros": 950,
-  "municipality": "Barcelona",
   "area": "Gràcia",
   "bedrooms": 2,
   "sizeM2": 70,
@@ -112,4 +107,5 @@ None.
 
 - Pages in `src/pages/` for the home page, the catalog and the details, registered in `routes.tsx`
 - A `property-browsing` feature with its `api.ts`, types and components, following the folder rules in `client/AGENTS.md`
+- The map uses `leaflet` with OpenStreetMap tiles, in issue #30. Coordinates are approximate, at neighborhood level, because the full address is only shown after booking a visit
 - Sample data in the shape above while the endpoints are not in `dev`

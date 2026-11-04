@@ -1,6 +1,6 @@
 # Data model and API contract
 
-- **Status:** In review
+- **Status:** Approved
 - **Issue:** [#11](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/11)
 - **Journey:** all three journeys in [`docs/user-journeys.md`](../docs/user-journeys.md)
 
@@ -29,20 +29,16 @@ The client and the server are built at the same time by different people. If eac
 - Message sending rules: defined in the messages spec in week 2
 - Pagination: the MVP has a dozen properties, so lists return everything that matches the filters
 - Several agencies: the MVP has one demo agency, although the model keeps `agency_id` so it can grow
-
-## Open questions
-
-- **Agency sign-in in the MVP.** Option A: a real sign-in with email and password for the preloaded users, with a server session. Option B: no sign-in in the MVP, with the dashboard open in the demo and sign-in as an extra. Option A restricts agency access to signed-in users; option B saves a few days. Proposal: option A, without sign-up or password reset
-- **Catalog map.** Proposal: out of the MVP, and back as an extra if there is time
-- **Sample data loading.** We would like to agree on the separate `db/seed` location before the first migration is written, since it also means updating the migration rules
-- **Address visibility.** Whether the full address is public in the details or shown only after booking a visit. Proposal: municipality and area in the catalog and details, full address in the visit confirmation
-- **Publication data.** The listing request does not yet provide the title, description, area and photos required for publication. Agree on their source with the owner listing and agency dashboard specs, then complete the model and approval contract before implementation
+- Cities other than Barcelona: every property is in Barcelona, so there is no municipality field
+- Sign-up and password reset: agency users are preloaded with the sample data
+- Uploading photos: only the sample properties have photos, and a property approved from a listing request shows a generic image
 
 ## Technical plan
 
 ### Conventions
 
-- Every endpoint lives under `/api`. Agency endpoints live under `/api/agency` and require a signed-in agency user
+- Every endpoint lives under `/api`. Agency endpoints live under `/api/agency` and require a signed-in agency user, with email and password and a server session
+- The full address is only shown in the visit confirmation. The catalog and the details show the neighborhood
 - JSON fields in `camelCase`. Identifiers are numbers
 - Dates and times in ISO 8601 with offset, such as `2026-11-10T11:00:00+01:00`. The client shows them in the `Europe/Madrid` time zone
 - Prices are whole euros (`priceEuros`). Rent is per month
@@ -68,12 +64,12 @@ erDiagram
 | Entity | Fields | Notes |
 | :---- | :---- | :---- |
 | `agency` | id, name, email, phone, verified, created_at | One demo agency in the MVP, verified |
-| `agency_user` | id, agency_id, full_name, email, role (`ADMIN`, `AGENT`), created_at | Sign-in fields depend on the [open question](#open-questions) |
-| `property` | id, agency_id, listing_request_id (nullable), title, operation (`RENT`, `SALE`), property_type (`APARTMENT`, `HOUSE`, `STUDIO`), price_euros, municipality, area, address, bedrooms, size_m2, floor (nullable), description, video_visit_available, status (`ACTIVE`, `INACTIVE`), created_at | Only `ACTIVE` properties appear in the catalog. `area` is the neighborhood or district, such as Gràcia |
+| `agency_user` | id, agency_id, full_name, email, password_hash, role (`ADMIN`, `AGENT`), created_at | Preloaded with the sample data. Only the hash is stored, and the demo password is in the team's shared Drive folder |
+| `property` | id, agency_id, listing_request_id (nullable), title, operation (`RENT`, `SALE`), property_type (`APARTMENT`, `HOUSE`, `STUDIO`), price_euros, area, address, latitude (nullable), longitude (nullable), bedrooms, size_m2, floor (nullable), description, video_visit_available, status (`ACTIVE`, `INACTIVE`), created_at | Only `ACTIVE` properties appear in the catalog. `area` is the neighborhood, such as Gràcia. Coordinates are approximate, at neighborhood level, and place the pin on the map |
 | `property_image` | id, property_id, url, alt_text, position | `alt_text` is required: it describes what the photo shows |
 | `visit_slot` | id, property_id, starts_at, ends_at, status (`AVAILABLE`, `BOOKED`) | Slots of 30 minutes in the screen map |
 | `visit` | id, property_id, visit_slot_id, phone_verification_id, visitor_name, visitor_phone, status (`CONFIRMED`, `CANCELED`, `COMPLETED`), created_at | A visit exists only once the phone is verified |
-| `listing_request` | id, phone_verification_id, owner_full_name, owner_phone, municipality, property_type, operation, address, price_euros, bedrooms, size_m2, floor (nullable), status (`PENDING`, `IN_REVIEW`, `APPROVED`, `REJECTED`), reviewed_by (nullable), rejection_reason (nullable), created_at, in_review_at (nullable), reviewed_at (nullable) | Approving it creates an `ACTIVE` property |
+| `listing_request` | id, phone_verification_id, owner_full_name, owner_phone, title, description, property_type, operation, area, address, price_euros, bedrooms, size_m2, floor (nullable), status (`PENDING`, `APPROVED`, `REJECTED`), reviewed_by (nullable), rejection_reason (nullable), created_at, reviewed_at (nullable) | Approving it creates an `ACTIVE` property with its data, no coordinates and a generic image |
 | `phone_verification` | id, purpose (`VISIT`, `LISTING_REQUEST`), phone_hash, vonage_request_id, status (`PENDING`, `VERIFIED`, `FAILED`, `EXPIRED`), check_attempts, created_at, verified_at (nullable) | Detailed in the [phone verification spec](phone-verification.md). The code is never stored, and the phone is kept only as a hash |
 | `message` | id, visit_id (nullable), listing_request_id (nullable), type (`CONFIRMATION`, `REMINDER`, `STATUS_UPDATE`), channel (`SMS`), vonage_message_id (nullable), status (`SCHEDULED`, `SUBMITTED`, `DELIVERED`, `FAILED`), scheduled_at, updated_at | Filled in by the messages feature in weeks 3 and 4 |
 
@@ -85,7 +81,7 @@ Public:
 
 | Method and path | Purpose | Spec |
 | :---- | :---- | :---- |
-| `GET /api/properties?operation=&municipality=` | Catalog, with optional filters | [Property browsing](property-browsing.md) |
+| `GET /api/properties?operation=` | Catalog, with an optional filter | [Property browsing](property-browsing.md) |
 | `GET /api/properties/{id}` | Property details | [Property browsing](property-browsing.md) |
 | `GET /api/properties/{id}/slots?from=&to=` | Available visit slots | Visit booking (week 2) |
 | `POST /api/phone-verifications` | Start a phone verification | [Phone verification](phone-verification.md) |
@@ -97,6 +93,7 @@ Agency:
 
 | Method and path | Purpose | Spec |
 | :---- | :---- | :---- |
+| `POST`, `GET` and `DELETE /api/agency/session` | Sign in, get the signed-in user and sign out | [Agency dashboard](agency-dashboard.md) |
 | `GET /api/agency/summary` | Indicators and upcoming visits for the dashboard | [Agency dashboard](agency-dashboard.md) |
 | `GET /api/agency/listing-requests?status=` | Listing requests, optionally by status | [Agency dashboard](agency-dashboard.md) |
 | `GET /api/agency/listing-requests/{id}` | Request details | [Agency dashboard](agency-dashboard.md) |
@@ -124,7 +121,7 @@ Every error is a `ProblemDetail`, as required in `server/AGENTS.md`, with an ext
 | Status | When | `code` |
 | :---- | :---- | :---- |
 | 400 | The request body or a parameter is not valid | `VALIDATION_FAILED`, with the invalid fields in `errors` |
-| 401 | An agency endpoint is called without a signed-in user | `AUTHENTICATION_REQUIRED` |
+| 401 | An agency endpoint is called without a signed-in user, or the email or password is wrong | `AUTHENTICATION_REQUIRED`, `INVALID_CREDENTIALS` |
 | 404 | The resource does not exist | `NOT_FOUND` |
 | 409 | The action conflicts with the current state, such as booking a slot that is already taken | Defined by each feature |
 | 422 | A business rule rejects the action, such as a wrong code | Defined by each feature |
@@ -135,11 +132,11 @@ The `detail` of a business error is written so the client can show it as it is: 
 
 ### Sample data
 
-- One demo agency with two users, 12 properties in different municipalities of Catalonia (rent and sale, different sizes), with two to four photos each and alternative text
+- One demo agency with two users, 12 properties in different neighborhoods of Barcelona (rent and sale, different sizes), with coordinates and two to four photos each with alternative text
 - Visit slots for the next two weeks for every property, some of them already booked
 - Listing requests in every status, and visits in the calendar for the dashboard
 - Everything fictional: names, addresses and phone numbers are invented and do not belong to anyone
 
-Proposed loading: the schema stays in `db/migration`, as the migration rules require, and the sample data lives in a separate Flyway location, `db/seed`, as a repeatable migration (`R__seed_demo_data.sql`). Repeatable migrations run again when their content changes, so the sample data can evolve without new versions. The seed location is enabled with an environment variable locally and on Railway, and stays off where it is not wanted.
+Loading: the schema stays in `db/migration`, as the migration rules require, and the sample data lives in a separate Flyway location, `db/seed`, as a repeatable migration (`R__seed_demo_data.sql`). Repeatable migrations run again when their content changes, so the sample data can evolve without new versions. The seed location is enabled with an environment variable locally and on Railway, and stays off where it is not wanted.
 
 The client mirrors the same data in each feature's sample file while an endpoint is not ready yet.

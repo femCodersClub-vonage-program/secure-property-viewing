@@ -1,6 +1,6 @@
 # Agency dashboard
 
-- **Status:** In review
+- **Status:** Approved
 - **Issue:** [#14](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/14)
 - **Journey:** agency dashboard, screens 1 to 5 in [`docs/user-journeys.md`](../docs/user-journeys.md)
 
@@ -16,6 +16,11 @@ The agency is the other half of Peephole: it reviews who wants to list a propert
 - As an agent, I want to see which confirmations and reminders were sent and whether they arrived, so that I can follow up when something fails
 
 ## Acceptance criteria
+
+Sign-in:
+
+- [ ] Agents sign in with the email and password of a preloaded user. Every other agency page sends a signed-out visitor to the sign-in page
+- [ ] "Sign out" ends the session
 
 Layout:
 
@@ -34,15 +39,15 @@ Listing requests (D2):
 
 Request details (D3):
 
-- [ ] It shows the owner information, the property information and the request timeline: when it was received, when it went into review and when it was reviewed
-- [ ] "Approve and publish" turns the request into an active property in the catalog
+- [ ] It shows the owner information, the property information and when the request was received and reviewed
+- [ ] "Approve and publish" turns the request into an active property in the catalog, using the title, description and neighborhood from the request and a generic image
 - [ ] "Reject" asks for a reason before rejecting
-- [ ] Only pending or in review requests can be approved or rejected, and the buttons say so when they are not available
+- [ ] Only pending requests can be approved or rejected, and the buttons say so when they are not available
 - [ ] In the MVP, both roles (`ADMIN` and `AGENT`) can approve and reject
 
 Visits calendar (D4):
 
-- [ ] It shows the visits of the week, with the option to move to the previous and next weeks
+- [ ] It shows the visits of the week on desktop and as a list on mobile, with the option to move to the previous and next weeks
 - [ ] Each visit shows time, visitor and property, and has the same "Join visit" link as the dashboard
 - [ ] The calendar controls have accessible names and support keyboard use with visible focus
 
@@ -61,15 +66,8 @@ All screens:
 
 - Editing or deleting published properties, and the Properties and Profile screens beyond a placeholder
 - Several agencies, user management and roles beyond the demo users
+- Sign-up and password reset: the users are preloaded with the sample data
 - Sending messages by hand from the dashboard
-
-## Open questions
-
-- **Sign-in.** Depends on the decision in the [data model](data-model-and-api-contract.md#open-questions)
-- **In review status.** Whether a request moves to `IN_REVIEW` when an agent opens it or when the video call with the owner is scheduled. Proposal: when the video call is scheduled, since that is the step in journey B
-- **Calendar view.** Week view only, or also a day view on mobile. Proposal: week view on desktop and a list of the day on mobile
-- **Publication data.** A listing request currently lacks the title, description, area and photos used by the catalog. Agree with the owner listing spec on who supplies them and when, and update the data model and approval contract before implementing "Approve and publish"
-- **Response contracts.** Define the exact JSON fields and nullability for request lists and details, the approval and rejection responses, calendar visits and messages before those endpoints are implemented
 
 ## Technical plan
 
@@ -78,6 +76,8 @@ All screens:
 No new tables: `listing_request`, `property`, `visit` and `message` from the [data model](data-model-and-api-contract.md). Approving a request creates a `property` with `listing_request_id` set and status `ACTIVE`, in the same transaction.
 
 ### API
+
+`POST /api/agency/session` receives `{ "email": "...", "password": "..." }` and returns `200` with `{ "name": "Marta", "role": "AGENT" }`, or `401 INVALID_CREDENTIALS`. `GET /api/agency/session` returns the same user, and `DELETE /api/agency/session` signs out and returns `204`.
 
 `GET /api/agency/summary`
 
@@ -93,13 +93,82 @@ No new tables: `listing_request`, `property`, `visit` and `message` from the [da
 }
 ```
 
-`GET /api/agency/listing-requests?status=PENDING` returns a list with id, owner name, property summary, created date and status. `GET /api/agency/listing-requests/{id}` returns the full request.
+`GET /api/agency/listing-requests?status=PENDING`, with an optional status of `PENDING`, `APPROVED` or `REJECTED`:
 
-`POST /api/agency/listing-requests/{id}/approve` returns `200` with the new property id. `POST /api/agency/listing-requests/{id}/reject` receives `{ "reason": "..." }`. Both return `409 LISTING_REQUEST_ALREADY_REVIEWED` if the request was already approved or rejected.
+```json
+[
+  {
+    "id": 18,
+    "ownerName": "Ana Torres",
+    "title": "Apartment in Gràcia",
+    "operation": "RENT",
+    "priceEuros": 1200,
+    "createdAt": "2026-11-10T11:00:00+01:00",
+    "status": "PENDING"
+  }
+]
+```
 
-`GET /api/agency/visits?from=&to=` returns the visits in that range. `GET /api/agency/messages` returns the messages, newest first, with the status stored by the messages feature.
+`GET /api/agency/listing-requests/{id}`, where `floor`, `reviewedAt` and `rejectionReason` can be `null`:
 
-Every agency endpoint returns `401 AUTHENTICATION_REQUIRED` without a signed-in user, depending on the sign-in decision in the [data model](data-model-and-api-contract.md#open-questions).
+```json
+{
+  "id": 18,
+  "status": "REJECTED",
+  "ownerName": "Ana Torres",
+  "ownerPhone": "+34600000000",
+  "title": "Apartment in Gràcia",
+  "description": "...",
+  "propertyType": "APARTMENT",
+  "operation": "RENT",
+  "area": "Gràcia",
+  "address": "...",
+  "priceEuros": 1200,
+  "bedrooms": 3,
+  "sizeM2": 85,
+  "floor": 2,
+  "createdAt": "2026-11-10T11:00:00+01:00",
+  "reviewedAt": "2026-11-11T09:30:00+01:00",
+  "rejectionReason": "..."
+}
+```
+
+`POST /api/agency/listing-requests/{id}/approve` returns `200` with `{ "propertyId": 13 }`. `POST /api/agency/listing-requests/{id}/reject` receives `{ "reason": "..." }` and returns `200` with `{ "id": 18, "status": "REJECTED" }`. Both return `409 LISTING_REQUEST_ALREADY_REVIEWED` if the request was already approved or rejected.
+
+`GET /api/agency/visits?from=&to=`:
+
+```json
+[
+  {
+    "visitId": 31,
+    "startsAt": "2026-11-10T11:00:00+01:00",
+    "endsAt": "2026-11-10T11:30:00+01:00",
+    "visitorName": "...",
+    "propertyTitle": "Apartment in Gràcia",
+    "status": "CONFIRMED"
+  }
+]
+```
+
+`GET /api/agency/messages`, newest first, with the status stored by the messages feature. Each message has either `visitId` or `listingRequestId`, and the other one is `null`:
+
+```json
+[
+  {
+    "id": 7,
+    "type": "CONFIRMATION",
+    "channel": "SMS",
+    "recipientName": "...",
+    "visitId": 31,
+    "listingRequestId": null,
+    "scheduledAt": "2026-11-10T10:00:00+01:00",
+    "updatedAt": "2026-11-10T10:00:05+01:00",
+    "status": "DELIVERED"
+  }
+]
+```
+
+Every agency endpoint except `POST /api/agency/session` returns `401 AUTHENTICATION_REQUIRED` without a signed-in user.
 
 ### Vonage
 
@@ -108,4 +177,4 @@ None directly. The dashboard shows what Messages and Video produce: message stat
 ### Client
 
 - Pages under `/agency` in `routes.tsx`, composed from an `agency-dashboard` feature with its `api.ts`, types and components, following the folder rules in `client/AGENTS.md`
-- The layout and D1 are built first, in issue #16, and D2 to D5 follow in the next weeks
+- The dashboard components are built in issue #27. The layout and D1 are built first, in issue #16, and D2 to D5 follow in the next weeks
