@@ -1,8 +1,5 @@
-// Converts the repository's images to WebP, limits their size and removes
-// their metadata, then updates the files that mention them.
-//
-//   npm run images         Optimize every image
-//   npm run images:check   Report what is not optimized, as the CI does
+// Converts images to WebP, limits their size and removes their metadata.
+// `npm run images` optimizes them; `npm run images:check` only reports, for the CI.
 import { execFileSync } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from 'node:fs'
 import { basename, dirname, extname, join, relative, resolve } from 'node:path'
