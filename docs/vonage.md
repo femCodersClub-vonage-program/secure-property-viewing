@@ -35,7 +35,11 @@ Visit confirmations, reminders and request status updates, always sent from the 
 
 The Server SDK, the Video Client SDK, the Vonage CLI and the Documentation MCP Server are confirmed. The MCP Tooling Server is optional, and the team will decide whether to use it once the project is set up.
 
-The MCP Tooling Server acts on the real account: it sends messages and consumes credits. That is why it is only used with the team's test account and with explicit confirmation of every action.
+The MCP Tooling Server acts on the real account: it sends messages and consumes credits. That is why it is only used with the team's test account and with explicit confirmation of every action. The decision on whether to use it is still pending.
+
+### Enabling the Documentation MCP Server
+
+The server is configured for the whole team in [`.mcp.json`](../.mcp.json), at the root of the repository. It needs no credentials and nothing to install. The first time you open Claude Code in the project, it asks you to approve the server. Run `/mcp` in Claude Code to check that `vonage-documentation` is connected. Other assistants can use the same address, `https://documentation-mcp.vonage.dev/mcp`, in their own MCP settings.
 
 The Vonage CLI is not part of the automated tests. They use test doubles instead of real calls, so they neither consume credits nor depend on the network. The CLI includes a mock server (`vonage mock`), but it currently covers only the SMS API, not the Messages API we use.
 

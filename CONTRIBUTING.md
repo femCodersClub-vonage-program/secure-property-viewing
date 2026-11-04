@@ -67,6 +67,7 @@ secure-property-viewing/
 │   └── vonage.md                # Vonage APIs and developer tools
 ├── .editorconfig                # Shared formatting across editors
 ├── .gitignore
+├── .mcp.json                    # MCP servers shared by the team, with no credentials
 ├── AGENTS.md                    # General project instructions
 ├── CHANGELOG.md                 # Change log, generated automatically
 ├── CONTRIBUTING.md              # Workflow and conventions

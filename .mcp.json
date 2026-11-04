@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "vonage-documentation": {
+      "type": "http",
+      "url": "https://documentation-mcp.vonage.dev/mcp"
+    }
+  }
+}
