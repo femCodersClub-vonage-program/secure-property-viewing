@@ -64,7 +64,7 @@ erDiagram
 | Entity | Fields | Notes |
 | :---- | :---- | :---- |
 | `agency` | id, name, email, phone, verified, created_at | One demo agency in the MVP, verified |
-| `agency_user` | id, agency_id, full_name, email, password_hash, role (`ADMIN`, `AGENT`), created_at | Preloaded with the sample data. Only the hash is stored, and the demo password is in the team's shared Drive folder |
+| `agency_user` | id, agency_id, full_name, email (unique), password_hash, role (`ADMIN`, `AGENT`), created_at | Preloaded with the sample data. Only the hash is stored, and the demo password is in the team's shared Drive folder |
 | `property` | id, agency_id, listing_request_id (nullable), title, operation (`RENT`, `SALE`), property_type (`APARTMENT`, `HOUSE`, `STUDIO`), price_euros, area, address, latitude (nullable), longitude (nullable), bedrooms, size_m2, floor (nullable), description, video_visit_available, status (`ACTIVE`, `INACTIVE`), created_at | Only `ACTIVE` properties appear in the catalog. `area` is the neighborhood, such as Gràcia. Coordinates are approximate, at neighborhood level, and place the pin on the map |
 | `property_image` | id, property_id, url, alt_text, position | `alt_text` is required: it describes what the photo shows |
 | `visit_slot` | id, property_id, starts_at, ends_at, status (`AVAILABLE`, `BOOKED`) | Slots of 30 minutes in the screen map |
