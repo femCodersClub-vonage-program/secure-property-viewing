@@ -30,7 +30,9 @@ src/main/java/com/peephole/server/
     └── dto/                   Request and response records, such as CreateVisitRequest
 src/main/resources/
 ├── application.properties
-└── db/migration/              Flyway migrations
+└── db/
+    ├── migration/             Flyway migrations
+    └── seed/                  Demo data, only loaded when LOAD_DEMO_DATA=true
 src/test/java/com/peephole/server/
 └── visit/                     Tests mirror the main packages
 ```

@@ -63,6 +63,8 @@ railway variable set --service server NOMBRE_VARIABLE=valor
 
 Al guardarla, el servicio se vuelve a desplegar.
 
+El servicio `server` necesita `LOAD_DEMO_DATA=true` para cargar los datos de ejemplo de `db/seed/`.
+
 ## Lo que no se hace
 
 - **No muestres las variables en pantalla compartida ni las pegues en un asistente de IA.** `railway variable list` enseña las contraseñas en claro
