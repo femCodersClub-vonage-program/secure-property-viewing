@@ -87,13 +87,16 @@ cp .env.example .env
 
 On Windows PowerShell, use `copy` instead of `cp`.
 
-Open `server/.env` and replace the three placeholders:
+Open `server/.env` and replace the four placeholders:
 
 | Variable | Value |
 | :---- | :---- |
 | `DB_URL` | `jdbc:postgresql://localhost:5432/peephole` |
 | `DB_USERNAME` | `peephole` |
 | `DB_PASSWORD` | The shared password from the Drive folder |
+| `LOAD_DEMO_DATA` | `true` to load the demo data when the server starts, `false` to start with the tables only |
+
+The demo data is fictional and lives in `server/src/main/resources/db/seed/`. It is only loaded when `LOAD_DEMO_DATA` is `true`, and the tables are created either way.
 
 `DB_URL` always points to your local database, never to the one on Railway, because the tests write to whatever database it points to. A `DB_URL` set in your terminal, or injected by a tool such as `railway run`, takes precedence over `.env`, so the same rule applies to it.
 
@@ -136,6 +139,7 @@ Open `http://localhost:5173`. Stop it with `Ctrl+C`.
 | `'url' must start with "jdbc"` | `server/.env` still has the placeholders from `.env.example` | Replace them with the values from step 4 |
 | `The server requested SCRAM-based authentication, but no password was provided` | `DB_PASSWORD` in `server/.env` is empty | Set it to the shared password, with no quotes or spaces |
 | `password authentication failed for user "peephole"` | `DB_PASSWORD` in `server/.env` does not match the password of the `peephole` user | Check that both are the shared password from the Drive folder |
+| `Could not resolve placeholder 'app.flyway.locations.…'` | `LOAD_DEMO_DATA` in `server/.env` still has the placeholder from `.env.example` | Set it to `true` or `false` |
 | `database "peephole" does not exist` | Step 3 was not completed | Run the `createdb` command from step 3 |
 | `npm error code EBADENGINE` in `client/` | Your Node.js version is older than the one the project needs | Install a newer version (step 2) and run `npm ci` again |
 | `Connection refused` on port `5432` | PostgreSQL is not running | Windows: start the `postgresql-x64-17` service. macOS: `brew services start postgresql@17` |
