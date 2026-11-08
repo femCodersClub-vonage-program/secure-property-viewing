@@ -20,8 +20,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-@WebMvcTest
+@WebMvcTest(
+        controllers = {
+            RestExceptionHandlerTest.ValidationController.class,
+            RestExceptionHandlerTest.NotFoundController.class,
+            RestExceptionHandlerTest.UnexpectedErrorController.class
+        })
 @Import({
+    RestExceptionHandler.class,
     RestExceptionHandlerTest.ValidationController.class,
     RestExceptionHandlerTest.NotFoundController.class,
     RestExceptionHandlerTest.UnexpectedErrorController.class
