@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,17 +19,20 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @WebMvcTest(
         controllers = {
             RestExceptionHandlerTest.ValidationController.class,
+            RestExceptionHandlerTest.ParameterValidationController.class,
             RestExceptionHandlerTest.NotFoundController.class,
             RestExceptionHandlerTest.UnexpectedErrorController.class
         })
 @Import({
     RestExceptionHandler.class,
     RestExceptionHandlerTest.ValidationController.class,
+    RestExceptionHandlerTest.ParameterValidationController.class,
     RestExceptionHandlerTest.NotFoundController.class,
     RestExceptionHandlerTest.UnexpectedErrorController.class
 })
@@ -56,6 +60,14 @@ class RestExceptionHandlerTest {
                 .andExpect(jsonPath("$.code").value("NOT_FOUND"));
     }
 
+    @Test
+    void returnsBadRequestWhenRequestParameterIsInvalid() throws Exception {
+        mockMvc.perform(get("/api/test-parameter").param("page", "0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors.page").isNotEmpty());
+    }
+
     @RestController
     static class NotFoundController {
 
@@ -77,6 +89,13 @@ class RestExceptionHandlerTest {
 
         @PostMapping("/api/test-validation")
         void create(@Valid @RequestBody SampleRequest request) {}
+    }
+
+    @RestController
+    static class ParameterValidationController {
+
+        @GetMapping("/api/test-parameter")
+        void find(@RequestParam @Min(1) int page) {}
     }
 
     @Test

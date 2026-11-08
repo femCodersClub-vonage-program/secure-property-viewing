@@ -9,6 +9,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 @RestControllerAdvice
 public class RestExceptionHandler {
@@ -26,6 +27,29 @@ public class RestExceptionHandler {
                 .getBindingResult()
                 .getFieldErrors()
                 .forEach(error -> errors.putIfAbsent(error.getField(), error.getDefaultMessage()));
+        problem.setProperty("errors", errors);
+
+        return problem;
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    ProblemDetail handleMethodValidation(HandlerMethodValidationException exception) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problem.setTitle("Validation failed");
+        problem.setDetail("One or more parameters are invalid.");
+        problem.setProperty("code", "VALIDATION_FAILED");
+
+        Map<String, String> errors = new LinkedHashMap<>();
+        exception.getParameterValidationResults().forEach(result -> {
+            String parameterName = result.getMethodParameter().getParameterName();
+            if (parameterName == null) {
+                parameterName = "parameter";
+            }
+            String errorKey = parameterName;
+            result.getResolvableErrors().stream()
+                    .findFirst()
+                    .ifPresent(error -> errors.putIfAbsent(errorKey, error.getDefaultMessage()));
+        });
         problem.setProperty("errors", errors);
 
         return problem;
