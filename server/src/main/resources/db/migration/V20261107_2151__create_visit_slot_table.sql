@@ -4,7 +4,8 @@ CREATE TABLE visit_slot (
     starts_at   TIMESTAMP WITH TIME ZONE NOT NULL,
     ends_at     TIMESTAMP WITH TIME ZONE NOT NULL,
     status      VARCHAR(20)              NOT NULL CHECK (status IN ('AVAILABLE', 'BOOKED')),
-    CHECK (ends_at > starts_at)
+    CHECK (ends_at > starts_at),
+    UNIQUE (id, property_id)
 );
 
 CREATE INDEX visit_slot_property_id_starts_at_idx ON visit_slot (property_id, starts_at);
