@@ -108,11 +108,11 @@ Cada API de Vonage funciona con la aplicación de Vonage de la persona que la co
 | :---- | :---- | :---- |
 | Verify | `VONAGE_VERIFY_APPLICATION_ID`, `VONAGE_VERIFY_PRIVATE_KEY` | Candé |
 | Video | `VONAGE_VIDEO_APPLICATION_ID`, `VONAGE_VIDEO_PRIVATE_KEY` | Viviana |
-| Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY` | Por confirmar |
+| Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY`, `VONAGE_MESSAGES_SIGNATURE_SECRET` | Por confirmar |
 
-La clave privada va en base64 en una sola línea, para que el mismo valor funcione en `server/.env` y en Railway, donde no se pueden subir archivos.
+Todos los grupos tienen el ID de la aplicación y su clave privada, y Messages tiene además el signature secret con el que el servidor comprueba sus webhooks.
 
-**Tu grupo.** `vonage apps show TU_APPLICATION_ID` muestra el ID de la aplicación. Para copiar la clave privada en base64 al portapapeles:
+**Los demás grupos.** Cada persona sube sus credenciales a la carpeta compartida del Drive del equipo: su API key, su API secret, el ID de su aplicación y el archivo de la clave privada (`.key`), y el signature secret si construye Messages. Nunca los envíes por Slack, en una issue, en el repositorio ni a un asistente de IA.
 
 ```bash
 # macOS

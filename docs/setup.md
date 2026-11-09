@@ -108,11 +108,11 @@ Each Vonage API runs on the Vonage application of the person who builds it, so t
 | :---- | :---- | :---- |
 | Verify | `VONAGE_VERIFY_APPLICATION_ID`, `VONAGE_VERIFY_PRIVATE_KEY` | Candé |
 | Video | `VONAGE_VIDEO_APPLICATION_ID`, `VONAGE_VIDEO_PRIVATE_KEY` | Viviana |
-| Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY` | To be confirmed |
+| Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY`, `VONAGE_MESSAGES_SIGNATURE_SECRET` | To be confirmed |
 
-The private key goes in base64 on a single line, so the same value works in `server/.env` and on Railway, where files cannot be uploaded.
+Every group has the application ID and its private key, and Messages also has the signature secret the server uses to verify its webhooks.
 
-**Your own group.** `vonage apps show YOUR_APPLICATION_ID` shows the application ID. To copy the private key in base64 to the clipboard:
+**The other groups.** Each person uploads her credentials to the team's shared Drive folder: her API key, API secret, application ID and private key file (`.key`), plus the signature secret if she builds Messages. Never send them through Slack, an issue, the repository or an AI assistant.
 
 ```bash
 # macOS
