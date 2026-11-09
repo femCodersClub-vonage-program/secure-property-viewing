@@ -23,6 +23,20 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(RestExceptionHandler.class);
 
     @Override
+    protected ResponseEntity<Object> handleExceptionInternal(
+            Exception exception, Object body, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        if (body instanceof ProblemDetail problem && !hasErrorCode(problem)) {
+            if (status.value() == HttpStatus.BAD_REQUEST.value()) {
+                problem.setProperty("code", "VALIDATION_FAILED");
+            } else if (status.value() == HttpStatus.NOT_FOUND.value()) {
+                problem.setProperty("code", "NOT_FOUND");
+            }
+        }
+
+        return super.handleExceptionInternal(exception, body, headers, status, request);
+    }
+
+    @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException exception, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         Map<String, String> errors = new LinkedHashMap<>();
@@ -66,7 +80,6 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
             NoResourceFoundException exception, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, "The requested resource was not found.");
         problem.setTitle("Not Found");
-        problem.setProperty("code", "NOT_FOUND");
         return handleExceptionInternal(exception, problem, headers, status, request);
     }
 
@@ -94,5 +107,9 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         problem.setProperty("code", "VALIDATION_FAILED");
         problem.setProperty("errors", errors);
         return problem;
+    }
+
+    private boolean hasErrorCode(ProblemDetail problem) {
+        return problem.getProperties() != null && problem.getProperties().containsKey("code");
     }
 }

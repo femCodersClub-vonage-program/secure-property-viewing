@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,14 +28,16 @@ import org.springframework.web.bind.annotation.RestController;
             RestExceptionHandlerTest.ValidationController.class,
             RestExceptionHandlerTest.ParameterValidationController.class,
             RestExceptionHandlerTest.NotFoundController.class,
-            RestExceptionHandlerTest.UnexpectedErrorController.class
+            RestExceptionHandlerTest.UnexpectedErrorController.class,
+            RestExceptionHandlerTest.PathVariableConversionController.class
         })
 @Import({
     RestExceptionHandler.class,
     RestExceptionHandlerTest.ValidationController.class,
     RestExceptionHandlerTest.ParameterValidationController.class,
     RestExceptionHandlerTest.NotFoundController.class,
-    RestExceptionHandlerTest.UnexpectedErrorController.class
+    RestExceptionHandlerTest.UnexpectedErrorController.class,
+    RestExceptionHandlerTest.PathVariableConversionController.class
 })
 class RestExceptionHandlerTest {
 
@@ -68,6 +71,13 @@ class RestExceptionHandlerTest {
                 .andExpect(jsonPath("$.errors.page").isNotEmpty());
     }
 
+    @Test
+    void returnsValidationCodeWhenPathVariableCannotBeConverted() throws Exception {
+        mockMvc.perform(get("/api/test-properties/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
+    }
+
     @RestController
     static class NotFoundController {
 
@@ -96,6 +106,13 @@ class RestExceptionHandlerTest {
 
         @GetMapping("/api/test-parameter")
         void find(@RequestParam @Min(1) int page) {}
+    }
+
+    @RestController
+    static class PathVariableConversionController {
+
+        @GetMapping("/api/test-properties/{id}")
+        void find(@PathVariable Long id) {}
     }
 
     @Test
