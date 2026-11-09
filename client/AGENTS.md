@@ -98,6 +98,8 @@ Never:
 
 Every screen uses the same components and the same tokens, so a button looks and behaves the same everywhere. Reuse what exists, adjust it only where you need it, and never change shared styles for a single case.
 
+Read [`docs/design-system.md`](../docs/design-system.md) before working on any interface element. It documents the visual direction, every colour and its role, the type scale, spacing, radii, borders and shadows.
+
 Always:
 
 - Before building an interface element, look for a component in `src/components/ui/` and use it. Colors, typography, radii and shadows come from the tokens in the `@theme` block of `src/index.css`

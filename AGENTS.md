@@ -12,6 +12,7 @@ Every file has a fixed place, so nothing is left lying around. The folder struct
 | :---- | :---- |
 | Specification of a feature, with its technical plan | `specs/`, named after the feature in English and in kebab-case, such as `specs/visit-request.md` |
 | Architecture decision | `docs/adr/`, numbered from `docs/adr/template.md` |
+| Design system (colours, typography, tokens, spacing) | `docs/design-system.md` |
 | Diagram | `docs/architecture/` |
 | Team guide, in Spanish | `docs/guides/` |
 | Image used in the documentation | `docs/images/` |
