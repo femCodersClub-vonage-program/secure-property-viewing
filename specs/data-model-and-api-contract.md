@@ -102,6 +102,13 @@ Agency:
 | `GET /api/agency/visits?from=&to=` | Visits for the calendar | [Agency dashboard](agency-dashboard.md) |
 | `GET /api/agency/messages` | Sent and scheduled messages | [Agency dashboard](agency-dashboard.md) |
 
+Vonage webhooks, called by Vonage with a signed JWT that the server verifies, so they need no agency session:
+
+| Method and path | Purpose | Spec |
+| :---- | :---- | :---- |
+| `POST /api/webhooks/messages/inbound` | Messages sent to our number. The MVP does not process replies, so it only answers `200` | Messages (week 2) |
+| `POST /api/webhooks/messages/status` | Delivery status of each message, which updates `message.status` | Messages (week 2) |
+
 Each feature spec defines the exact request and response of its endpoints.
 
 ### Errors
