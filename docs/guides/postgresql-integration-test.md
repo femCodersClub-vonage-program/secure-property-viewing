@@ -13,7 +13,7 @@ Los tests de integración del servidor usan PostgreSQL real, no una base de dato
 1. Crea el test bajo `server/src/test/java/`, en el paquete correspondiente a la funcionalidad.
 2. Usa `@SpringBootTest` para cargar la aplicación y `@AutoConfigureMockMvc` si necesitas enviar peticiones HTTP sin arrancar un servidor aparte. Con `@SpringBootTest` no hace falta añadir `@AutoConfigureTestDatabase`.
 3. Si pruebas repositorios con `@DataJpaTest`, añade `@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)` para evitar que Spring sustituya PostgreSQL por una base embebida.
-4. Prueba el comportamiento observable del endpoint y, cuando corresponda, prepara y comprueba los datos de la base de datos.
+4. Prueba el comportamiento observable del endpoint y, cuando corresponda, prepara y comprueba los datos de la base de datos. Añade `@Transactional` al test para que Spring revierta los cambios de base de datos al terminar cada prueba y no deje datos de prueba en tu PostgreSQL local.
 5. Ejecuta el test desde `server/`:
 
    ```powershell
@@ -23,8 +23,11 @@ Los tests de integración del servidor usan PostgreSQL real, no una base de dato
 Por ejemplo, el test de salud comprueba la respuesta HTTP usando la conexión a PostgreSQL configurada:
 
 ```java
+import org.springframework.transaction.annotation.Transactional;
+
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class HealthControllerTest {
 
     @Autowired
