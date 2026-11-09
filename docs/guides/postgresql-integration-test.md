@@ -11,8 +11,8 @@ Los tests de integración del servidor usan PostgreSQL real, no una base de dato
 ## Crear un test de integración
 
 1. Crea el test bajo `server/src/test/java/`, en el paquete correspondiente a la funcionalidad.
-2. Usa `@SpringBootTest` para cargar la aplicación y `@AutoConfigureMockMvc` si necesitas enviar peticiones HTTP sin arrancar un servidor aparte.
-3. Añade `@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)` para evitar que Spring sustituya la base configurada por una base embebida.
+2. Usa `@SpringBootTest` para cargar la aplicación y `@AutoConfigureMockMvc` si necesitas enviar peticiones HTTP sin arrancar un servidor aparte. Con `@SpringBootTest` no hace falta añadir `@AutoConfigureTestDatabase`.
+3. Si pruebas repositorios con `@DataJpaTest`, añade `@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)` para evitar que Spring sustituya PostgreSQL por una base embebida.
 4. Prueba el comportamiento observable del endpoint y, cuando corresponda, prepara y comprueba los datos de la base de datos.
 5. Ejecuta el test desde `server/`:
 
@@ -25,7 +25,6 @@ Por ejemplo, el test de salud comprueba la respuesta HTTP usando la conexión a 
 ```java
 @SpringBootTest
 @AutoConfigureMockMvc
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class HealthControllerTest {
 
     @Autowired
@@ -45,7 +44,8 @@ Adapta el paquete, el nombre de la clase, la ruta y las comprobaciones al endpoi
 ## Comprobar que se usa PostgreSQL real
 
 - No añadas H2 ni otra base en memoria para sustituir PostgreSQL.
-- Comprueba que el test tiene `replace = AutoConfigureTestDatabase.Replace.NONE`.
+- `@SpringBootTest` usa la configuración de base de datos de la aplicación; no necesita `@AutoConfigureTestDatabase`.
+- `@DataJpaTest` sustituye la base configurada por una embebida de forma predeterminada; usa `@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)` para mantener PostgreSQL.
 - Verifica que la configuración activa apunta a tu PostgreSQL local.
 - Si la aplicación no puede conectarse, resuelve primero ese problema; no cambies el test para que use una base en memoria.
 
