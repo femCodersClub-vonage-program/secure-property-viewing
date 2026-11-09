@@ -1,6 +1,6 @@
 # Peephole
 
-A web platform for remote property visits with anti-fraud verification, built with Vonage APIs. `client/` is the web application and `server/` is the API; each folder has its own `AGENTS.md` with the rules for that part.
+A web platform for remote property visits with anti-fraud verification, built with Vonage APIs. `client/` is the web application and `server/` is the API; each folder has its own `AGENTS.md` with the rules for that part. Before working in `client/` or `server/`, read its `AGENTS.md` too, because not every AI assistant loads it on its own.
 
 Read [`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow, [ADR 0001](docs/adr/0001-tech-stack.md) for the stack and [ADR 0002](docs/adr/0002-deployment-railway.md) for the deployment on Railway.
 
@@ -17,7 +17,7 @@ Every file has a fixed place, so nothing is left lying around. The folder struct
 | Image used in the documentation | `docs/images/` |
 | Project presentation | `docs/presentations/` |
 | End-to-end test | `e2e/` |
-| AI agent | `.claude/agents/` |
+| AI agent | `.claude/agents/`, with a pointer in `.github/agents/` so Copilot in IntelliJ finds it |
 
 Never:
 
