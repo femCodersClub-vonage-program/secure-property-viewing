@@ -20,7 +20,7 @@ Cuenta de Vonage  →  API key + API secret (una pareja por cuenta)
 
 - Node.js 18.20 o superior. El proyecto ya pide 22.22.2, así que si el cliente te funciona, te vale
 
-Los comandos están en una sola línea para que funcionen igual en PowerShell, zsh y fish, en la terminal de VS Code o en cualquier otra. Esta guía se ha probado en macOS.
+Los comandos `vonage` están en una sola línea para que funcionen igual en PowerShell, zsh y fish. Los de carpetas y archivos (`mkdir`, `mv`, `chmod`) son de macOS y Linux. Esta guía se ha probado en macOS con fish.
 
 ## 1. Instalar el CLI
 
@@ -42,7 +42,7 @@ Después añade esa carpeta al `PATH`, según tu terminal:
 
 | Terminal | Comando |
 | :---- | :---- |
-| zsh (la de macOS por defecto) | `echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> ~/.zshrc` y abre una terminal nueva |
+| zsh (la de macOS por defecto) | `echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> ~/.zshrc` y abre una terminal nueva (sin probar todavía) |
 | fish | `fish_add_path ~/.npm-global/bin` |
 
 Vuelve a lanzar `npm install -g @vonage/cli`. Si la instalación termina bien pero `vonage` no aparece como comando, falta el paso del `PATH`.
@@ -74,17 +74,17 @@ Apunta el `Application ID` que aparece. Después dale a la clave un nombre propi
 
 ```bash
 mv private.key peephole-TU_NOMBRE.key
-chmod 600 peephole-TU_NOMBRE.key
+chmod 600 peephole-TU_NOMBRE.key  # macOS y Linux; en Windows no hace falta
 ```
 
 Evita las carpetas que se sincronizan con la nube, como `~/Documents` con iCloud activado.
 
 ## 4. Añadir la API que te toca
 
-Cada persona añade la capability de la API que construye. Messages pide dos webhooks, una URL *inbound* y otra *status*. Apuntan al servidor de Railway según el [ADR 0002](../adr/0002-deployment-railway.md), con las rutas de la [spec del contrato de API](../../specs/data-model-and-api-contract.md):
+Cada persona añade la capability de la API que construye. Messages pide dos webhooks, una URL *inbound* y otra *status*, que apuntan al servidor de Railway según el [ADR 0002](../adr/0002-deployment-railway.md). Las rutas están en la [tabla de endpoints del modelo de datos](../../specs/data-model-and-api-contract.md#endpoints):
 
 ```powershell
-vonage apps capabilities update TU_APPLICATION_ID messages --messages-inbound-url='https://server-production-9f9a.up.railway.app/api/webhooks/messages/inbound' --messages-status-url='https://server-production-9f9a.up.railway.app/api/webhooks/messages/status' --messages-version='v1'
+vonage apps capabilities update TU_APPLICATION_ID messages --messages-inbound-url='https://DOMINIO_DEL_SERVIDOR/api/webhooks/messages/inbound' --messages-status-url='https://DOMINIO_DEL_SERVIDOR/api/webhooks/messages/status' --messages-version='v1'
 ```
 
 Mientras el servidor no tenga esos endpoints, se pueden enviar mensajes, pero Vonage no puede avisar del estado de cada entrega.
@@ -92,9 +92,9 @@ Mientras el servidor no tenga esos endpoints, se pueden enviar mensajes, pero Vo
 ## Credenciales: nunca en el repositorio ni en un asistente de IA
 
 - `~/.vonage/config.json`, cualquier `.vonagerc` y los archivos `.key` contienen credenciales. El archivo `.vonagerc` guarda incluso la clave privada
-- `.vonagerc` y `*.key` están en `.gitignore`. Además, `.claude/settings.json` impide que Claude Code lea `.vonagerc`, los `.key` y `~/.vonage/` con su herramienta de lectura. Otros asistentes no tienen esa protección, así que no te fíes solo de ella
+- `.vonagerc` y `*.key` están en `.gitignore`, y `.claude/settings.json` impide que Claude Code lea `.vonagerc`, los `.key` y `~/.vonage/`. Copilot no tiene ese bloqueo, así que no los crees dentro del repositorio
 - Nunca pegues la API secret, la clave privada ni el contenido de estos archivos en un asistente de IA
-- Las credenciales se comparten con el equipo por la vía privada acordada, nunca en el repositorio ni en una issue
+- Cuando el equipo necesite tus credenciales, se guardan en la carpeta compartida del Drive del equipo, nunca en el repositorio ni en una issue
 
 ## Avisos que puedes ignorar
 
