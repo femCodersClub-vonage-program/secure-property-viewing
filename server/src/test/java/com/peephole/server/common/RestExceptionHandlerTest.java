@@ -119,5 +119,25 @@ class RestExceptionHandlerTest {
         }
     }
 
+    @Test
+    void returnsBadRequestWhenJsonIsMalformed() throws Exception {
+        mockMvc.perform(post("/api/test-validation")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
+    }
+
+    @Test
+    void returnsNotFoundForUnknownRoute() throws Exception {
+        mockMvc.perform(get("/api/unknown-route"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+    }
+
     record SampleRequest(@NotBlank String name) {}
 }
