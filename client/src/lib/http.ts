@@ -97,7 +97,7 @@ export async function request<T>(
   try {
     response = await fetch(`${BASE_URL}${path}`, { ...init, headers })
   } catch (cause) {
-    // A cancelled request is not an error to show: let the caller ignore it
+    // A canceled request is not an error to show: let the caller ignore it
     if (cause instanceof DOMException && cause.name === 'AbortError') {
       throw cause
     }

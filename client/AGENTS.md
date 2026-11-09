@@ -42,7 +42,7 @@ src/
 └── assets/               Images and fonts
 ```
 
-Folders are created when the first file needs them: `features/`, `components/ui/`, `lib/` and `assets/` do not exist yet. `components/ui/` is created in the design system issue.
+Folders are created when the first file needs them: `components/ui/` and `assets/` do not exist yet. `components/ui/` is created in the design system issue.
 
 Always:
 
