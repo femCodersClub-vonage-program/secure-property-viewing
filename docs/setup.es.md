@@ -87,7 +87,7 @@ cp .env.example .env
 
 En PowerShell de Windows, usa `copy` en lugar de `cp`.
 
-Abre `server/.env` y sustituye los cuatro valores de ejemplo:
+Abre `server/.env` y sustituye los cuatro valores de ejemplo de la base de datos:
 
 | Variable | Valor |
 | :---- | :---- |
@@ -99,6 +99,34 @@ Abre `server/.env` y sustituye los cuatro valores de ejemplo:
 Los datos de ejemplo son ficticios y están en `server/src/main/resources/db/seed/`. Solo se cargan cuando `LOAD_DEMO_DATA` es `true`, y las tablas se crean en los dos casos.
 
 `DB_URL` apunta siempre a tu base de datos local, nunca a la de Railway, porque los tests escriben en la base a la que apunte. Un `DB_URL` definido en tu terminal, o inyectado por una herramienta como `railway run`, tiene prioridad sobre `.env`, así que la misma regla se aplica a él.
+
+### Variables de Vonage
+
+Cada API de Vonage funciona con la aplicación de Vonage de la persona que la construye, así que el servidor tiene un grupo de variables por API. Todos los grupos tienen las mismas dos variables: el ID de la aplicación y su clave privada.
+
+| Grupo | Variables | De quién son los valores |
+| :---- | :---- | :---- |
+| Verify | `VONAGE_VERIFY_APPLICATION_ID`, `VONAGE_VERIFY_PRIVATE_KEY` | Candé |
+| Video | `VONAGE_VIDEO_APPLICATION_ID`, `VONAGE_VIDEO_PRIVATE_KEY` | Viviana |
+| Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY` | Por confirmar |
+
+La clave privada va en base64 en una sola línea, para que el mismo valor funcione en `server/.env` y en Railway, donde no se pueden subir archivos.
+
+**Tu grupo.** `vonage apps show TU_APPLICATION_ID` muestra el ID de la aplicación. Para copiar la clave privada en base64 al portapapeles:
+
+```bash
+# macOS
+base64 -i ruta/a/tu.key | tr -d '\n' | pbcopy
+```
+
+```powershell
+# PowerShell de Windows
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("ruta\a\tu.key")) | Set-Clipboard
+```
+
+**Los demás grupos.** Cada persona comparte el ID de su aplicación y su clave privada en la carpeta compartida del Drive del equipo. Nunca los envíes por Slack, en una issue, en el repositorio ni a un asistente de IA.
+
+**En Railway.** Las mismas variables van en el servicio `server`, como se explica en [Railway desde la terminal](guides/railway.md).
 
 ## 5. Arrancar el servidor
 

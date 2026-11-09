@@ -87,7 +87,7 @@ cp .env.example .env
 
 On Windows PowerShell, use `copy` instead of `cp`.
 
-Open `server/.env` and replace the four placeholders:
+Open `server/.env` and replace the four database placeholders:
 
 | Variable | Value |
 | :---- | :---- |
@@ -99,6 +99,34 @@ Open `server/.env` and replace the four placeholders:
 The demo data is fictional and lives in `server/src/main/resources/db/seed/`. It is only loaded when `LOAD_DEMO_DATA` is `true`, and the tables are created either way.
 
 `DB_URL` always points to your local database, never to the one on Railway, because the tests write to whatever database it points to. A `DB_URL` set in your terminal, or injected by a tool such as `railway run`, takes precedence over `.env`, so the same rule applies to it.
+
+### Vonage variables
+
+Each Vonage API runs on the Vonage application of the person who builds it, so the server has one group of variables per API. Every group has the same two variables: the application ID and its private key.
+
+| Group | Variables | Whose values |
+| :---- | :---- | :---- |
+| Verify | `VONAGE_VERIFY_APPLICATION_ID`, `VONAGE_VERIFY_PRIVATE_KEY` | Candé |
+| Video | `VONAGE_VIDEO_APPLICATION_ID`, `VONAGE_VIDEO_PRIVATE_KEY` | Viviana |
+| Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY` | To be confirmed |
+
+The private key goes in base64 on a single line, so the same value works in `server/.env` and on Railway, where files cannot be uploaded.
+
+**Your own group.** `vonage apps show YOUR_APPLICATION_ID` shows the application ID. To copy the private key in base64 to the clipboard:
+
+```bash
+# macOS
+base64 -i path/to/your.key | tr -d '\n' | pbcopy
+```
+
+```powershell
+# Windows PowerShell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("path\to\your.key")) | Set-Clipboard
+```
+
+**The other groups.** Each person shares her application ID and private key in the team's shared Drive folder. Never send them through Slack, an issue, the repository or an AI assistant.
+
+**On Railway.** The same variables go in the `server` service, as described in [Railway from the terminal](guides/railway.md) (in Spanish).
 
 ## 5. Run the server
 
