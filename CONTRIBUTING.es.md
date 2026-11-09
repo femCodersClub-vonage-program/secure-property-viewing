@@ -44,6 +44,7 @@ secure-property-viewing/
 │   ├── skills/                  # Skills del equipo
 │   └── settings.json            # Permisos y archivos excluidos para la IA
 ├── .github/
+│   ├── agents/                  # Enlaces a los agentes del proyecto para Copilot en IntelliJ
 │   ├── ISSUE_TEMPLATE/          # Plantillas de issues
 │   ├── scripts/                 # Scripts que ejecuta el CI, como la comprobación de las reglas de migraciones
 │   ├── workflows/               # Integración continua con GitHub Actions
@@ -107,7 +108,7 @@ Las pull requests de la propia tech lead pueden integrarse sin la aprobación de
 
 1. Actualiza tu rama con los últimos cambios de `dev`  
 2. Pasa los tests en local  
-3. Pasa los **agentes de revisión** sobre tus cambios y resuelve lo que señalen: `docs-reviewer` siempre, y `ui-reviewer` cuando el cambio toca `client/`  
+3. Pasa los **agentes de revisión** sobre tus cambios y resuelve lo que señalen: `docs-reviewer` siempre, y `ui-reviewer` cuando el cambio toca `client/`. Funcionan con Claude Code y con GitHub Copilot, como se explica en [Cómo pasar los agentes de revisión](#cómo-pasar-los-agentes-de-revisión)  
 4. Revisa que entiendes y puedes explicar cada línea, también la que haya generado la IA
 
 >   
@@ -147,9 +148,19 @@ La IA forma parte del trabajo diario, y por eso la tratamos como una herramienta
 | Elemento | Para qué sirve | Dónde |
 | :---- | :---- | :---- |
 | **Instrucciones** | Contexto y convenciones del proyecto, generales y por carpeta | `AGENTS.md` en la raíz, en `client/` y en `server/` |
-| **Agentes** | Asistentes especializados que revisan una rama antes de su pull request: `docs-reviewer` para la documentación y el idioma, y `ui-reviewer` para la interfaz del cliente, que lanza `design-system-reviewer` y `accessibility-reviewer` | `.claude/agents/` |
+| **Agentes** | Asistentes especializados que revisan una rama antes de su pull request: `docs-reviewer` para la documentación y el idioma, y `ui-reviewer` para la interfaz del cliente, que lanza `design-system-reviewer` y `accessibility-reviewer` | `.claude/agents/`, con un enlace en `.github/agents/` para Copilot en IntelliJ |
 | **Skills** | Procedimientos reutilizables del equipo, como redactar una spec o un ADR | `.claude/skills/` |
 | **Tools** | Conexiones externas que pueden usar los agentes, empezando por los servidores MCP de Vonage | Configuración de MCP del proyecto |
+
+### Cómo pasar los agentes de revisión
+
+Puedes usar Claude Code o GitHub Copilot: los dos leen las mismas instrucciones de `.claude/agents/`, así que la revisión es la misma elijas la que elijas.
+
+- **Claude Code:** pídele que pase `docs-reviewer` o `ui-reviewer` sobre tu rama
+- **Copilot en VS Code:** elige el agente en el desplegable de agentes del chat. VS Code lee `.claude/agents/` directamente
+- **Copilot en IntelliJ:** elige el agente en el desplegable de agentes, abajo en el chat. IntelliJ lee el enlace de `.github/agents/`, que lleva a Copilot a las mismas instrucciones
+
+El `AGENTS.md` de la raíz pide además a cualquier asistente que lea `client/AGENTS.md` o `server/AGENTS.md` antes de trabajar en esa carpeta, porque no todos los asistentes los cargan por su cuenta.
 
 A lo largo de las mentorías iremos viendo cómo sacarle partido a la IA, y estos son los principios de partida:
 
