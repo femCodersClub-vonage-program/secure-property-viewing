@@ -81,18 +81,18 @@ Evita las carpetas que se sincronizan con la nube, como `~/Documents` con iCloud
 
 ## 4. Añadir la API que te toca
 
-Cada persona añade la capability de la API que construye. Messages pide dos webhooks, una URL *inbound* y otra *status*, que apuntan al servidor de Railway según el [ADR 0002](../adr/0002-deployment-railway.md). Las rutas exactas están pendientes de definir en la spec de mensajes. Hasta entonces, pregunta a la tech lead cuáles usar:
+Cada persona añade la capability de la API que construye. Messages pide dos webhooks, una URL *inbound* y otra *status*. Apuntan al servidor de Railway según el [ADR 0002](../adr/0002-deployment-railway.md), con las rutas de la [spec del contrato de API](../../specs/data-model-and-api-contract.md):
 
 ```powershell
-vonage apps capabilities update TU_APPLICATION_ID messages --messages-inbound-url='URL_INBOUND' --messages-status-url='URL_STATUS' --messages-version='v1'
+vonage apps capabilities update TU_APPLICATION_ID messages --messages-inbound-url='https://server-production-9f9a.up.railway.app/api/webhooks/messages/inbound' --messages-status-url='https://server-production-9f9a.up.railway.app/api/webhooks/messages/status' --messages-version='v1'
 ```
 
-Mientras el servidor no tenga esos endpoints, se pueden enviar mensajes, pero Vonage no puede avisar del estado de cada entrega. Si las rutas cambian, se repite el mismo comando con las nuevas.
+Mientras el servidor no tenga esos endpoints, se pueden enviar mensajes, pero Vonage no puede avisar del estado de cada entrega.
 
 ## Credenciales: nunca en el repositorio ni en un asistente de IA
 
 - `~/.vonage/config.json`, cualquier `.vonagerc` y los archivos `.key` contienen credenciales. El archivo `.vonagerc` guarda incluso la clave privada
-- `.vonagerc` y `*.key` están en `.gitignore`, y `.claude/settings.json` impide que los lea un asistente. Aun así, no los crees dentro del repositorio
+- `.vonagerc` y `*.key` están en `.gitignore`. Además, `.claude/settings.json` impide que Claude Code lea `.vonagerc`, los `.key` y `~/.vonage/` con su herramienta de lectura. Otros asistentes no tienen esa protección, así que no te fíes solo de ella
 - Nunca pegues la API secret, la clave privada ni el contenido de estos archivos en un asistente de IA
 - Las credenciales se comparten con el equipo por la vía privada acordada, nunca en el repositorio ni en una issue
 
