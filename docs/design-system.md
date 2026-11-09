@@ -2,11 +2,11 @@
 
 ## Visual direction
 
-We chose **Option B: Modern Soft UI**. The catalog is photo-heavy and needs white space to let images breathe. The white background also creates a stronger contrast with our chosen colours. The purple/pink palette includes our chosen shades and supports our visual identity. Forms, such as for phone verification, stay clear and unambiguous in a product-style layout.
+We chose **Option B: Modern Soft UI**. The catalog is photo-heavy and needs white space to let images breathe. The white background also creates a stronger contrast with our chosen colors. The purple/pink palette includes our chosen shades and supports our visual identity. Forms, such as for phone verification, stay clear and unambiguous in a product-style layout.
 
-## Colours
+## Colors
 
-Each colour is used only in the role listed here. Never swap roles or add colours outside this list without a team decision.
+Each color is used only in the role listed here. Never swap roles or add colors outside this list without a team decision.
 
 | Token | Hex | Role |
 | :---- | :---- | :---- |
@@ -29,7 +29,7 @@ Each colour is used only in the role listed here. Never swap roles or add colour
 
 Pairs already verified against WCAG 2.1 AA:
 
-| Text colour | Background | Ratio | Use |
+| Text color | Background | Ratio | Use |
 | :---- | :---- | :---- | :---- |
 | `#92189E` | `#FFFFFF` | 7.38:1 | h1, buttons — passes AA for all text |
 | `#503454` | `#FFFFFF` | 10.71:1 | h2 — passes AA for all text |
