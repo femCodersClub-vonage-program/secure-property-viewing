@@ -9,3 +9,6 @@
 
 # Local to-do list until the GitHub Project exists
 TODO.md
+
+.idea
+.DS_Store
