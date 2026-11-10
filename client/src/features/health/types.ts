@@ -1,1 +1,1 @@
-export type Health = { status: 'UP' | 'DOWN' } // TODO: confirm against PR #40
+export type Health = { database: 'UP' | 'DOWN' }
