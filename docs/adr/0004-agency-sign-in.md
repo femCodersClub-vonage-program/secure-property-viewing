@@ -1,6 +1,6 @@
 # 0004. Agency sign-in with a server session
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-10
 - **Issue:** [#44](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/44)
 
@@ -78,5 +78,5 @@ We use **Spring Security** (`spring-boot-starter-security`) with a **server sess
   - The error table in the [data model spec](../../specs/data-model-and-api-contract.md#errors) gains `403 CSRF_TOKEN_INVALID`
   - `spring-boot-starter-security` is a new dependency. Following [ADR 0003](0003-accessibility-and-dependencies.md), the implementation pull request explains why it is needed, its license (Apache 2.0) and its maintenance, and adds it to the stack table in [ADR 0001](0001-tech-stack.md)
 - **To check in the implementation:**
-  - That the server is reachable from the `client` service at `server.railway.internal:8080`
+  - That the server is reachable from the `client` service at `server.railway.internal:8080`, and that it listens on IPv6 (`::`), as Railway's Caddy templates require
   - How `csrf.spa()` renews the `XSRF-TOKEN` cookie after signing in and out, since the documentation says the cookie is cleared on both
