@@ -12,7 +12,8 @@
       "Read(**/.env.test)",
       "Read(**/.env.*.local)",
       "Read(**/.vonagerc)",
-      "Read(**/*.key)"
+      "Read(**/*.key)",
+      "Read(~/.vonage/**)"
     ]
   }
 }
