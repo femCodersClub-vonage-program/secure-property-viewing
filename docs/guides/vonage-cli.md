@@ -64,7 +64,7 @@ Sin más opciones, el CLI guarda la configuración en `~/.vonage/config.json`, f
 
 `apps create` guarda la clave privada como `private.key` **en la carpeta en la que estás**, así que créala siempre fuera del repositorio:
 
-En macOS y Linux
+En macOS y Linux:
 
 ```bash
 mkdir -p ~/vonage
@@ -82,7 +82,7 @@ vonage apps create 'Peephole TU_NOMBRE'
 
 Apunta el `Application ID` que aparece. Después dale a la clave un nombre propio, para que otra aplicación no la sobrescriba, y deja que solo tú puedas leerla:
 
-En macOS y Linux
+En macOS y Linux:
 
 ```bash
 mv private.key peephole-TU_NOMBRE.key
@@ -94,6 +94,7 @@ En Windows, con PowerShell:
 ```powershell
 Rename-Item private.key peephole-TU_NOMBRE.key
 ```
+
 En Windows no hace falta cambiar los permisos.
 
 Evita las carpetas que se sincronizan con la nube, como `~/Documents` con iCloud activado o *Documentos* con OneDrive.
