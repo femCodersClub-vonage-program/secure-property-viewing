@@ -102,17 +102,17 @@ Los datos de ejemplo son ficticios y están en `server/src/main/resources/db/see
 
 ### Variables de Vonage
 
-Cada API de Vonage funciona con la aplicación de Vonage de la persona que la construye, así que el servidor tiene un grupo de variables por API. Todos los grupos tienen las mismas dos variables: el ID de la aplicación y su clave privada.
+Cada API de Vonage funciona con la aplicación de Vonage de una persona del equipo, así que el servidor tiene un grupo de variables por API: el ID de la aplicación y su clave privada, y además el signature secret con el que Messages comprueba sus webhooks.
 
-| Grupo | Variables | De quién son los valores |
+| Grupo | Variables | Valores en Railway |
 | :---- | :---- | :---- |
 | Verify | `VONAGE_VERIFY_APPLICATION_ID`, `VONAGE_VERIFY_PRIVATE_KEY` | Candé |
 | Video | `VONAGE_VIDEO_APPLICATION_ID`, `VONAGE_VIDEO_PRIVATE_KEY` | Viviana |
-| Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY`, `VONAGE_MESSAGES_SIGNATURE_SECRET` | Por confirmar |
+| Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY`, `VONAGE_MESSAGES_SIGNATURE_SECRET` | Damaris |
 
-Todos los grupos tienen el ID de la aplicación y su clave privada, y Messages tiene además el signature secret con el que el servidor comprueba sus webhooks.
+En local, pon en `server/.env` los valores de tu propia aplicación de Vonage y deja los demás grupos con sus valores de ejemplo.
 
-**Los demás grupos.** Cada persona sube sus credenciales a la carpeta compartida del Drive del equipo: su API key, su API secret, el ID de su aplicación y el archivo de la clave privada (`.key`), y el signature secret si construye Messages. Nunca los envíes por Slack, en una issue, en el repositorio ni a un asistente de IA.
+**La clave privada en base64.** Cada clave privada va en una sola línea, así el mismo valor funciona en `server/.env` y en Railway. Para copiar la tuya:
 
 ```bash
 # macOS
@@ -124,7 +124,7 @@ base64 -i ruta/a/tu.key | tr -d '\n' | pbcopy
 [Convert]::ToBase64String([IO.File]::ReadAllBytes("ruta\a\tu.key")) | Set-Clipboard
 ```
 
-**Los demás grupos.** Cada persona comparte el ID de su aplicación y su clave privada en la carpeta compartida del Drive del equipo. Nunca los envíes por Slack, en una issue, en el repositorio ni a un asistente de IA.
+**Compartir tus credenciales.** Cada persona sube las suyas a la carpeta compartida del Drive del equipo: su API key, su API secret, el ID de su aplicación y el archivo de la clave privada (`.key`), y el signature secret si construye Messages. Nunca las envíes por Slack, en una issue, en el repositorio ni a un asistente de IA.
 
 **En Railway.** Las mismas variables van en el servicio `server`, como se explica en [Railway desde la terminal](guides/railway.md).
 
