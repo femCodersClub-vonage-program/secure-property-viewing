@@ -1,1 +1,51 @@
 @import 'tailwindcss';
+
+@theme {
+  /* ── Colors ───────────────────────────────────────────────────────────── */
+
+  /* Brand */
+  --color-brand-primary: #92189e; /* h1, primary buttons, active states, focus ring */
+  --color-brand-secondary: #503454; /* h2, h3 */
+  --color-brand-dark: #23122b; /* navbar, dark surfaces */
+  --color-brand-accent: #ff0090; /* logo icon, decorative dots on dark backgrounds */
+
+  /* Text */
+  --color-text-default: #0f0f0f;
+  --color-text-muted: #666666;
+
+  /* Surfaces */
+  --color-surface-page: #ffffff;
+  --color-surface-card: #ffffff;
+  --color-surface-input: #f5f5f5;
+
+  /* Border */
+  --color-border: #e0e0e0; /* dividers, cards */
+  --color-border-input: #8a8a8a; /* form fields, 3.45:1 on white */
+
+  /* Semantic */
+  --color-success: #1a7d52;
+  --color-error: #b91c1c;
+  --color-warning: #92400e;
+
+  /* ── Typography ───────────────────────────────────────────────────────── */
+
+  --font-display: Georgia, 'Times New Roman', serif;
+  --font-body: 'Trebuchet MS', Arial, sans-serif;
+
+  /* ── Spacing ──────────────────────────────────────────────────────────── */
+
+  --spacing-section: 3rem; /* 48px — gap between page sections */
+  --spacing-card: 1rem; /* 16px — inner card padding */
+
+  /* ── Radii ────────────────────────────────────────────────────────────── */
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 9999px;
+
+  /* ── Shadows ──────────────────────────────────────────────────────────── */
+
+  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.08);
+  --shadow-button: 0 4px 16px rgba(146, 24, 158, 0.3);
+}
