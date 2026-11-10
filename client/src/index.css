@@ -19,7 +19,8 @@
   --color-surface-input: #f5f5f5;
 
   /* Border */
-  --color-border: #e0e0e0;
+  --color-border: #e0e0e0; /* dividers, cards */
+  --color-border-input: #8a8a8a; /* form fields, 3.45:1 on white */
 
   /* Semantic */
   --color-success: #1a7d52;
@@ -30,17 +31,6 @@
 
   --font-display: Georgia, 'Times New Roman', serif;
   --font-body: 'Trebuchet MS', Arial, sans-serif;
-
-  --font-size-xs: 0.75rem; /* 12px — small labels, badges */
-  --font-size-sm: 0.875rem; /* 14px — supporting text, captions */
-  --font-size-base: 1rem; /* 16px — body text */
-  --font-size-lg: 1.125rem; /* 18px — lead text, card titles */
-  --font-size-xl: 1.25rem; /* 20px — section headings (h3) */
-  --font-size-2xl: 1.5rem; /* 24px — page headings (h2) */
-  --font-size-3xl: 1.875rem; /* 30px — hero headings (h1 mobile) */
-  --font-size-4xl: 2.25rem; /* 36px — hero headings (h1 desktop) */
-
-  --line-height-normal: 1.5;
 
   /* ── Spacing ──────────────────────────────────────────────────────────── */
 
@@ -58,5 +48,4 @@
 
   --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.08);
   --shadow-button: 0 4px 16px rgba(146, 24, 158, 0.3);
-  --shadow-focus: 0 0 0 3px var(--color-brand-primary);
 }

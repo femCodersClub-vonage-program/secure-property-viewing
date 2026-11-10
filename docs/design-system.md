@@ -19,11 +19,11 @@ Each color is used only in the role listed here. Never swap roles or add colors 
 | `--color-surface-page` | `#FFFFFF` | Page background |
 | `--color-surface-card` | `#FFFFFF` | Card background |
 | `--color-surface-input` | `#F5F5F5` | Input and tag background |
-| `--color-border` | `#E0E0E0` | Borders, dividers |
-
-| `--color-success` | `#1A7D52` | Success states (proposed — confirm with team) |
-| `--color-error` | `#B91C1C` | Error states (proposed — confirm with team) |
-| `--color-warning` | `#92400E` | Warning states (proposed — confirm with team) |
+| `--color-border` | `#E0E0E0` | Dividers, card borders |
+| `--color-border-input` | `#8A8A8A` | Form field borders (3.45:1 on white, 3.17:1 on `#F5F5F5`) |
+| `--color-success` | `#1A7D52` | Success states |
+| `--color-error` | `#B91C1C` | Error states |
+| `--color-warning` | `#92400E` | Warning states |
 
 ### Contrast
 
@@ -59,22 +59,22 @@ Fonts are self-hosted in `src/assets/` or use system fonts — no Google Fonts (
 | `--font-display` | `Georgia, 'Times New Roman', serif` | h1, h2 |
 | `--font-body` | `'Trebuchet MS', Arial, sans-serif` | All other text |
 
-Both body fonts use a **single-storey a**, which is easier to read for people with dyslexia or low vision.
-
 ### Type scale
 
-| Token | Size | Use |
-| :---- | :---- | :---- |
-| `--font-size-xs` | `0.75rem` (12px) | Small labels, badges |
-| `--font-size-sm` | `0.875rem` (14px) | Supporting text, captions |
-| `--font-size-base` | `1rem` (16px) | Body text |
-| `--font-size-lg` | `1.125rem` (18px) | Lead text, card titles |
-| `--font-size-xl` | `1.25rem` (20px) | Section headings (h3) |
-| `--font-size-2xl` | `1.5rem` (24px) | Page headings (h2) |
-| `--font-size-3xl` | `1.875rem` (30px) | Hero headings (h1 mobile) |
-| `--font-size-4xl` | `2.25rem` (36px) | Hero headings (h1 desktop) |
+Font sizes and line height use Tailwind's default classes, so they need no custom tokens:
 
-Line height: **1.5** for all body text. Headings use `text-wrap: balance`.
+| Class | Size | Use |
+| :---- | :---- | :---- |
+| `text-xs` | `0.75rem` (12px) | Small labels, badges |
+| `text-sm` | `0.875rem` (14px) | Supporting text, captions |
+| `text-base` | `1rem` (16px) | Body text |
+| `text-lg` | `1.125rem` (18px) | Lead text, card titles |
+| `text-xl` | `1.25rem` (20px) | Section headings (h3) |
+| `text-2xl` | `1.5rem` (24px) | Page headings (h2) |
+| `text-3xl` | `1.875rem` (30px) | Hero headings (h1 mobile) |
+| `text-4xl` | `2.25rem` (36px) | Hero headings (h1 desktop) |
+
+Line height: `leading-normal` (1.5) for body text. Headings use `text-wrap: balance`.
 
 ## Spacing
 
@@ -96,14 +96,15 @@ The base unit is `0.25rem` (4px). The scale follows Tailwind's default steps, ex
 
 ## Borders
 
-One border style throughout: `1px solid var(--color-border)` (`#E0E0E0`). Inputs in focus state use `1.5px solid var(--color-brand-primary)` to meet the 3:1 UI component contrast threshold.
+Dividers and cards use `1px solid var(--color-border)`. Form fields use `1px solid var(--color-border-input)`, so they meet the 3:1 contrast for interface components.
 
 ## Shadows
 
 | Token | Value | Use |
 | :---- | :---- | :---- |
 | `--shadow-card` | `0 2px 10px rgba(0, 0, 0, 0.08)` | Cards |
-| `--shadow-button` | `0 4px 16px rgba(146, 24, 158, 0.30)` | Primary button hover/focus |
-| `--shadow-focus` | `0 0 0 3px rgba(146, 24, 158, 0.35)` | Keyboard focus ring |
+| `--shadow-button` | `0 4px 16px rgba(146, 24, 158, 0.30)` | Primary button hover |
 
-The focus ring uses `--color-brand-primary` at 35% opacity, which meets the 3:1 contrast requirement for focus indicators against a white background.
+## Focus
+
+Every interactive element shows the same focus ring: `outline-2 outline-offset-2 outline-brand-primary` (7.38:1 on white). It uses an outline rather than a shadow because Windows high contrast mode keeps outlines and removes shadows.
