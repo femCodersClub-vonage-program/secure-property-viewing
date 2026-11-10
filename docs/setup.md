@@ -102,17 +102,17 @@ The demo data is fictional and lives in `server/src/main/resources/db/seed/`. It
 
 ### Vonage variables
 
-Each Vonage API runs on the Vonage application of the person who builds it, so the server has one group of variables per API. Every group has the same two variables: the application ID and its private key.
+Each Vonage API runs on the Vonage application of one person on the team, so the server has one group of variables per API: the application ID and its private key, plus the signature secret that Messages uses to verify its webhooks.
 
-| Group | Variables | Whose values |
+| Group | Variables | Values on Railway |
 | :---- | :---- | :---- |
 | Verify | `VONAGE_VERIFY_APPLICATION_ID`, `VONAGE_VERIFY_PRIVATE_KEY` | Candé |
 | Video | `VONAGE_VIDEO_APPLICATION_ID`, `VONAGE_VIDEO_PRIVATE_KEY` | Viviana |
-| Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY`, `VONAGE_MESSAGES_SIGNATURE_SECRET` | To be confirmed |
+| Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY`, `VONAGE_MESSAGES_SIGNATURE_SECRET` | Damaris |
 
-Every group has the application ID and its private key, and Messages also has the signature secret the server uses to verify its webhooks.
+Locally, put the values of your own Vonage application in `server/.env`, and leave the other groups with their placeholders.
 
-**The other groups.** Each person uploads her credentials to the team's shared Drive folder: her API key, API secret, application ID and private key file (`.key`), plus the signature secret if she builds Messages. Never send them through Slack, an issue, the repository or an AI assistant.
+**The private key in base64.** Each private key goes on a single line, so the same value works in `server/.env` and on Railway. To copy yours:
 
 ```bash
 # macOS
@@ -124,7 +124,7 @@ base64 -i path/to/your.key | tr -d '\n' | pbcopy
 [Convert]::ToBase64String([IO.File]::ReadAllBytes("path\to\your.key")) | Set-Clipboard
 ```
 
-**The other groups.** Each person shares her application ID and private key in the team's shared Drive folder. Never send them through Slack, an issue, the repository or an AI assistant.
+**Sharing your credentials.** Each person uploads hers to the team's shared Drive folder: her API key, API secret, application ID and private key file (`.key`), plus the signature secret if she builds Messages. Never send them through Slack, an issue, the repository or an AI assistant.
 
 **On Railway.** The same variables go in the `server` service, as described in [Railway from the terminal](guides/railway.md) (in Spanish).
 
