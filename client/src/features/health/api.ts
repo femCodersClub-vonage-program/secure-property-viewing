@@ -2,9 +2,9 @@ import { request } from '../../lib/http'
 import type { Health } from './types'
 
 function parseHealth(data: unknown): Health {
-  if (typeof data === 'object' && data !== null && 'status' in data) {
-    if (data.status === 'UP' || data.status === 'DOWN') {
-      return { status: data.status }
+  if (typeof data === 'object' && data !== null && 'database' in data) {
+    if (data.database === 'UP' || data.database === 'DOWN') {
+      return { database: data.database }
     }
   }
   throw new Error('Unexpected /api/health response')
