@@ -122,7 +122,7 @@ Mientras el servidor no tenga esos endpoints, se pueden enviar mensajes, pero Vo
 | :---- | :---- |
 | `npm warn EBADENGINE … @stoplight/prism-*` | Lo pide el servidor de pruebas del CLI (`vonage mock`), que no usamos. Desaparece si actualizas Node.js |
 | `npm warn deprecated …` | Dependencias internas del CLI |
-| `Error: … DeprecationWarning: Passing invalid argument types to fs.existsSync` | Aviso de Node.js 24 sobre el código del CLI, en macOS y en Windows. Si después aparece ✅, todo ha ido bien |
+| `Error: … DeprecationWarning: Passing invalid argument types to fs.existsSync` | Aviso de Node.js sobre el código del CLI, visto en las versiones 24 y 26, en macOS y en Windows. Si después aparece ✅, todo ha ido bien |
 
 ## Problemas frecuentes
 
