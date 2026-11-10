@@ -48,4 +48,4 @@ Then check that `vonage-documentation` appears among your assistant's MCP server
 
 The Vonage CLI is not part of the automated tests. They use test doubles instead of real calls, so they neither consume credits nor depend on the network. The CLI includes a mock server (`vonage mock`), but it currently covers only the SMS API, not the Messages API we use.
 
-The CLI stores its local configuration, including credentials, in a `.vonagerc` file in the working directory. That file is listed in `.gitignore` and must never be committed.
+By default, the CLI stores its configuration, including credentials, in `~/.vonage/config.json`. With `--local`, it stores it in a `.vonagerc` file in the working directory instead. `.vonagerc` and `*.key` are listed in `.gitignore`, and none of these files may ever be committed. How to install and set up the CLI is in the [Vonage CLI guide](guides/vonage-cli.md).
