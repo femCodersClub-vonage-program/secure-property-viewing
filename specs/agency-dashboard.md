@@ -170,6 +170,15 @@ No new tables: `listing_request`, `property`, `visit` and `message` from the [da
 
 Every agency endpoint except `POST /api/agency/session` returns `401 AUTHENTICATION_REQUIRED` without a signed-in user.
 
+### Security
+
+The agency signs in with a server session managed by Spring Security, as decided in [ADR 0004](../docs/adr/0004-agency-sign-in.md):
+
+- The session cookie is `HttpOnly` and `SameSite=Lax`, and `Secure` on Railway. On Railway, the client proxies `/api` to the server, so the browser sees one origin, as with the Vite proxy locally
+- Every `POST`, `PUT`, `PATCH` and `DELETE` under `/api`, including signing in and out, sends the `X-XSRF-TOKEN` header with the value of the `XSRF-TOKEN` cookie, except the Vonage webhooks under `/api/webhooks`. Without a valid token, the server returns `403 CSRF_TOKEN_INVALID`
+- A wrong password and an unknown email return the same `401 INVALID_CREDENTIALS`
+- Passwords are checked against the BCrypt hash in `agency_user`, and neither the email nor the password is ever written to the logs
+
 ### Vonage
 
 None directly. The dashboard shows what Messages and Video produce: message statuses from the messages feature and the "Join visit" link from the video feature.
@@ -178,3 +187,4 @@ None directly. The dashboard shows what Messages and Video produce: message stat
 
 - Pages under `/agency` in `routes.tsx`, composed from an `agency-dashboard` feature with its `api.ts`, types and components, following the folder rules in `client/AGENTS.md`
 - The dashboard components are built in issue #27. The layout and D1 are built first, in issue #16, and D2 to D5 follow in the next weeks
+- The shared API client uses relative `/api` paths in every environment and sends the `X-XSRF-TOKEN` header with every `POST`, `PUT`, `PATCH` and `DELETE`, as decided in [ADR 0004](../docs/adr/0004-agency-sign-in.md)

@@ -102,6 +102,13 @@ Agency:
 | `GET /api/agency/visits?from=&to=` | Visits for the calendar | [Agency dashboard](agency-dashboard.md) |
 | `GET /api/agency/messages` | Sent and scheduled messages | [Agency dashboard](agency-dashboard.md) |
 
+Vonage webhooks, called by Vonage with a signed JWT that the server verifies, so they need no agency session:
+
+| Method and path | Purpose | Spec |
+| :---- | :---- | :---- |
+| `POST /api/webhooks/messages/inbound` | Messages sent to our number. The MVP does not process replies, so it only answers `200` | Messages (week 2) |
+| `POST /api/webhooks/messages/status` | Delivery status of each message, which updates `message.status` | Messages (week 2) |
+
 Each feature spec defines the exact request and response of its endpoints.
 
 ### Errors
@@ -122,6 +129,7 @@ Every error is a `ProblemDetail`, as required in `server/AGENTS.md`, with an ext
 | :---- | :---- | :---- |
 | 400 | The request body or a parameter is not valid | `VALIDATION_FAILED`, with the invalid fields in `errors` |
 | 401 | An agency endpoint is called without a signed-in user, or the email or password is wrong | `AUTHENTICATION_REQUIRED`, `INVALID_CREDENTIALS` |
+| 403 | A `POST`, `PUT`, `PATCH` or `DELETE` request has no valid CSRF token | `CSRF_TOKEN_INVALID` |
 | 404 | The resource does not exist | `NOT_FOUND` |
 | 409 | The action conflicts with the current state, such as booking a slot that is already taken | Defined by each feature |
 | 422 | A business rule rejects the action, such as a wrong code | Defined by each feature |
