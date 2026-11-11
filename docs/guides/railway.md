@@ -34,9 +34,11 @@ railway status
 | Para… | Comando |
 | :---- | :---- |
 | Ver si cada servicio está funcionando | `railway service list` |
+| Ver los últimos despliegues de un servicio y su estado | `railway deployment list --service server` |
 | Ver los registros del servidor | `railway logs --service server` |
 | Ver los registros del cliente | `railway logs --service client` |
 | Ver las últimas 50 líneas | `railway logs --service server --lines 50` |
+| Ver solo los errores | `railway logs --service server --lines 20 --filter "@level:error"` |
 | Ver cómo fue la compilación | `railway logs --service server --build` |
 
 ## Si un despliegue falla
@@ -52,6 +54,7 @@ railway status
 | `password authentication failed` o `Connection refused` | Las variables de la base de datos no coinciden o `Postgres` no está en marcha | Comprueba el estado de `Postgres` y las variables de `server` |
 | Un error de Flyway al arrancar | Una migración tiene un problema | Mira la tabla de errores de [la guía de migraciones](flyway-migrations.md#si-algo-falla) |
 | `Blocked by CORS` en el navegador | `CORS_ALLOWED_ORIGINS` no incluye la dirección del cliente | Comprueba esa variable en `server` |
+| `NEEDS_APPROVAL` en `railway deployment list` | El despliegue no ha fallado: Railway lo ha retenido hasta que alguien con permiso lo apruebe | Avisa a la tech lead para que lo apruebe en el panel de Railway |
 
 ## Añadir una variable
 
