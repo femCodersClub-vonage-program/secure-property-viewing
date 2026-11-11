@@ -37,7 +37,7 @@ src/test/java/com/peephole/server/
 └── visit/                     Tests mirror the main packages
 ```
 
-Packages are created when the first class needs them: `common/`, `vonage/` and the feature packages do not exist yet.
+Packages are created when the first class needs them: `vonage/` and most feature packages do not exist yet.
 
 Always:
 
@@ -73,6 +73,7 @@ Never:
 ## API
 
 - Every endpoint lives under `/api`, because that is the path the client proxies in development
+- Spring Security is configured once in `config/SecurityConfig.java`, as decided in [ADR 0004](../docs/adr/0004-agency-sign-in.md): `/api/agency/**` needs a signed-in user, except `POST /api/agency/session`, and every `POST`, `PUT`, `PATCH` and `DELETE` needs a CSRF token, except under `/api/webhooks/**`. A `@WebMvcTest` needs `@Import(SecurityConfig.class)` and `.with(csrf())` on those requests
 - CORS is configured once in `config/CorsConfig.java` for `/api/**`. The allowed origins come from `CORS_ALLOWED_ORIGINS`, with `http://localhost:5173` by default. Never add `@CrossOrigin` to a controller
 - The server listens on `PORT` when it is set, as on Railway, and on `8080` otherwise. Deployment is described in [ADR 0002](../docs/adr/0002-deployment-railway.md)
 

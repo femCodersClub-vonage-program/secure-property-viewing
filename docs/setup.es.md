@@ -87,7 +87,7 @@ cp .env.example .env
 
 En PowerShell de Windows, usa `copy` en lugar de `cp`.
 
-Abre `server/.env` y sustituye los cuatro valores de ejemplo de la base de datos:
+Abre `server/.env` y sustituye los cinco valores de ejemplo:
 
 | Variable | Valor |
 | :---- | :---- |
@@ -95,6 +95,7 @@ Abre `server/.env` y sustituye los cuatro valores de ejemplo de la base de datos
 | `DB_USERNAME` | `peephole` |
 | `DB_PASSWORD` | La contraseña compartida del Drive |
 | `LOAD_DEMO_DATA` | `true` para cargar los datos de ejemplo al arrancar el servidor, `false` para arrancar solo con las tablas |
+| `SESSION_COOKIE_SECURE` | `false`, porque el servidor local funciona sobre `http://localhost`. Solo es `true` en Railway, donde la cookie de sesión de la agencia solo debe enviarse por HTTPS, como se decidió en el [ADR 0004](adr/0004-agency-sign-in.md) |
 
 Los datos de ejemplo son ficticios y están en `server/src/main/resources/db/seed/`. Solo se cargan cuando `LOAD_DEMO_DATA` es `true`, y las tablas se crean en los dos casos.
 
@@ -168,6 +169,7 @@ Abre `http://localhost:5173`. Para pararlo, pulsa `Ctrl+C`.
 | `The server requested SCRAM-based authentication, but no password was provided` | `DB_PASSWORD` está vacío en `server/.env` | Pon la contraseña compartida, sin comillas ni espacios |
 | `password authentication failed for user "peephole"` | `DB_PASSWORD` de `server/.env` no coincide con la contraseña del usuario `peephole` | Comprueba que las dos son la contraseña compartida del Drive |
 | `Could not resolve placeholder 'app.flyway.locations.…'` | `LOAD_DEMO_DATA` en `server/.env` todavía tiene el valor de ejemplo de `.env.example` | Ponlo en `true` o `false` |
+| `Failed to bind properties under 'server.servlet.session.cookie.secure'` | `SESSION_COOKIE_SECURE` en `server/.env` todavía tiene el valor de ejemplo de `.env.example` | Ponlo en `false` |
 | `database "peephole" does not exist` | No se completó el paso 3 | Lanza el comando `createdb` del paso 3 |
 | `npm error code EBADENGINE` en `client/` | Tu versión de Node.js es más antigua que la que necesita el proyecto | Instala una versión más nueva (paso 2) y vuelve a lanzar `npm ci` |
 | `Connection refused` en el puerto `5432` | PostgreSQL no está arrancado | Windows: arranca el servicio `postgresql-x64-17`. macOS: `brew services start postgresql@17` |

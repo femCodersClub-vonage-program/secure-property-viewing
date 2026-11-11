@@ -87,7 +87,7 @@ cp .env.example .env
 
 On Windows PowerShell, use `copy` instead of `cp`.
 
-Open `server/.env` and replace the four database placeholders:
+Open `server/.env` and replace the five placeholders:
 
 | Variable | Value |
 | :---- | :---- |
@@ -95,6 +95,7 @@ Open `server/.env` and replace the four database placeholders:
 | `DB_USERNAME` | `peephole` |
 | `DB_PASSWORD` | The shared password from the Drive folder |
 | `LOAD_DEMO_DATA` | `true` to load the demo data when the server starts, `false` to start with the tables only |
+| `SESSION_COOKIE_SECURE` | `false`, because the local server runs over `http://localhost`. It is `true` only on Railway, where the agency session cookie must be sent over HTTPS only, as decided in [ADR 0004](adr/0004-agency-sign-in.md) |
 
 The demo data is fictional and lives in `server/src/main/resources/db/seed/`. It is only loaded when `LOAD_DEMO_DATA` is `true`, and the tables are created either way.
 
@@ -168,6 +169,7 @@ Open `http://localhost:5173`. Stop it with `Ctrl+C`.
 | `The server requested SCRAM-based authentication, but no password was provided` | `DB_PASSWORD` in `server/.env` is empty | Set it to the shared password, with no quotes or spaces |
 | `password authentication failed for user "peephole"` | `DB_PASSWORD` in `server/.env` does not match the password of the `peephole` user | Check that both are the shared password from the Drive folder |
 | `Could not resolve placeholder 'app.flyway.locations.…'` | `LOAD_DEMO_DATA` in `server/.env` still has the placeholder from `.env.example` | Set it to `true` or `false` |
+| `Failed to bind properties under 'server.servlet.session.cookie.secure'` | `SESSION_COOKIE_SECURE` in `server/.env` still has the placeholder from `.env.example` | Set it to `false` |
 | `database "peephole" does not exist` | Step 3 was not completed | Run the `createdb` command from step 3 |
 | `npm error code EBADENGINE` in `client/` | Your Node.js version is older than the one the project needs | Install a newer version (step 2) and run `npm ci` again |
 | `Connection refused` on port `5432` | PostgreSQL is not running | Windows: start the `postgresql-x64-17` service. macOS: `brew services start postgresql@17` |

@@ -14,6 +14,8 @@ Para poner en marcha el proyecto en tu ordenador, empieza por [`docs/setup.es.md
 | [Migraciones con Flyway](flyway-migrations.md) | Crear tablas sin chocar con las demás y salir de los errores de Flyway |
 | [Railway desde la terminal](railway.md) | Ver el estado de cada servicio, entender un despliegue que ha fallado y añadir una variable |
 | [Comandos de PostgreSQL](postgresql-commands.md) | Crear la base de datos, consultarla y resetearla desde la terminal, y dónde están tus datos de conexión |
+| [Tests de integración con PostgreSQL](postgresql-integration-test.md) | Escribir tests de integración del servidor contra PostgreSQL real |
+| [Vonage CLI](vonage-cli.md) | Instalar el CLI, conectar tu cuenta y crear tu aplicación de Vonage |
 
 ## Cuándo añadir una guía
 
