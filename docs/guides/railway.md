@@ -7,7 +7,7 @@ Cada servicio se despliega solo cuando llega un cambio a `dev` en su carpeta. No
 | Servicio | Carpeta | Dirección |
 | :---- | :---- | :---- |
 | `client` | `client/` | <https://client-production-c53a.up.railway.app> |
-| `server` | `server/` | <https://server-production-9f9a.up.railway.app> |
+| `server` | `server/` | En el panel de Railway, en el servicio `server`, apartado *Networking*. No se publica en el repositorio porque solo la necesita el equipo |
 | `Postgres` | Ninguna | Solo accesible desde dentro de Railway |
 
 El porqué de esta organización está en el [ADR 0002](../adr/0002-deployment-railway.md).
