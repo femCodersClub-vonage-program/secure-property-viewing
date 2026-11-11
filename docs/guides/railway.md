@@ -68,6 +68,8 @@ Al guardarla, el servicio se vuelve a desplegar.
 
 El servicio `server` necesita `LOAD_DEMO_DATA=true` para cargar los datos de ejemplo de `db/seed/`.
 
+El servicio `server` también necesita `SESSION_COOKIE_SECURE=true`, para que la cookie de sesión de la agencia solo viaje por HTTPS, como decide el [ADR 0004](../adr/0004-agency-sign-in.md). Si falta, el servidor arranca igual pero envía la cookie sin `Secure`.
+
 ## Lo que no se hace
 
 - **No muestres las variables en pantalla compartida ni las pegues en un asistente de IA.** `railway variable list` enseña las contraseñas en claro
