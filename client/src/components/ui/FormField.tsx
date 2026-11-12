@@ -30,7 +30,11 @@ function FormField({ id, label, hint, error, children }: FormFieldProps) {
         </p>
       ) : null}
       <div className="mt-1">
-        {children({ id, 'aria-describedby': describedBy, 'aria-invalid': error ? true : undefined })}
+        {children({
+          id,
+          'aria-describedby': describedBy,
+          'aria-invalid': error ? true : undefined,
+        })}
       </div>
       {error ? (
         <p id={errorId} role="alert" className="font-body text-error mt-1">

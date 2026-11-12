@@ -15,7 +15,11 @@ const variantClasses: Record<BadgeVariant, string> = {
 function Badge({ variant, children, className }: BadgeProps) {
   return (
     <span
-      className={['rounded-sm font-body font-semibold text-xs px-2 py-0.5', variantClasses[variant], className ?? '']
+      className={[
+        'rounded-sm font-body font-semibold text-xs px-2 py-0.5',
+        variantClasses[variant],
+        className ?? '',
+      ]
         .join(' ')
         .trim()}
     >
