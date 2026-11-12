@@ -1,8 +1,7 @@
-# Since November 12, 2026, Mayleth and Damaris review the team's pull requests, and one approval is enough
-* @may-leth @damcb1
-
-# The tech lead still reviews migrations, security configuration, dependencies and CI
+# Since November 12, 2026, anyone on the team can review a pull request, and one approval is enough.
+# These files also need the tech lead's review: migrations, server configuration, dependencies and CI.
 /server/src/main/resources/db/migration/ @Irina-Ichim
+/server/src/main/resources/application.properties @Irina-Ichim
 /server/src/main/java/com/peephole/server/config/ @Irina-Ichim
 /server/pom.xml @Irina-Ichim
 /client/package.json @Irina-Ichim

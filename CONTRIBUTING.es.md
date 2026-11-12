@@ -119,8 +119,8 @@ Las pull requests de la propia tech lead pueden integrarse sin la aprobación de
 - Todas las PR van contra `dev`  
 - La descripción sigue la plantilla del repositorio: qué cambia, por qué, qué queda fuera y cómo probarlo  
 - La PR enlaza su issue con `Closes #n`, para que la issue se cierre al fusionarla  
-- Desde el 12 de noviembre de 2026, el equipo revisa sus propias PR. `CODEOWNERS` asigna la revisión a Mayleth y a Damaris, tanto en `client/` como en `server/`, y basta con la aprobación de una de las dos. Nadie aprueba su propia PR  
-- La tech lead sigue revisando las migraciones de base de datos, la configuración de seguridad del servidor en `config/`, las dependencias (`server/pom.xml` y `client/package.json`) y `.github/`. `CODEOWNERS` le asigna esos archivos, y una PR que los toque necesita también su aprobación  
+- Desde el 12 de noviembre de 2026, el equipo revisa sus propias PR. Cualquiera puede revisar la de cualquiera, en `client/` o en `server/`: quien abre la PR se la pide a una compañera en *Reviewers*, y basta con una aprobación. Nadie aprueba su propia PR  
+- La tech lead sigue revisando las migraciones de base de datos, la configuración del servidor (`application.properties` y la configuración de seguridad en `config/`), las dependencias (`server/pom.xml` y `client/package.json`) y `.github/`. `CODEOWNERS` le pide la revisión automáticamente cuando una PR toca esos archivos, y la PR necesita también su aprobación  
 - Si quien revisa tiene dudas sobre algo, pide la revisión de la tech lead en la propia PR, en *Reviewers*. No por Slack ni por mensaje privado, para que la pregunta quede junto al código  
 - Si hay una decisión discutible, se explica en la descripción antes de que alguien la encuentre en el diff  
 - En la revisión se distingue siempre lo bloqueante de las sugerencias  
