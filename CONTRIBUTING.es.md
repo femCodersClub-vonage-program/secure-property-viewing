@@ -108,7 +108,7 @@ Las pull requests de la propia tech lead pueden integrarse sin la aprobación de
 
 1. Actualiza tu rama con los últimos cambios de `dev`  
 2. Pasa los tests en local  
-3. Pasa los **agentes de revisión** sobre tus cambios y resuelve lo que señalen: `docs-reviewer` siempre, `ui-reviewer` cuando el cambio toca `client/`, y `server-reviewer` cuando toca `server/`. Funcionan con Claude Code y con GitHub Copilot, como se explica en [Cómo pasar los agentes de revisión](#cómo-pasar-los-agentes-de-revisión)  
+3. Pasa los **agentes de revisión** sobre tus cambios y resuelve lo que señalen: `docs-reviewer` siempre, `ui-reviewer` cuando el cambio toca `client/`, y `server-reviewer` cuando toca `server/`. Funcionan con Claude Code y con GitHub Copilot, como se explica en [Cómo pasar los agentes de revisión](#cómo-pasar-los-agentes-de-revisión). En la pull request, la sección *Review agents* resume qué encontró cada uno y qué hiciste con ello: si lo arreglaste o si lo dejaste como estaba y por qué  
 4. Revisa que entiendes y puedes explicar cada línea, también la que haya generado la IA
 
 >   
@@ -129,7 +129,7 @@ Las pull requests de la propia tech lead pueden integrarse sin la aprobación de
 
 ## Integración continua
 
-Cada PR ejecuta [`.github/workflows/ci.yml`](.github/workflows/ci.yml) en GitHub Actions: el lint, el formato, los tests y la compilación del cliente, la comprobación de que las imágenes están optimizadas, el formato, la compilación y los tests del servidor contra una base de datos PostgreSQL vacía, y la comprobación de las [reglas de migraciones](#migraciones-de-base-de-datos). Si es viable, también lanzará los agentes de revisión, para que ese paso no dependa solo de que cada persona lo haga en local.
+Cada PR ejecuta [`.github/workflows/ci.yml`](.github/workflows/ci.yml) en GitHub Actions: el lint, el formato, los tests y la compilación del cliente, la comprobación de que las imágenes están optimizadas, el formato, la compilación y los tests del servidor contra una base de datos PostgreSQL vacía, y la comprobación de las [reglas de migraciones](#migraciones-de-base-de-datos). Los agentes de revisión no se lanzan en la CI, porque necesitarían una clave de API guardada donde cualquiera con permiso de escritura puede cambiar el workflow. Cada autora los pasa y resume el resultado en la pull request, y quien la revisa puede contrastar ese resumen con el código.
 
 ## Testing
 
@@ -206,7 +206,7 @@ Una issue se da por terminada cuando cumple todo lo siguiente:
 
 - [ ] Responde a los criterios de aceptación de su spec o, si es un bug o una tarea, a lo que pide su issue  
 - [ ] Tiene sus tests y pasan en local y en la CI  
-- [ ] Ha pasado los agentes de revisión y se ha resuelto lo que señalaron  
+- [ ] Ha pasado los agentes de revisión, se ha resuelto lo que señalaron y la pull request lo resume  
 - [ ] Cuenta con una aprobación en la PR, también de la tech lead si toca los archivos que ella revisa  
 - [ ] La documentación afectada está actualizada, incluido un ADR si hubo una decisión de arquitectura
 
