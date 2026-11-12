@@ -42,7 +42,12 @@ function Button({
         .trim()}
     >
       {loading ? (
-        <svg className="size-4 motion-safe:animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <svg
+          className="size-4 motion-safe:animate-spin"
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden="true"
+        >
           <circle
             className="opacity-25"
             cx="12"

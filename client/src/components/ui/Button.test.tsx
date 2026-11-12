@@ -21,7 +21,11 @@ describe('Button', () => {
   })
 
   it('is disabled when loading even if disabled is explicitly false', () => {
-    render(<Button disabled={false} loading>Send</Button>)
+    render(
+      <Button disabled={false} loading>
+        Send
+      </Button>,
+    )
     expect(screen.getByRole('button', { name: /send/i })).toBeDisabled()
   })
 
