@@ -20,7 +20,7 @@ Cuenta de Vonage  →  API key + API secret (una pareja por cuenta)
 
 - Node.js 18.20 o superior. El proyecto ya pide 22.22.2, así que si el cliente te funciona, te vale
 
-Los comandos `vonage` están en una sola línea para que funcionen igual en PowerShell, zsh y fish. Los de carpetas y archivos (`mkdir`, `mv`, `chmod`) son de macOS y Linux. Esta guía se ha probado en macOS con fish.
+Los comandos `vonage` funcionan igual en PowerShell, zsh y fish. Para crear la carpeta y renombrar la clave, cada sistema tiene los suyos, en la sección 3. Esta guía se ha probado en macOS con fish y en Windows con PowerShell.
 
 ## 1. Instalar el CLI
 
@@ -64,20 +64,40 @@ Sin más opciones, el CLI guarda la configuración en `~/.vonage/config.json`, f
 
 `apps create` guarda la clave privada como `private.key` **en la carpeta en la que estás**, así que créala siempre fuera del repositorio:
 
+En macOS y Linux:
+
 ```bash
 mkdir -p ~/vonage
 cd ~/vonage
 vonage apps create 'Peephole TU_NOMBRE'
 ```
 
+En Windows, con PowerShell:
+
+```powershell
+mkdir $HOME\vonage
+cd $HOME\vonage
+vonage apps create 'Peephole TU_NOMBRE'
+```
+
 Apunta el `Application ID` que aparece. Después dale a la clave un nombre propio, para que otra aplicación no la sobrescriba, y deja que solo tú puedas leerla:
+
+En macOS y Linux:
 
 ```bash
 mv private.key peephole-TU_NOMBRE.key
-chmod 600 peephole-TU_NOMBRE.key  # macOS y Linux; en Windows no hace falta
+chmod 600 peephole-TU_NOMBRE.key
 ```
 
-Evita las carpetas que se sincronizan con la nube, como `~/Documents` con iCloud activado.
+En Windows, con PowerShell:
+
+```powershell
+Rename-Item private.key peephole-TU_NOMBRE.key
+```
+
+En Windows no hace falta cambiar los permisos.
+
+Evita las carpetas que se sincronizan con la nube, como `~/Documents` con iCloud activado o *Documentos* con OneDrive.
 
 ## 4. Añadir la API que te toca
 
@@ -102,7 +122,7 @@ Mientras el servidor no tenga esos endpoints, se pueden enviar mensajes, pero Vo
 | :---- | :---- |
 | `npm warn EBADENGINE … @stoplight/prism-*` | Lo pide el servidor de pruebas del CLI (`vonage mock`), que no usamos. Desaparece si actualizas Node.js |
 | `npm warn deprecated …` | Dependencias internas del CLI |
-| `Error: … DeprecationWarning: Passing invalid argument types to fs.existsSync` | Aviso de Node.js 24 sobre el código del CLI. Si después aparece ✅, todo ha ido bien |
+| `Error: … DeprecationWarning: Passing invalid argument types to fs.existsSync` | Aviso de Node.js sobre el código del CLI, visto en las versiones 24 y 26, en macOS y en Windows. Si después aparece ✅, todo ha ido bien |
 
 ## Problemas frecuentes
 

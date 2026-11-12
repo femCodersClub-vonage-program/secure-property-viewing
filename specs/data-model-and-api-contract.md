@@ -129,6 +129,7 @@ Every error is a `ProblemDetail`, as required in `server/AGENTS.md`, with an ext
 | :---- | :---- | :---- |
 | 400 | The request body or a parameter is not valid | `VALIDATION_FAILED`, with the invalid fields in `errors` |
 | 401 | An agency endpoint is called without a signed-in user, or the email or password is wrong | `AUTHENTICATION_REQUIRED`, `INVALID_CREDENTIALS` |
+| 403 | A `POST`, `PUT`, `PATCH` or `DELETE` request has no valid CSRF token | `CSRF_TOKEN_INVALID` |
 | 404 | The resource does not exist | `NOT_FOUND` |
 | 409 | The action conflicts with the current state, such as booking a slot that is already taken | Defined by each feature |
 | 422 | A business rule rejects the action, such as a wrong code | Defined by each feature |

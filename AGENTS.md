@@ -12,12 +12,14 @@ Every file has a fixed place, so nothing is left lying around. The folder struct
 | :---- | :---- |
 | Specification of a feature, with its technical plan | `specs/`, named after the feature in English and in kebab-case, such as `specs/visit-request.md` |
 | Architecture decision | `docs/adr/`, numbered from `docs/adr/template.md` |
+| Design system (colors, typography, tokens, spacing) | `docs/design-system.md` |
 | Diagram | `docs/architecture/` |
 | Team guide, in Spanish | `docs/guides/` |
 | Image used in the documentation | `docs/images/` |
 | Project presentation | `docs/presentations/` |
 | End-to-end test | `e2e/` |
 | AI agent | `.claude/agents/`, with a pointer in `.github/agents/` so Copilot in IntelliJ finds it |
+| AI skill | `.claude/skills/`, one folder per skill, as described in its [`README.md`](.claude/skills/README.md) |
 
 Never:
 

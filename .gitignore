@@ -7,6 +7,9 @@
 .vonagerc
 *.key
 
+# IntelliJ IDEA project files
+/.idea/
+
 # Local to-do list until the GitHub Project exists
 TODO.md
 
