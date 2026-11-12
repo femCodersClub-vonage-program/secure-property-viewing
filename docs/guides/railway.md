@@ -70,6 +70,8 @@ El servicio `server` necesita `LOAD_DEMO_DATA=true` para cargar los datos de eje
 
 El servicio `server` también necesita `SESSION_COOKIE_SECURE=true`, para que la cookie de sesión de la agencia solo viaje por HTTPS, como decide el [ADR 0004](../adr/0004-agency-sign-in.md). Si falta, el servidor arranca igual pero envía la cookie sin `Secure`.
 
+La variable `API_DOCS_ENABLED` no se pone en Railway: la documentación de la API (Swagger UI) solo se usa en local.
+
 ## Lo que no se hace
 
 - **No muestres las variables en pantalla compartida ni las pegues en un asistente de IA.** `railway variable list` enseña las contraseñas en claro
