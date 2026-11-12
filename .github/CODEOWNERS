@@ -1,3 +1,9 @@
-# The tech lead reviews every change
-
-* @Irina-Ichim
+# Since November 12, 2026, anyone on the team can review a pull request, and one approval is enough.
+# These files also need the tech lead's review: migrations, server configuration, dependencies and CI.
+/server/src/main/resources/db/migration/ @Irina-Ichim
+/server/src/main/resources/application.properties @Irina-Ichim
+/server/src/main/java/com/peephole/server/config/ @Irina-Ichim
+/server/pom.xml @Irina-Ichim
+/client/package.json @Irina-Ichim
+/client/package-lock.json @Irina-Ichim
+/.github/ @Irina-Ichim

@@ -87,7 +87,7 @@ cp .env.example .env
 
 En PowerShell de Windows, usa `copy` en lugar de `cp`.
 
-Abre `server/.env` y sustituye los cinco valores de ejemplo:
+Abre `server/.env` y sustituye los seis valores de ejemplo:
 
 | Variable | Valor |
 | :---- | :---- |
@@ -96,6 +96,7 @@ Abre `server/.env` y sustituye los cinco valores de ejemplo:
 | `DB_PASSWORD` | La contraseña compartida del Drive |
 | `LOAD_DEMO_DATA` | `true` para cargar los datos de ejemplo al arrancar el servidor, `false` para arrancar solo con las tablas |
 | `SESSION_COOKIE_SECURE` | `false`, porque el servidor local funciona sobre `http://localhost`. Solo es `true` en Railway, donde la cookie de sesión de la agencia solo debe enviarse por HTTPS, como se decidió en el [ADR 0004](adr/0004-agency-sign-in.md) |
+| `API_DOCS_ENABLED` | `true` para abrir la documentación de la API en Swagger UI, en `http://localhost:8080/swagger-ui.html`, con el servidor arrancado. En Railway no se pone nunca, así que allí está apagada |
 
 Los datos de ejemplo son ficticios y están en `server/src/main/resources/db/seed/`. Solo se cargan cuando `LOAD_DEMO_DATA` es `true`, y las tablas se crean en los dos casos.
 

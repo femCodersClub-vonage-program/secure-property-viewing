@@ -96,7 +96,7 @@ main  ◄──  dev  ◄──  each participant's branches
 - **`dev`**: the team's integration branch and the repository's default branch  
 - **Working branches**: each participant creates their own from `dev`, named in English, such as `feature/otp-verification` or `fix/visit-reminder`
 
-`main` and `dev` are protected: direct pushes are not allowed, and changes are only accepted through pull requests, with the tech lead's review and continuous integration passing.
+`main` and `dev` are protected, and direct pushes are not allowed. `dev` only accepts approved pull requests with continuous integration passing, and `main` only receives the tech lead's merges from `dev`.
 
 The tech lead's own pull requests can be merged without another person's approval through the existing administrator exception. Continuous integration must still pass.
 
@@ -117,10 +117,12 @@ The tech lead's own pull requests can be merged without another person's approva
 - All pull requests target `dev`  
 - The description follows the repository template: what changes, why, what is intentionally left out, and how to test it  
 - The pull request links its issue with `Closes #n`, so the issue closes when it is merged  
-- `CODEOWNERS` automatically assigns the review to the tech lead  
+- Since November 12, 2026, the team reviews its own pull requests. Anyone can review anyone's, in `client/` or `server/`: the author requests it from a teammate under *Reviewers*, and one approval is enough. Nobody approves her own pull request  
+- The tech lead still reviews database migrations, the server's configuration (`application.properties` and the `config/` folder), dependencies (`server/pom.xml`, `client/package.json` and its lock file) and `.github/`. `CODEOWNERS` requests her review automatically when a pull request touches those files, and the pull request also needs her approval  
+- If the reviewer is unsure about something, she requests the tech lead's review in the pull request itself, under *Reviewers*. Not through Slack or a private message, so the question stays next to the code  
 - If there is a debatable decision, it is explained in the description before someone finds it in the diff  
 - Reviews always distinguish blocking issues from suggestions  
-- Once the tech lead approves it, **the author merges the pull request into `dev`** with *Squash and merge*. The pull request title becomes the commit message. If new commits are pushed after the approval, the approval is dismissed and a new review is needed  
+- Once the pull request is approved, **the author merges it into `dev`** with *Squash and merge*. The pull request title becomes the commit message. If new commits are pushed after the approval, the approval is dismissed and a new review is needed  
 - Only the tech lead merges `dev` into `main`, with a regular merge, when each milestone is closed
 
 ## Continuous integration
@@ -203,7 +205,7 @@ An issue is considered done when it meets all of the following:
 - [ ] It meets the acceptance criteria of its spec or, for a bug or a task, what its issue asks for  
 - [ ] It has tests, and they pass locally and in CI  
 - [ ] It has gone through the review agents, and their findings have been addressed  
-- [ ] It has been approved by the tech lead in the pull request  
+- [ ] It has been approved in the pull request, also by the tech lead if it touches the files she reviews  
 - [ ] Affected documentation is up to date, including an ADR if an architectural decision was made
 
 ## Follow-up and questions

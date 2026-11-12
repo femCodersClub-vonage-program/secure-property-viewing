@@ -87,7 +87,7 @@ cp .env.example .env
 
 On Windows PowerShell, use `copy` instead of `cp`.
 
-Open `server/.env` and replace the five placeholders:
+Open `server/.env` and replace the six placeholders:
 
 | Variable | Value |
 | :---- | :---- |
@@ -96,6 +96,7 @@ Open `server/.env` and replace the five placeholders:
 | `DB_PASSWORD` | The shared password from the Drive folder |
 | `LOAD_DEMO_DATA` | `true` to load the demo data when the server starts, `false` to start with the tables only |
 | `SESSION_COOKIE_SECURE` | `false`, because the local server runs over `http://localhost`. It is `true` only on Railway, where the agency session cookie must be sent over HTTPS only, as decided in [ADR 0004](adr/0004-agency-sign-in.md) |
+| `API_DOCS_ENABLED` | `true` to open the API documentation in Swagger UI at `http://localhost:8080/swagger-ui.html` while the server runs. It is never set on Railway, so the documentation stays off there |
 
 The demo data is fictional and lives in `server/src/main/resources/db/seed/`. It is only loaded when `LOAD_DEMO_DATA` is `true`, and the tables are created either way.
 

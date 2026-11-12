@@ -2,6 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-11-01
+- **Updated:** 2026-11-12, when pull request reviews moved to the team, as described in [`CONTRIBUTING.md`](../../CONTRIBUTING.md#pull-requests-and-review)
 - **Issue:** [#9](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/9)
 
 ## Context
@@ -21,7 +22,7 @@ Two rules shape every pull request from now on, and both need a clear reason beh
 
 - The `accessibility-reviewer` and `design-system-reviewer` agents, run through `ui-reviewer`, review every client change against the AA code rules before its pull request. Interaction checks are limited to Tab and Shift+Tab navigation and visible focus, using the running client and existing browser tools when available. Unavailable checks are reported as not verified. Screen reader tests and additional manual accessibility checks are not required
 - The `docs-reviewer` agent checks that a new dependency is justified in the pull request
-- The tech lead reviews both in the pull request
+- Whoever reviews the pull request checks both. Since 2026-11-12 that is a teammate, and the tech lead also reviews every change to the dependency files (`server/pom.xml`, `client/package.json` and its lock file) through `CODEOWNERS`
 
 ## Alternatives considered
 
@@ -33,4 +34,4 @@ Two rules shape every pull request from now on, and both need a clear reason beh
 
 - **Easier:** the team has one clear accessibility target, the design system can use a wider palette, and the stack stays small and known
 - **Harder:** code review and the limited interaction checks do not establish full WCAG conformance. A participant who needs a library has to argue for it first
-- **Accepted trade-off:** the agents do not block a merge on their own. A finding is only fixed if someone reads the report, which is why the tech lead also checks it in the review
+- **Accepted trade-off:** the agents do not block a merge on their own. A finding is only fixed if someone reads the report, which is why whoever reviews the pull request also checks it
