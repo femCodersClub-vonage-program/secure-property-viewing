@@ -57,6 +57,13 @@
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>3.2.0</version>
 		</dependency>
+
+		<!-- Not managed by Spring Boot: the Vonage Java Server SDK, used for the Verify API -->
+		<dependency>
+			<groupId>com.vonage</groupId>
+			<artifactId>server-sdk</artifactId>
+			<version>9.15.1</version>
+		</dependency>
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-database-postgresql</artifactId>
