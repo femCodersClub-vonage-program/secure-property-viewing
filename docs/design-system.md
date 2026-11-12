@@ -10,9 +10,9 @@ Each color is used only in the role listed here. Never swap roles or add colors 
 
 | Token | Hex | Role |
 | :---- | :---- | :---- |
-| `--color-brand-primary` | `#92189E` | h1, primary buttons, active states, focus ring |
-| `--color-brand-secondary` | `#503454` | h2, h3 |
-| `--color-brand-dark` | `#23122B` | Navbar, dark surfaces |
+| `--color-brand-primary` | `#92189E` | Primary buttons, active states, focus ring |
+| `--color-brand-secondary` | `#503454` | Supporting UI, secondary text |
+| `--color-brand-dark` | `#23122B` | Headings (h1, h2, h3), navbar, dark surfaces |
 | `--color-brand-accent` | `#FF0090` | Logo icon, decorative dots on dark backgrounds |
 | `--color-text-default` | `#0F0F0F` | Body text |
 | `--color-text-muted` | `#666666` | Supporting text, labels, placeholders |
@@ -90,9 +90,9 @@ The base unit is `0.25rem` (4px). The scale follows Tailwind's default steps, ex
 | Token | Value | Use |
 | :---- | :---- | :---- |
 | `--radius-sm` | `8px` | Inputs, small badges |
-| `--radius-md` | `14px` | Cards |
+| `--radius-md` | `14px` | Cards, buttons |
 | `--radius-lg` | `20px` | Large cards, modals |
-| `--radius-pill` | `9999px` | Buttons, chips, tags |
+| `--radius-pill` | `9999px` | Chips, tags |
 
 ## Borders
 
@@ -107,4 +107,9 @@ Dividers and cards use `1px solid var(--color-border)`. Form fields use `1px sol
 
 ## Focus
 
-Every interactive element shows the same focus ring: `outline-2 outline-offset-2 outline-brand-primary` (7.38:1 on white). It uses an outline rather than a shadow because Windows high contrast mode keeps outlines and removes shadows.
+Every interactive element shows a focus ring using `outline-2 outline-offset-2`. It uses an outline rather than a shadow because Windows high contrast mode keeps outlines and removes shadows.
+
+| Context | Class | Contrast on white |
+| :---- | :---- | :---- |
+| All elements except danger button | `outline-brand-primary` | 7.38:1 — passes AA |
+| Danger button | `outline-error` | 6.31:1 — passes AA |
