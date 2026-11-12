@@ -87,7 +87,7 @@ cp .env.example .env
 
 En PowerShell de Windows, usa `copy` en lugar de `cp`.
 
-Abre `server/.env` y sustituye los seis valores de ejemplo:
+Abre `server/.env` y sustituye los nueve valores de ejemplo:
 
 | Variable | Valor |
 | :---- | :---- |
@@ -97,6 +97,18 @@ Abre `server/.env` y sustituye los seis valores de ejemplo:
 | `LOAD_DEMO_DATA` | `true` para cargar los datos de ejemplo al arrancar el servidor, `false` para arrancar solo con las tablas |
 | `SESSION_COOKIE_SECURE` | `false`, porque el servidor local funciona sobre `http://localhost`. Solo es `true` en Railway, donde la cookie de sesión de la agencia solo debe enviarse por HTTPS, como se decidió en el [ADR 0004](adr/0004-agency-sign-in.md) |
 | `API_DOCS_ENABLED` | `true` para abrir la documentación de la API en Swagger UI, en `http://localhost:8080/swagger-ui.html`, con el servidor arrancado. En Railway no se pone nunca, así que allí está apagada |
+| `VONAGE_VERIFY_APPLICATION_ID` | El Application ID de tu aplicación de Vonage con la capacidad Verify |
+| `VONAGE_VERIFY_PRIVATE_KEY` | La clave privada de esa aplicación, convertida a base64 para que quepa en una línea (ver abajo) |
+| `PHONE_HASH_SECRET` | Un valor aleatorio largo que generas tú (ver abajo). El servidor lo usa para hacer un hash de los teléfonos, así nunca se guardan tal cual |
+
+Para convertir la clave privada a base64 y generar el secreto del hash, en PowerShell:
+
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("C:\ruta\a\private.key"))
+$bytes = New-Object byte[] 32; [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes); [Convert]::ToBase64String($bytes)
+```
+
+En macOS, usa `base64 -i ruta/a/private.key` y `openssl rand -base64 32`. Copia cada resultado directamente en `server/.env`, y nunca pegues estos valores en un asistente de IA.
 
 Los datos de ejemplo son ficticios y están en `server/src/main/resources/db/seed/`. Solo se cargan cuando `LOAD_DEMO_DATA` es `true`, y las tablas se crean en los dos casos.
 

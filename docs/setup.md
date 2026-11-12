@@ -87,7 +87,7 @@ cp .env.example .env
 
 On Windows PowerShell, use `copy` instead of `cp`.
 
-Open `server/.env` and replace the six placeholders:
+Open `server/.env` and replace the nine placeholders:
 
 | Variable | Value |
 | :---- | :---- |
@@ -97,6 +97,18 @@ Open `server/.env` and replace the six placeholders:
 | `LOAD_DEMO_DATA` | `true` to load the demo data when the server starts, `false` to start with the tables only |
 | `SESSION_COOKIE_SECURE` | `false`, because the local server runs over `http://localhost`. It is `true` only on Railway, where the agency session cookie must be sent over HTTPS only, as decided in [ADR 0004](adr/0004-agency-sign-in.md) |
 | `API_DOCS_ENABLED` | `true` to open the API documentation in Swagger UI at `http://localhost:8080/swagger-ui.html` while the server runs. It is never set on Railway, so the documentation stays off there |
+| `VONAGE_VERIFY_APPLICATION_ID` | The Application ID of your Vonage application with the Verify capability |
+| `VONAGE_VERIFY_PRIVATE_KEY` | The private key of that application, converted to base64 so it fits on one line (see below) |
+| `PHONE_HASH_SECRET` | A long random value you generate yourself (see below). The server uses it to hash phone numbers, so they are never stored as they are |
+
+To convert the private key to base64 and to generate the hash secret, in PowerShell:
+
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("C:\path\to\private.key"))
+$bytes = New-Object byte[] 32; [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes); [Convert]::ToBase64String($bytes)
+```
+
+On macOS, use `base64 -i path/to/private.key` and `openssl rand -base64 32`. Copy each result straight into `server/.env`, and never paste these values into an AI assistant.
 
 The demo data is fictional and lives in `server/src/main/resources/db/seed/`. It is only loaded when `LOAD_DEMO_DATA` is `true`, and the tables are created either way.
 
