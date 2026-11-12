@@ -16,6 +16,7 @@ Each color is used only in the role listed here. Never swap roles or add colors 
 | `--color-brand-accent` | `#FF0090` | Logo icon, decorative dots on dark backgrounds |
 | `--color-text-default` | `#0F0F0F` | Body text |
 | `--color-text-muted` | `#666666` | Supporting text, labels, placeholders |
+| `--color-text-light` | `#FFFFFF` | Text on dark background, dark mode |
 | `--color-surface-page` | `#FFFFFF` | Page background |
 | `--color-surface-card` | `#FFFFFF` | Card background |
 | `--color-surface-input` | `#F5F5F5` | Input and tag background |
@@ -109,7 +110,8 @@ Dividers and cards use `1px solid var(--color-border)`. Form fields use `1px sol
 
 Every interactive element shows a focus ring using `outline-2 outline-offset-2`. It uses an outline rather than a shadow because Windows high contrast mode keeps outlines and removes shadows.
 
-| Context | Class | Contrast on white |
+| Context | Class | Contrast |
 | :---- | :---- | :---- |
-| All elements except danger button | `outline-brand-primary` | 7.38:1 — passes AA |
-| Danger button | `outline-error` | 6.31:1 — passes AA |
+| All elements except danger button | `outline-brand-primary` | 7.38:1 on white — passes AA |
+| Danger button | `outline-error` | 6.31:1 on white — passes AA |
+| Elements on dark navigation (`bg-brand-dark`) | `outline-white` | 17.61:1 on `#23122B` — passes AA |

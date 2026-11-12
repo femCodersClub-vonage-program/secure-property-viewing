@@ -20,6 +20,11 @@ describe('Button', () => {
     expect(button).toHaveAttribute('aria-busy', 'true')
   })
 
+  it('is disabled when loading even if disabled is explicitly false', () => {
+    render(<Button disabled={false} loading>Send</Button>)
+    expect(screen.getByRole('button', { name: /send/i })).toBeDisabled()
+  })
+
   it('renders secondary variant', () => {
     render(<Button variant="secondary">Cancel</Button>)
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
