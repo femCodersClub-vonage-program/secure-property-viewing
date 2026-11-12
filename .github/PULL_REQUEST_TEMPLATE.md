@@ -32,7 +32,7 @@ Types: feat, fix, docs, test, refactor, perf, ci, chore
 
 **Every PR**
 
-- [ ] I ran the review agents locally, with Claude Code or Copilot: `docs-reviewer`, and `ui-reviewer` if `client/` changed, and addressed their findings
+- [ ] I ran the review agents locally, with Claude Code or Copilot: `docs-reviewer`, `ui-reviewer` if `client/` changed, and `server-reviewer` if `server/` changed, and addressed their findings
 - [ ] Changes stay within the scope of the linked issue
 - [ ] No secrets, Vonage credentials or real personal data (GitHub does not detect Vonage keys)
 

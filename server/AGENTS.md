@@ -111,3 +111,7 @@ The schema only changes through Flyway migrations in `src/main/resources/db/migr
 - Name migrations with the date and time in UTC: `V<yyyyMMdd>_<HHmm>__<description>.sql`, for example `V20261101_1430__create_visits_table.sql`
 - Never edit a migration that is already in `dev`. To fix or change something, add a new migration
 - Before merging, update your branch from `dev`. If your migration is older than the newest one there, rename it with the current date and time. When you can, do this before asking for review: new commits dismiss an approval. The full rules, and what the CI checks, are in [`CONTRIBUTING.md`](../CONTRIBUTING.md#database-migrations)
+
+## Before opening a pull request
+
+Run the `server-reviewer` agent when the change touches `server/`. It reviews the rules in this file, errors and validation, security and personal data, Vonage access, migrations, tests and clean code.
