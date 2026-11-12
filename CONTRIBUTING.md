@@ -96,7 +96,7 @@ main  ◄──  dev  ◄──  each participant's branches
 - **`dev`**: the team's integration branch and the repository's default branch  
 - **Working branches**: each participant creates their own from `dev`, named in English, such as `feature/otp-verification` or `fix/visit-reminder`
 
-`main` and `dev` are protected: direct pushes are not allowed, and changes are only accepted through approved pull requests with continuous integration passing.
+`main` and `dev` are protected, and direct pushes are not allowed. `dev` only accepts approved pull requests with continuous integration passing, and `main` only receives the tech lead's merges from `dev`.
 
 The tech lead's own pull requests can be merged without another person's approval through the existing administrator exception. Continuous integration must still pass.
 
@@ -118,7 +118,7 @@ The tech lead's own pull requests can be merged without another person's approva
 - The description follows the repository template: what changes, why, what is intentionally left out, and how to test it  
 - The pull request links its issue with `Closes #n`, so the issue closes when it is merged  
 - Since November 12, 2026, the team reviews its own pull requests. Anyone can review anyone's, in `client/` or `server/`: the author requests it from a teammate under *Reviewers*, and one approval is enough. Nobody approves her own pull request  
-- The tech lead still reviews database migrations, the server's configuration (`application.properties` and the security configuration in `config/`), dependencies (`server/pom.xml` and `client/package.json`) and `.github/`. `CODEOWNERS` requests her review automatically when a pull request touches those files, and it also needs her approval  
+- The tech lead still reviews database migrations, the server's configuration (`application.properties` and the `config/` folder), dependencies (`server/pom.xml`, `client/package.json` and its lock file) and `.github/`. `CODEOWNERS` requests her review automatically when a pull request touches those files, and the pull request also needs her approval  
 - If the reviewer is unsure about something, she requests the tech lead's review in the pull request itself, under *Reviewers*. Not through Slack or a private message, so the question stays next to the code  
 - If there is a debatable decision, it is explained in the description before someone finds it in the diff  
 - Reviews always distinguish blocking issues from suggestions  

@@ -22,7 +22,7 @@ Two rules shape every pull request from now on, and both need a clear reason beh
 
 - The `accessibility-reviewer` and `design-system-reviewer` agents, run through `ui-reviewer`, review every client change against the AA code rules before its pull request. Interaction checks are limited to Tab and Shift+Tab navigation and visible focus, using the running client and existing browser tools when available. Unavailable checks are reported as not verified. Screen reader tests and additional manual accessibility checks are not required
 - The `docs-reviewer` agent checks that a new dependency is justified in the pull request
-- Whoever reviews the pull request checks both. Since 2026-11-12 that is a teammate, and the tech lead also reviews every change to the dependency files (`server/pom.xml` and `client/package.json`) through `CODEOWNERS`
+- Whoever reviews the pull request checks both. Since 2026-11-12 that is a teammate, and the tech lead also reviews every change to the dependency files (`server/pom.xml`, `client/package.json` and its lock file) through `CODEOWNERS`
 
 ## Alternatives considered
 
