@@ -27,3 +27,4 @@ One file per feature, named in English and in kebab-case, such as `phone-verific
 | [Phone verification](phone-verification.md) | Phone verification with a one-time code by SMS, for visitors and owners |
 | [Property browsing](property-browsing.md) | Home page, property catalog and property details (journey A, steps 1 to 3) |
 | [Agency dashboard](agency-dashboard.md) | The five screens of the agency dashboard |
+| [Owner listing](owner-listing.md) | Owner listing request: owner and property details and the confirmation (journey B, steps 1, 2, 3 and 5) |
