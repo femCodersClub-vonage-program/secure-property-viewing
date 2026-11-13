@@ -108,7 +108,7 @@ Las pull requests de la propia tech lead pueden integrarse sin la aprobación de
 
 1. Actualiza tu rama con los últimos cambios de `dev`  
 2. Pasa los tests en local  
-3. Pasa los **agentes de revisión** sobre tus cambios y resuelve lo que señalen: `docs-reviewer` siempre, y `ui-reviewer` cuando el cambio toca `client/`. Funcionan con Claude Code y con GitHub Copilot, como se explica en [Cómo pasar los agentes de revisión](#cómo-pasar-los-agentes-de-revisión)  
+3. Pasa los **agentes de revisión** sobre tus cambios y resuelve lo que señalen: `docs-reviewer` siempre, `ui-reviewer` cuando el cambio toca `client/`, y `server-reviewer` cuando toca `server/`. Funcionan con Claude Code y con GitHub Copilot, como se explica en [Cómo pasar los agentes de revisión](#cómo-pasar-los-agentes-de-revisión). En la pull request, la sección *Review agents* resume qué encontró cada uno y qué hiciste con ello: si lo arreglaste o si lo dejaste como estaba y por qué  
 4. Revisa que entiendes y puedes explicar cada línea, también la que haya generado la IA
 
 >   
@@ -129,7 +129,7 @@ Las pull requests de la propia tech lead pueden integrarse sin la aprobación de
 
 ## Integración continua
 
-Cada PR ejecuta [`.github/workflows/ci.yml`](.github/workflows/ci.yml) en GitHub Actions: el lint, el formato, los tests y la compilación del cliente, la comprobación de que las imágenes están optimizadas, el formato, la compilación y los tests del servidor contra una base de datos PostgreSQL vacía, y la comprobación de las [reglas de migraciones](#migraciones-de-base-de-datos). Si es viable, también lanzará los agentes de revisión, para que ese paso no dependa solo de que cada persona lo haga en local.
+Cada PR ejecuta [`.github/workflows/ci.yml`](.github/workflows/ci.yml) en GitHub Actions: el lint, el formato, los tests y la compilación del cliente, la comprobación de que las imágenes están optimizadas, el formato, la compilación y los tests del servidor contra una base de datos PostgreSQL vacía, y la comprobación de las [reglas de migraciones](#migraciones-de-base-de-datos). Los agentes de revisión no se lanzan en la CI, porque necesitarían una clave de API guardada donde cualquiera con permiso de escritura puede cambiar el workflow. Cada autora los pasa y resume el resultado en la pull request, y quien la revisa puede contrastar ese resumen con el código.
 
 ## Testing
 
@@ -150,7 +150,7 @@ La IA forma parte del trabajo diario, y por eso la tratamos como una herramienta
 | Elemento | Para qué sirve | Dónde |
 | :---- | :---- | :---- |
 | **Instrucciones** | Contexto y convenciones del proyecto, generales y por carpeta | `AGENTS.md` en la raíz, en `client/` y en `server/` |
-| **Agentes** | Asistentes especializados que revisan una rama antes de su pull request: `docs-reviewer` para la documentación y el idioma, y `ui-reviewer` para la interfaz del cliente, que lanza `design-system-reviewer` y `accessibility-reviewer` | `.claude/agents/`, con un enlace en `.github/agents/` para Copilot en IntelliJ |
+| **Agentes** | Asistentes especializados que revisan una rama antes de su pull request: `docs-reviewer` para la documentación y el idioma, `ui-reviewer` para la interfaz del cliente, que lanza `design-system-reviewer` y `accessibility-reviewer`, y `server-reviewer` para el código del servidor | `.claude/agents/`, con un enlace en `.github/agents/` para Copilot en IntelliJ |
 | **Skills** | Procedimientos reutilizables del equipo, como redactar una spec o un ADR | `.claude/skills/` |
 | **Tools** | Conexiones externas que pueden usar los agentes, empezando por los servidores MCP de Vonage | Configuración de MCP del proyecto |
 
@@ -158,7 +158,7 @@ La IA forma parte del trabajo diario, y por eso la tratamos como una herramienta
 
 Puedes usar Claude Code o GitHub Copilot: los dos leen las mismas instrucciones de `.claude/agents/`, así que la revisión es la misma elijas la que elijas.
 
-- **Claude Code:** pídele que pase `docs-reviewer` o `ui-reviewer` sobre tu rama
+- **Claude Code:** pídele que pase `docs-reviewer`, `ui-reviewer` o `server-reviewer` sobre tu rama
 - **Copilot en VS Code:** elige el agente en el desplegable de agentes del chat. VS Code lee `.claude/agents/` directamente
 - **Copilot en IntelliJ:** elige el agente en el desplegable de agentes, abajo en el chat. IntelliJ lee el enlace de `.github/agents/`, que lleva a Copilot a las mismas instrucciones
 
@@ -206,7 +206,7 @@ Una issue se da por terminada cuando cumple todo lo siguiente:
 
 - [ ] Responde a los criterios de aceptación de su spec o, si es un bug o una tarea, a lo que pide su issue  
 - [ ] Tiene sus tests y pasan en local y en la CI  
-- [ ] Ha pasado los agentes de revisión y se ha resuelto lo que señalaron  
+- [ ] Ha pasado los agentes de revisión, se ha resuelto lo que señalaron y la pull request lo resume  
 - [ ] Cuenta con una aprobación en la PR, también de la tech lead si toca los archivos que ella revisa  
 - [ ] La documentación afectada está actualizada, incluido un ADR si hubo una decisión de arquitectura
 

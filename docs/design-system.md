@@ -115,3 +115,70 @@ Every interactive element shows a focus ring using `outline-2 outline-offset-2`.
 | All elements except danger button | `outline-brand-primary` | 7.38:1 on white — passes AA |
 | Danger button | `outline-error` | 6.31:1 on white — passes AA |
 | Elements on dark navigation (`bg-brand-dark`) | `outline-white` | 17.61:1 on `#23122B` — passes AA |
+Every interactive element shows the same focus ring: `outline-2 outline-offset-2 outline-brand-primary` (7.38:1 on white). It uses an outline rather than a shadow because Windows high contrast mode keeps outlines and removes shadows.
+
+## Agency dashboard
+
+The agency dashboard (screens D1 to D5 in [`user-journeys.md`](user-journeys.md)) uses the same tokens and components as the rest of Peephole. This section only adds what the dashboard needs on top of the common rules.
+
+### Direction
+
+We chose **Option A: Premium SaaS**. Most of the dashboard is reading and comparing rows: listing requests (D2), visits (D4) and messages (D5) are lists with a status, and D1 has only three indicators and the next five visits. Premium SaaS is built around clear hierarchy and well-resolved tables, so an agent finds what needs attention at a glance. Bento works best with many indicators and charts, which the dashboard does not have, and its grid of cards of different sizes makes the reading order harder to follow on mobile and with the keyboard.
+
+### Layout
+
+- Side navigation on the left and the page content on the right, with the page heading (`h1`) at the top of the content
+- Content sections, such as the indicators and the next visits in D1, are cards that follow the common card rules
+- On mobile the side navigation collapses into a menu button in a top bar, and the content takes the full width
+
+### Navigation
+
+- The side navigation uses `--color-brand-dark` as its background, like the public navbar
+- Each item has a `lucide-react` icon and a text label, never an icon on its own. Items: Dashboard, Properties, Listing requests, Calendar, Messages and Profile, with Sign out at the bottom, separated by a divider
+- Item text is white (`#FFFFFF` on `#23122B`, 17.61:1, already in the contrast table)
+- The active page has `aria-current="page"`, bold text and a 4px white bar on its left edge, so it does not rely on color alone
+- `--color-brand-primary` is not used on the dark navigation: it has 2.39:1 on `--color-brand-dark`, below 3:1
+- Focus inside the navigation uses a white outline, with the same width and offset as the common focus ring, because the common `outline-brand-primary` would not be visible on the dark background
+- The mobile menu button has an accessible name and `aria-expanded`
+
+### Indicators
+
+- D1 shows its three indicators (new requests, upcoming visits and active properties) in a row of three cards on desktop, stacked on mobile
+- Each card has a label in `text-sm` and `--color-text-muted`, the number in `text-3xl`, bold, in `--color-text-default`, and a link to the related screen, such as "View requests" to D2
+- No trend percentages and no charts: the API does not return that data
+- Numbers use `tabular-nums`, so they line up
+
+### Tables
+
+D2 and D5 are tables, and the next visits in D1 follow the same rules.
+
+- Header row in `text-sm`, bold, in `--color-text-muted`, with a bottom border in `--color-border`
+- Rows separated by a `--color-border` line, with no zebra stripes and no shadow on each row
+- Dates and amounts right-aligned with `tabular-nums`
+- The row links to its details through a real link on its main text, such as the property title in D2, not by making the whole row clickable
+- In D2 the status filters (pending, approved, rejected) use the design system tabs
+- On mobile each row becomes a stacked item with its label and value, instead of a table with horizontal scroll
+
+#### Status badges
+
+A badge always shows the status as text, with a `lucide-react` icon when it carries meaning. It uses `text-xs`, `--radius-sm`, a 1px border and text in the same color, on a white background.
+
+| Status | Color | Icon |
+| :---- | :---- | :---- |
+| Listing request `PENDING` | `--color-warning` | Clock |
+| Listing request `APPROVED` | `--color-success` | Check |
+| Listing request `REJECTED` | `--color-text-muted` | None |
+| Message `SCHEDULED`, `SUBMITTED` | `--color-text-muted` | None |
+| Message `DELIVERED` | `--color-success` | Check |
+| Message `FAILED` | `--color-error` | Alert |
+
+A rejected request is a decision, not an error, so it is neutral. A failed message is the only status that uses `--color-error`, so it stands out in D5, and its row also shows the text "Failed".
+
+### States
+
+Every section that calls the API shows its own state, so one failing call does not leave the whole screen blank.
+
+- **Loading:** a short sentence in `--color-text-muted` in the place of the content, such as "Loading requests…", with no animation
+- **Empty:** one short sentence in the place of the table or list, in `--color-text-muted`, such as "No pending requests". No illustrations
+- **Error:** the message in `--color-error` and a "Try again" button. A business error (a ProblemDetail returned by the server) shows its message.
+- **Unavailable actions:** in D3, when a request is not pending, the approve and reject buttons are disabled and a sentence next to them says why, such as "This request was already approved"

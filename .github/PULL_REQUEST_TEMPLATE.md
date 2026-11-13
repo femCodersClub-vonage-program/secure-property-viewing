@@ -24,6 +24,18 @@ Types: feat, fix, docs, test, refactor, perf, ci, chore
 
 1.
 
+## Review agents
+
+<!--
+What each agent you ran found, and what you did with each finding: fixed, or kept as it is and why.
+Run docs-reviewer always, ui-reviewer if client/ changed, and server-reviewer if server/ changed.
+Example:
+- docs-reviewer: asked to add the new variables to docs/setup.es.md. Done
+- server-reviewer: found the phone number in a log line. Removed. It also suggested splitting start() in two; I kept it, because each part is three lines
+-->
+
+- **docs-reviewer:**
+
 ## Screenshots
 
 <!-- UI changes only. Delete this section otherwise. -->
@@ -32,7 +44,7 @@ Types: feat, fix, docs, test, refactor, perf, ci, chore
 
 **Every PR**
 
-- [ ] I ran the review agents locally, with Claude Code or Copilot: `docs-reviewer`, and `ui-reviewer` if `client/` changed, and addressed their findings
+- [ ] The *Review agents* section above sums up what each agent found and what I did with it
 - [ ] Changes stay within the scope of the linked issue
 - [ ] No secrets, Vonage credentials or real personal data (GitHub does not detect Vonage keys)
 
