@@ -7,6 +7,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.peephole.server.phoneverification.dto.PhoneVerificationResponse;
+import com.peephole.server.phoneverification.dto.StartPhoneVerificationResponse;
 import com.peephole.server.vonage.CodeCheckResult;
 import com.peephole.server.vonage.PhoneVerifier;
 import java.time.Clock;
@@ -16,6 +18,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -48,12 +51,14 @@ class PhoneVerificationServiceTest {
         when(phoneVerifier.start(PHONE)).thenReturn("request-1");
         when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        PhoneVerification verification = service.start(PHONE, PhoneVerificationPurpose.VISIT, null);
+        StartPhoneVerificationResponse response = service.start(PHONE, PhoneVerificationPurpose.VISIT, null);
 
-        assertThat(verification.getStatus()).isEqualTo(PhoneVerificationStatus.PENDING);
-        assertThat(verification.getVonageRequestId()).isEqualTo("request-1");
-        assertThat(verification.getPhoneHash()).isEqualTo(phoneHasher.hash(PHONE));
-        assertThat(verification.getCreatedAt()).isEqualTo(NOW);
+        assertThat(response.status()).isEqualTo("PENDING");
+        assertThat(response.resendAvailableAt()).isEqualTo(NOW.plusSeconds(30));
+        PhoneVerification saved = savedVerification();
+        assertThat(saved.getVonageRequestId()).isEqualTo("request-1");
+        assertThat(saved.getPhoneHash()).isEqualTo(phoneHasher.hash(PHONE));
+        assertThat(saved.getCreatedAt()).isEqualTo(NOW);
     }
 
     @Test
@@ -92,11 +97,11 @@ class PhoneVerificationServiceTest {
         when(phoneVerifier.start(PHONE)).thenReturn("request-2");
         when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        PhoneVerification verification = service.start(PHONE, PhoneVerificationPurpose.VISIT, 1L);
+        service.start(PHONE, PhoneVerificationPurpose.VISIT, 1L);
 
         verify(phoneVerifier).cancel("request-1");
         assertThat(pending.getStatus()).isEqualTo(PhoneVerificationStatus.EXPIRED);
-        assertThat(verification.getVonageRequestId()).isEqualTo("request-2");
+        assertThat(savedVerification().getVonageRequestId()).isEqualTo("request-2");
     }
 
     @Test
@@ -107,11 +112,11 @@ class PhoneVerificationServiceTest {
         when(phoneVerifier.start(PHONE)).thenReturn("request-2");
         when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        PhoneVerification verification = service.start(PHONE, PhoneVerificationPurpose.VISIT, 1L);
+        StartPhoneVerificationResponse response = service.start(PHONE, PhoneVerificationPurpose.VISIT, 1L);
 
         verify(phoneVerifier).cancel("request-1");
         assertThat(failed.getStatus()).isEqualTo(PhoneVerificationStatus.FAILED);
-        assertThat(verification.getStatus()).isEqualTo(PhoneVerificationStatus.PENDING);
+        assertThat(response.status()).isEqualTo("PENDING");
     }
 
     @Test
@@ -147,10 +152,10 @@ class PhoneVerificationServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.of(pending));
         when(phoneVerifier.check("request-1", "123456")).thenReturn(CodeCheckResult.MATCHED);
 
-        PhoneVerification verification = service.check(1L, "123456");
+        PhoneVerificationResponse response = service.check(1L, "123456");
 
-        assertThat(verification.getStatus()).isEqualTo(PhoneVerificationStatus.VERIFIED);
-        assertThat(verification.getVerifiedAt()).isEqualTo(NOW);
+        assertThat(response.status()).isEqualTo("VERIFIED");
+        assertThat(pending.getVerifiedAt()).isEqualTo(NOW);
     }
 
     @Test
@@ -211,6 +216,12 @@ class PhoneVerificationServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.check(1L, "123456")).isInstanceOf(VerificationNotFoundException.class);
+    }
+
+    private PhoneVerification savedVerification() {
+        ArgumentCaptor<PhoneVerification> saved = ArgumentCaptor.forClass(PhoneVerification.class);
+        verify(repository).save(saved.capture());
+        return saved.getValue();
     }
 
     private static PhoneVerification pendingVerification(OffsetDateTime createdAt) {

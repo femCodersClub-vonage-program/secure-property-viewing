@@ -1,6 +1,8 @@
 package com.peephole.server.phoneverification;
 
 import com.peephole.server.common.BusinessException;
+import com.peephole.server.phoneverification.dto.PhoneVerificationResponse;
+import com.peephole.server.phoneverification.dto.StartPhoneVerificationResponse;
 import com.peephole.server.vonage.CodeCheckResult;
 import com.peephole.server.vonage.PhoneVerifier;
 import java.time.Clock;
@@ -11,11 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 class PhoneVerificationService {
-    static final Duration RESEND_WAIT = Duration.ofSeconds(30);
-    static final Duration EXPIRY = Duration.ofMinutes(5);
-    static final int MAX_WRONG_CODES = 3;
-    static final int MAX_PER_PHONE_PER_HOUR = 5;
-    static final int MAX_PER_HOUR = 30;
+
+    private static final Duration RESEND_WAIT = Duration.ofSeconds(30);
+    private static final Duration EXPIRY = Duration.ofMinutes(5);
+    private static final int MAX_WRONG_CODES = 3;
+    private static final int MAX_PER_PHONE_PER_HOUR = 5;
+    private static final int MAX_PER_HOUR = 30;
 
     private final PhoneVerificationRepository repository;
     private final PhoneVerifier phoneVerifier;
@@ -32,7 +35,7 @@ class PhoneVerificationService {
 
     // previousId is the verification saved in the session, if any: a new code replaces it
     @Transactional
-    PhoneVerification start(String phone, PhoneVerificationPurpose purpose, Long previousId) {
+    StartPhoneVerificationResponse start(String phone, PhoneVerificationPurpose purpose, Long previousId) {
         OffsetDateTime now = OffsetDateTime.now(clock);
         String phoneHash = phoneHasher.hash(phone);
         checkLimits(phoneHash, now);
@@ -45,17 +48,19 @@ class PhoneVerificationService {
         }
 
         String requestId = phoneVerifier.start(phone);
-        return repository.save(new PhoneVerification(purpose, phoneHash, requestId, now));
+        PhoneVerification verification = repository.save(new PhoneVerification(purpose, phoneHash, requestId, now));
+        return new StartPhoneVerificationResponse(
+                verification.getId(), verification.getStatus().name(), now.plus(RESEND_WAIT));
     }
 
     // Business errors keep the changes, so a wrong code is still counted
     @Transactional(noRollbackFor = BusinessException.class)
-    PhoneVerification check(long id, String code) {
+    PhoneVerificationResponse check(long id, String code) {
         PhoneVerification verification = repository.findById(id).orElseThrow(VerificationNotFoundException::new);
         OffsetDateTime now = OffsetDateTime.now(clock);
 
         if (verification.getStatus() == PhoneVerificationStatus.VERIFIED) {
-            return verification;
+            return toResponse(verification);
         }
         if (verification.getStatus() == PhoneVerificationStatus.FAILED) {
             throw new VerificationTooManyAttemptsException();
@@ -71,7 +76,7 @@ class PhoneVerificationService {
 
         if (result == CodeCheckResult.MATCHED) {
             verification.markVerified(now);
-            return verification;
+            return toResponse(verification);
         }
 
         // The expiry was checked above, so a request Vonage ended now ended after too many wrong codes
@@ -103,5 +108,10 @@ class PhoneVerificationService {
 
     private static boolean hasExpired(PhoneVerification verification, OffsetDateTime now) {
         return !now.isBefore(verification.getCreatedAt().plus(EXPIRY));
+    }
+
+    private static PhoneVerificationResponse toResponse(PhoneVerification verification) {
+        return new PhoneVerificationResponse(
+                verification.getId(), verification.getStatus().name());
     }
 }

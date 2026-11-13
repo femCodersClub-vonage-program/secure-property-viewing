@@ -40,8 +40,8 @@ class PhoneVerificationController {
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(
             summary = "Send a code",
-            description = "Sends a 6-digit code by SMS. If this browser has a pending verification, it is cancelled"
-                    + " and replaced by a new one. Needs the X-XSRF-TOKEN header.")
+            description = "Sends a 6-digit code by SMS. If this browser has a verification that is not verified, it is"
+                    + " canceled and replaced by a new one. Needs the X-XSRF-TOKEN header.")
     @ApiResponse(responseCode = "201", description = "The code was sent")
     @ApiResponse(
             responseCode = "400",
@@ -69,14 +69,10 @@ class PhoneVerificationController {
             @Valid @RequestBody StartPhoneVerificationRequest request, HttpSession session) {
         Long pendingId = session.getAttribute(SESSION_ATTRIBUTE) instanceof Long pending ? pending : null;
 
-        PhoneVerification verification =
+        StartPhoneVerificationResponse response =
                 service.start(request.phone(), PhoneVerificationPurpose.valueOf(request.purpose()), pendingId);
-        session.setAttribute(SESSION_ATTRIBUTE, verification.getId());
-
-        return new StartPhoneVerificationResponse(
-                verification.getId(),
-                verification.getStatus().name(),
-                verification.getCreatedAt().plus(PhoneVerificationService.RESEND_WAIT));
+        session.setAttribute(SESSION_ATTRIBUTE, response.id());
+        return response;
     }
 
     @PostMapping("/{id}/check")
@@ -87,7 +83,7 @@ class PhoneVerificationController {
     @ApiResponse(responseCode = "200", description = "The code matches: the verification is VERIFIED")
     @ApiResponse(
             responseCode = "400",
-            description = "VALIDATION_FAILED: the code is empty",
+            description = "VALIDATION_FAILED: the code is not 6 digits",
             content =
                     @Content(
                             mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
@@ -128,8 +124,6 @@ class PhoneVerificationController {
             throw new VerificationNotFoundException();
         }
 
-        PhoneVerification verification = service.check(id, request.code());
-        return new PhoneVerificationResponse(
-                verification.getId(), verification.getStatus().name());
+        return service.check(id, request.code());
     }
 }
