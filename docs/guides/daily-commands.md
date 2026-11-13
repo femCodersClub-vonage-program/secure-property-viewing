@@ -131,8 +131,9 @@ Después, pasa los agentes de revisión. Si usas Claude Code, pídeselo así:
 
 - Siempre, el de documentación: «revisa mi rama con el agente docs-reviewer»
 - Si has tocado `client/`, también el de interfaz: «revisa mi rama con el agente ui-reviewer». Comprueba el design system y la accesibilidad, y te dice qué tienes que probar a mano
+- Si has tocado `server/`, también el del servidor: «revisa mi rama con el agente server-reviewer». Comprueba las reglas de Spring, los errores, la seguridad, los datos personales, las migraciones, los tests y que el código sea limpio
 
-Si usas Copilot, en VS Code o en IntelliJ, elige `docs-reviewer` o `ui-reviewer` en el desplegable de agentes del chat. Es la misma revisión, porque los dos asistentes leen las mismas instrucciones.
+Si usas Copilot, en VS Code o en IntelliJ, elige `docs-reviewer`, `ui-reviewer` o `server-reviewer` en el desplegable de agentes del chat. Es la misma revisión, porque los dos asistentes leen las mismas instrucciones.
 
 ## Si algo no va
 
