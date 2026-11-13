@@ -4,14 +4,15 @@
   /* ── Colors ───────────────────────────────────────────────────────────── */
 
   /* Brand */
-  --color-brand-primary: #92189e; /* h1, primary buttons, active states, focus ring */
-  --color-brand-secondary: #503454; /* h2, h3 */
-  --color-brand-dark: #23122b; /* navbar, dark surfaces */
+  --color-brand-primary: #92189e; /* primary buttons, active states, focus ring */
+  --color-brand-secondary: #503454; /* supporting UI, secondary text */
+  --color-brand-dark: #23122b; /* headings (h1, h2, h3), navbar, dark surfaces */
   --color-brand-accent: #ff0090; /* logo icon, decorative dots on dark backgrounds */
 
   /* Text */
   --color-text-default: #0f0f0f;
   --color-text-muted: #666666;
+  --color-text-light: #ffffff;
 
   /* Surfaces */
   --color-surface-page: #ffffff;
