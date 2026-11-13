@@ -109,6 +109,8 @@ $bytes = New-Object byte[] 32
 
 On macOS, use `openssl rand -base64 32`. Copy the result straight into `server/.env`, and never paste it into an AI assistant.
 
+The `PHONE_HASH_SECRET` on Railway is a different one, kept in the team's shared Drive folder.
+
 The demo data is fictional and lives in `server/src/main/resources/db/seed/`. It is only loaded when `LOAD_DEMO_DATA` is `true`, and the tables are created either way.
 
 `DB_URL` always points to your local database, never to the one on Railway, because the tests write to whatever database it points to. A `DB_URL` set in your terminal, or injected by a tool such as `railway run`, takes precedence over `.env`, so the same rule applies to it.

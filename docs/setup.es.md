@@ -109,6 +109,8 @@ $bytes = New-Object byte[] 32
 
 En macOS, usa `openssl rand -base64 32`. Copia el resultado directamente en `server/.env`, y nunca lo pegues en un asistente de IA.
 
+El `PHONE_HASH_SECRET` de Railway es otro distinto, y está en la carpeta compartida del Drive del equipo.
+
 Los datos de ejemplo son ficticios y están en `server/src/main/resources/db/seed/`. Solo se cargan cuando `LOAD_DEMO_DATA` es `true`, y las tablas se crean en los dos casos.
 
 `DB_URL` apunta siempre a tu base de datos local, nunca a la de Railway, porque los tests escriben en la base a la que apunte. Un `DB_URL` definido en tu terminal, o inyectado por una herramienta como `railway run`, tiene prioridad sobre `.env`, así que la misma regla se aplica a él.
