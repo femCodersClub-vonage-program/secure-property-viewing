@@ -187,3 +187,5 @@ Open `http://localhost:5173`. Stop it with `Ctrl+C`.
 | `Connection refused` on port `5432` | PostgreSQL is not running | Windows: start the `postgresql-x64-17` service. macOS: `brew services start postgresql@17` |
 | `PHONE_HASH_SECRET is not set` or `VONAGE_VERIFY_… is not set` | That variable is empty in `server/.env` | Fill it in: the hash secret as in step 4, and the Verify group with your own Vonage application, as in [Vonage variables](#vonage-variables) |
 | `VONAGE_VERIFY_PRIVATE_KEY does not match VONAGE_VERIFY_APPLICATION_ID` | The key and the ID come from different applications, or the key was not copied whole | Copy both again from the same application, with the key in base64 on a single line |
+| `VONAGE_VERIFY_APPLICATION_ID is not a valid application ID` | The value is not an application ID, which looks like `aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee` | Copy it again from your application in the Vonage dashboard |
+| `VONAGE_VERIFY_PRIVATE_KEY is not valid base64` | The key was pasted as it is, or with spaces or line breaks | Convert it again with the command in [Vonage variables](#vonage-variables) and paste the single line |
