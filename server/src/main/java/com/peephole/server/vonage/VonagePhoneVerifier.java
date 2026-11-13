@@ -29,8 +29,11 @@ public class VonagePhoneVerifier implements PhoneVerifier {
                 .build();
         try {
             return verify2Client.sendVerification(request).getRequestId().toString();
+        } catch (VerifyResponseException exception) {
+            throw new PhoneVerifierException(
+                    "Vonage answered " + exception.getStatusCode() + " when starting a verification");
         } catch (VonageClientException exception) {
-            throw new PhoneVerifierException("Could not start the verification", exception);
+            throw new PhoneVerifierException("Could not reach Vonage to start a verification");
         }
     }
 
@@ -42,11 +45,14 @@ public class VonagePhoneVerifier implements PhoneVerifier {
         } catch (VerifyResponseException exception) {
             return switch (exception.getStatusCode()) {
                 case 400 -> CodeCheckResult.WRONG_CODE;
-                case 410 -> CodeCheckResult.ENDED;
-                default -> throw new PhoneVerifierException("Could not check the code", exception);
+                // 410: too many wrong codes or expired. 404: the request has already ended, for example canceled
+                case 404, 410 -> CodeCheckResult.ENDED;
+                default ->
+                    throw new PhoneVerifierException("Vonage answered " + exception.getStatusCode()
+                            + " when checking the code of request " + requestId);
             };
         } catch (VonageClientException exception) {
-            throw new PhoneVerifierException("Could not check the code", exception);
+            throw new PhoneVerifierException("Could not reach Vonage to check the code of request " + requestId);
         }
     }
 
@@ -55,12 +61,13 @@ public class VonagePhoneVerifier implements PhoneVerifier {
         try {
             verify2Client.cancelVerification(UUID.fromString(requestId));
         } catch (VerifyResponseException exception) {
-            // A 404 means the request has already ended, which is what cancelling wants
+            // A 404 means the request has already ended, which is what canceling wants
             if (exception.getStatusCode() != 404) {
-                throw new PhoneVerifierException("Could not cancel the verification", exception);
+                throw new PhoneVerifierException(
+                        "Vonage answered " + exception.getStatusCode() + " when canceling request " + requestId);
             }
         } catch (VonageClientException exception) {
-            throw new PhoneVerifierException("Could not cancel the verification", exception);
+            throw new PhoneVerifierException("Could not reach Vonage to cancel request " + requestId);
         }
     }
 }

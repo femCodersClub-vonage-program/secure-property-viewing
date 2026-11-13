@@ -1,8 +1,8 @@
 package com.peephole.server.vonage;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -38,6 +38,8 @@ class VonagePhoneVerifierTest {
         verifier = new VonagePhoneVerifier(verify2Client);
     }
 
+    // Starting a verification
+
     @Test
     void startsAnSmsVerificationAndReturnsTheRequestId() {
         VerificationResponse response = mock(VerificationResponse.class);
@@ -54,12 +56,18 @@ class VonagePhoneVerifierTest {
     }
 
     @Test
-    void turnsAStartErrorIntoAPhoneVerifierException() {
-        VerifyResponseException rateLimited = mock(VerifyResponseException.class);
+    void turnsAStartErrorIntoAPhoneVerifierExceptionWithoutThePhone() {
+        VerifyResponseException rateLimited = apiError(429);
         when(verify2Client.sendVerification(any())).thenThrow(rateLimited);
 
-        assertThatThrownBy(() -> verifier.start(PHONE)).isInstanceOf(PhoneVerifierException.class);
+        assertThatThrownBy(() -> verifier.start(PHONE))
+                .isInstanceOf(PhoneVerifierException.class)
+                .hasMessageContaining("429")
+                .hasMessageNotContaining(PHONE)
+                .hasNoCause();
     }
+
+    // Checking a code
 
     @Test
     void returnsMatchedWhenTheCodeIsRight() {
@@ -83,11 +91,22 @@ class VonagePhoneVerifierTest {
     }
 
     @Test
+    void returnsEndedWhenVonageAnswers404() {
+        VerifyResponseException alreadyEnded = apiError(404);
+        when(verify2Client.checkVerificationCode(any(), any())).thenThrow(alreadyEnded);
+
+        assertThat(verifier.check(REQUEST_ID, "000000")).isEqualTo(CodeCheckResult.ENDED);
+    }
+
+    @Test
     void turnsAnyOtherCheckErrorIntoAPhoneVerifierException() {
         VerifyResponseException serverError = apiError(500);
         when(verify2Client.checkVerificationCode(any(), any())).thenThrow(serverError);
 
-        assertThatThrownBy(() -> verifier.check(REQUEST_ID, "123456")).isInstanceOf(PhoneVerifierException.class);
+        assertThatThrownBy(() -> verifier.check(REQUEST_ID, "123456"))
+                .isInstanceOf(PhoneVerifierException.class)
+                .hasMessageContaining(REQUEST_ID)
+                .hasNoCause();
     }
 
     @Test
@@ -95,8 +114,13 @@ class VonagePhoneVerifierTest {
         VonageClientException networkFailure = mock(VonageClientException.class);
         when(verify2Client.checkVerificationCode(any(), any())).thenThrow(networkFailure);
 
-        assertThatThrownBy(() -> verifier.check(REQUEST_ID, "123456")).isInstanceOf(PhoneVerifierException.class);
+        assertThatThrownBy(() -> verifier.check(REQUEST_ID, "123456"))
+                .isInstanceOf(PhoneVerifierException.class)
+                .hasMessageContaining(REQUEST_ID)
+                .hasNoCause();
     }
+
+    // Canceling a request
 
     @Test
     void cancelsTheRequest() {
@@ -106,7 +130,7 @@ class VonagePhoneVerifierTest {
     }
 
     @Test
-    void ignoresA404WhenCancelling() {
+    void ignoresA404WhenCanceling() {
         VerifyResponseException alreadyEnded = apiError(404);
         doThrow(alreadyEnded).when(verify2Client).cancelVerification(any());
 
@@ -118,7 +142,10 @@ class VonagePhoneVerifierTest {
         VerifyResponseException serverError = apiError(500);
         doThrow(serverError).when(verify2Client).cancelVerification(any());
 
-        assertThatThrownBy(() -> verifier.cancel(REQUEST_ID)).isInstanceOf(PhoneVerifierException.class);
+        assertThatThrownBy(() -> verifier.cancel(REQUEST_ID))
+                .isInstanceOf(PhoneVerifierException.class)
+                .hasMessageContaining(REQUEST_ID)
+                .hasNoCause();
     }
 
     private static VerifyResponseException apiError(int statusCode) {
