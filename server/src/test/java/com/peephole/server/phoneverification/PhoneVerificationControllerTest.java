@@ -15,6 +15,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.jayway.jsonpath.JsonPath;
 import com.peephole.server.vonage.CodeCheckResult;
 import com.peephole.server.vonage.PhoneVerifier;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +29,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.test.context.bean.override.convention.TestBean;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -50,6 +54,14 @@ class PhoneVerificationControllerTest {
 
     @MockitoBean
     private PhoneVerifier phoneVerifier;
+
+    // Far in the future, so verifications made by hand in the local database never count towards the hourly limits
+    @TestBean
+    private Clock clock;
+
+    static Clock clock() {
+        return Clock.fixed(Instant.parse("2099-01-01T12:00:00Z"), ZoneOffset.UTC);
+    }
 
     @BeforeEach
     void stubVonage() {
@@ -162,6 +174,18 @@ class PhoneVerificationControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
                 .andExpect(jsonPath("$.errors.code").isNotEmpty());
+    }
+
+    @Test
+    void rejectsACodeThatIsNotSixDigits() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        long id = startedId(session);
+
+        check(session, id, "12345")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors.code").isNotEmpty());
+        verify(phoneVerifier, never()).check(any(), any());
     }
 
     @Test

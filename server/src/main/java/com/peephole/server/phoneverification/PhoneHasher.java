@@ -6,18 +6,18 @@ import java.util.HexFormat;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-public class PhoneHasher {
+class PhoneHasher {
     private static final String ALGORITHM = "HmacSHA256";
     private final SecretKeySpec key;
 
-    public PhoneHasher(String secret) {
+    PhoneHasher(String secret) {
         if (secret == null || secret.isBlank()) {
             throw new IllegalArgumentException("The phone hash secret is not set");
         }
         this.key = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), ALGORITHM);
     }
 
-    public String hash(String phone) {
+    String hash(String phone) {
         try {
             Mac mac = Mac.getInstance(ALGORITHM);
             mac.init(key);
