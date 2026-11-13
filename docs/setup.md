@@ -102,6 +102,34 @@ The demo data is fictional and lives in `server/src/main/resources/db/seed/`. It
 
 `DB_URL` always points to your local database, never to the one on Railway, because the tests write to whatever database it points to. A `DB_URL` set in your terminal, or injected by a tool such as `railway run`, takes precedence over `.env`, so the same rule applies to it.
 
+### Vonage variables
+
+Each Vonage API runs on the Vonage application of one person on the team, so the server has one group of variables per API: the application ID and its private key, plus the signature secret that Messages uses to verify its webhooks.
+
+| Group | Variables | Values on Railway |
+| :---- | :---- | :---- |
+| Verify | `VONAGE_VERIFY_APPLICATION_ID`, `VONAGE_VERIFY_PRIVATE_KEY` | Candé |
+| Video | `VONAGE_VIDEO_APPLICATION_ID`, `VONAGE_VIDEO_PRIVATE_KEY` | Viviana |
+| Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY`, `VONAGE_MESSAGES_SIGNATURE_SECRET` | Damaris |
+
+Locally, put the values of your own Vonage application in `server/.env`, and leave the other groups with their placeholders.
+
+**The private key in base64.** Each private key goes on a single line, so the same value works in `server/.env` and on Railway. To copy yours:
+
+```bash
+# macOS
+base64 -i path/to/your.key | tr -d '\n' | pbcopy
+```
+
+```powershell
+# Windows PowerShell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("path\to\your.key")) | Set-Clipboard
+```
+
+**Sharing your credentials.** Each person uploads hers to the team's shared Drive folder: her API key, API secret, application ID and private key file (`.key`), plus the signature secret if she builds Messages. Never send them through Slack, an issue, the repository or an AI assistant.
+
+**On Railway.** The same variables go in the `server` service, as described in [Railway from the terminal](guides/railway.md) (in Spanish).
+
 ## 5. Run the server
 
 From `server/`, build it and run the tests:

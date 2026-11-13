@@ -102,6 +102,34 @@ Los datos de ejemplo son ficticios y están en `server/src/main/resources/db/see
 
 `DB_URL` apunta siempre a tu base de datos local, nunca a la de Railway, porque los tests escriben en la base a la que apunte. Un `DB_URL` definido en tu terminal, o inyectado por una herramienta como `railway run`, tiene prioridad sobre `.env`, así que la misma regla se aplica a él.
 
+### Variables de Vonage
+
+Cada API de Vonage funciona con la aplicación de Vonage de una persona del equipo, así que el servidor tiene un grupo de variables por API: el ID de la aplicación y su clave privada, y además el signature secret con el que Messages comprueba sus webhooks.
+
+| Grupo | Variables | Valores en Railway |
+| :---- | :---- | :---- |
+| Verify | `VONAGE_VERIFY_APPLICATION_ID`, `VONAGE_VERIFY_PRIVATE_KEY` | Candé |
+| Video | `VONAGE_VIDEO_APPLICATION_ID`, `VONAGE_VIDEO_PRIVATE_KEY` | Viviana |
+| Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY`, `VONAGE_MESSAGES_SIGNATURE_SECRET` | Damaris |
+
+En local, pon en `server/.env` los valores de tu propia aplicación de Vonage y deja los demás grupos con sus valores de ejemplo.
+
+**La clave privada en base64.** Cada clave privada va en una sola línea, así el mismo valor funciona en `server/.env` y en Railway. Para copiar la tuya:
+
+```bash
+# macOS
+base64 -i ruta/a/tu.key | tr -d '\n' | pbcopy
+```
+
+```powershell
+# PowerShell de Windows
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("ruta\a\tu.key")) | Set-Clipboard
+```
+
+**Compartir tus credenciales.** Cada persona sube las suyas a la carpeta compartida del Drive del equipo: su API key, su API secret, el ID de su aplicación y el archivo de la clave privada (`.key`), y el signature secret si construye Messages. Nunca las envíes por Slack, en una issue, en el repositorio ni a un asistente de IA.
+
+**En Railway.** Las mismas variables van en el servicio `server`, como se explica en [Railway desde la terminal](guides/railway.md).
+
 ## 5. Arrancar el servidor
 
 Desde `server/`, compílalo y pasa los tests:
