@@ -123,7 +123,7 @@ Cada API de Vonage funciona con la aplicación de Vonage de una persona del equi
 | Video | `VONAGE_VIDEO_APPLICATION_ID`, `VONAGE_VIDEO_PRIVATE_KEY` | Viviana |
 | Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY`, `VONAGE_MESSAGES_SIGNATURE_SECRET` | Damaris |
 
-En local, pon en `server/.env` los valores de tu propia aplicación de Vonage y deja los demás grupos con sus valores de ejemplo.
+En local, todas rellenan el grupo de Verify con su propia aplicación de Vonage, porque el servidor no arranca sin él. Verify no necesita ninguna capacidad, así que sirve cualquiera de tus aplicaciones. Rellena los demás grupos solo si son tuyos, y deja el resto con sus valores de ejemplo.
 
 **La clave privada en base64.** Cada clave privada va en una sola línea, así el mismo valor funciona en `server/.env` y en Railway. Para copiar la tuya:
 
@@ -185,3 +185,5 @@ Abre `http://localhost:5173`. Para pararlo, pulsa `Ctrl+C`.
 | `database "peephole" does not exist` | No se completó el paso 3 | Lanza el comando `createdb` del paso 3 |
 | `npm error code EBADENGINE` en `client/` | Tu versión de Node.js es más antigua que la que necesita el proyecto | Instala una versión más nueva (paso 2) y vuelve a lanzar `npm ci` |
 | `Connection refused` en el puerto `5432` | PostgreSQL no está arrancado | Windows: arranca el servicio `postgresql-x64-17`. macOS: `brew services start postgresql@17` |
+| `PHONE_HASH_SECRET is not set` o `VONAGE_VERIFY_… is not set` | Esa variable está vacía en `server/.env` | Rellénala: el secreto del hash como en el paso 4, y el grupo de Verify con tu propia aplicación de Vonage, como en [Variables de Vonage](#variables-de-vonage) |
+| `VONAGE_VERIFY_PRIVATE_KEY does not match VONAGE_VERIFY_APPLICATION_ID` | La clave y el ID son de aplicaciones distintas, o la clave no se copió entera | Vuelve a copiar las dos de la misma aplicación, con la clave en base64 en una sola línea |
