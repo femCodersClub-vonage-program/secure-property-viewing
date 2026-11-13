@@ -30,18 +30,18 @@ class PhoneVerificationService {
         this.clock = clock;
     }
 
-    // pendingId is the verification saved in the session, if any: a new code replaces it
+    // previousId is the verification saved in the session, if any: a new code replaces it
     @Transactional
-    PhoneVerification start(String phone, PhoneVerificationPurpose purpose, Long pendingId) {
+    PhoneVerification start(String phone, PhoneVerificationPurpose purpose, Long previousId) {
         OffsetDateTime now = OffsetDateTime.now(clock);
         String phoneHash = phoneHasher.hash(phone);
         checkLimits(phoneHash, now);
 
-        if (pendingId != null) {
+        if (previousId != null) {
             repository
-                    .findById(pendingId)
-                    .filter(pending -> pending.getStatus() == PhoneVerificationStatus.PENDING)
-                    .ifPresent(pending -> replace(pending, now));
+                    .findById(previousId)
+                    .filter(previous -> previous.getStatus() != PhoneVerificationStatus.VERIFIED)
+                    .ifPresent(previous -> replace(previous, now));
         }
 
         String requestId = phoneVerifier.start(phone);
@@ -90,12 +90,15 @@ class PhoneVerificationService {
         }
     }
 
-    private void replace(PhoneVerification pending, OffsetDateTime now) {
-        if (now.isBefore(pending.getCreatedAt().plus(RESEND_WAIT))) {
+    private void replace(PhoneVerification previous, OffsetDateTime now) {
+        if (now.isBefore(previous.getCreatedAt().plus(RESEND_WAIT))) {
             throw new VerificationResendTooSoonException();
         }
-        phoneVerifier.cancel(pending.getVonageRequestId());
-        pending.markExpired();
+        // Vonage may still have it open, even when it is already FAILED or EXPIRED here
+        phoneVerifier.cancel(previous.getVonageRequestId());
+        if (previous.getStatus() == PhoneVerificationStatus.PENDING) {
+            previous.markExpired();
+        }
     }
 
     private static boolean hasExpired(PhoneVerification verification, OffsetDateTime now) {

@@ -99,6 +99,46 @@ class PhoneVerificationServiceTest {
         assertThat(verification.getVonageRequestId()).isEqualTo("request-2");
     }
 
+    @Test
+    void startsANewVerificationAfterThreeWrongCodes() {
+        PhoneVerification failed = pendingVerification(NOW.minusMinutes(1));
+        failed.markFailed();
+        when(repository.findById(1L)).thenReturn(Optional.of(failed));
+        when(phoneVerifier.start(PHONE)).thenReturn("request-2");
+        when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        PhoneVerification verification = service.start(PHONE, PhoneVerificationPurpose.VISIT, 1L);
+
+        verify(phoneVerifier).cancel("request-1");
+        assertThat(failed.getStatus()).isEqualTo(PhoneVerificationStatus.FAILED);
+        assertThat(verification.getStatus()).isEqualTo(PhoneVerificationStatus.PENDING);
+    }
+
+    @Test
+    void asksToWaitAfterThreeQuickWrongCodes() {
+        PhoneVerification failed = pendingVerification(NOW.minusSeconds(20));
+        failed.markFailed();
+        when(repository.findById(1L)).thenReturn(Optional.of(failed));
+
+        assertThatThrownBy(() -> service.start(PHONE, PhoneVerificationPurpose.VISIT, 1L))
+                .isInstanceOf(VerificationResendTooSoonException.class);
+        verify(phoneVerifier, never()).start(any());
+    }
+
+    @Test
+    void keepsAVerifiedVerificationWhenANewOneStarts() {
+        PhoneVerification verified = pendingVerification(NOW.minusMinutes(1));
+        verified.markVerified(NOW.minusSeconds(30));
+        when(repository.findById(1L)).thenReturn(Optional.of(verified));
+        when(phoneVerifier.start(PHONE)).thenReturn("request-2");
+        when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.start(PHONE, PhoneVerificationPurpose.VISIT, 1L);
+
+        verify(phoneVerifier, never()).cancel(any());
+        assertThat(verified.getStatus()).isEqualTo(PhoneVerificationStatus.VERIFIED);
+    }
+
     // Checking a code
 
     @Test
