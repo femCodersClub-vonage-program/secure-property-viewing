@@ -6,8 +6,10 @@ import com.peephole.server.vonage.PhoneVerifier;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Service
 class PhoneVerificationService {
     static final Duration RESEND_WAIT = Duration.ofSeconds(30);
     static final Duration EXPIRY = Duration.ofMinutes(5);
