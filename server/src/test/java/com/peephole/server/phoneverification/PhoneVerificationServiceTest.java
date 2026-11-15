@@ -90,7 +90,7 @@ class PhoneVerificationServiceTest {
     @Test
     void rejectsANewCodeBeforeThirtySeconds() {
         PhoneVerification pending = pendingVerification(NOW.minusSeconds(29));
-        when(repository.findById(1L)).thenReturn(Optional.of(pending));
+        when(repository.findWithLockById(1L)).thenReturn(Optional.of(pending));
 
         assertThatThrownBy(() -> service.start(PHONE, PhoneVerificationPurpose.VISIT, 1L))
                 .isInstanceOf(VerificationResendTooSoonException.class);
@@ -100,7 +100,7 @@ class PhoneVerificationServiceTest {
     @Test
     void replacesThePendingVerificationAfterThirtySeconds() {
         PhoneVerification pending = pendingVerification(NOW.minusSeconds(30));
-        when(repository.findById(1L)).thenReturn(Optional.of(pending));
+        when(repository.findWithLockById(1L)).thenReturn(Optional.of(pending));
         when(phoneVerifier.start(PHONE)).thenReturn("request-2");
         when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -115,7 +115,7 @@ class PhoneVerificationServiceTest {
     void startsANewVerificationAfterThreeWrongCodes() {
         PhoneVerification failed = pendingVerification(NOW.minusMinutes(1));
         failed.markFailed();
-        when(repository.findById(1L)).thenReturn(Optional.of(failed));
+        when(repository.findWithLockById(1L)).thenReturn(Optional.of(failed));
         when(phoneVerifier.start(PHONE)).thenReturn("request-2");
         when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -130,7 +130,7 @@ class PhoneVerificationServiceTest {
     void asksToWaitAfterThreeQuickWrongCodes() {
         PhoneVerification failed = pendingVerification(NOW.minusSeconds(20));
         failed.markFailed();
-        when(repository.findById(1L)).thenReturn(Optional.of(failed));
+        when(repository.findWithLockById(1L)).thenReturn(Optional.of(failed));
 
         assertThatThrownBy(() -> service.start(PHONE, PhoneVerificationPurpose.VISIT, 1L))
                 .isInstanceOf(VerificationResendTooSoonException.class);
@@ -141,7 +141,7 @@ class PhoneVerificationServiceTest {
     void keepsAVerifiedVerificationWhenANewOneStarts() {
         PhoneVerification verified = pendingVerification(NOW.minusMinutes(1));
         verified.markVerified(NOW.minusSeconds(30));
-        when(repository.findById(1L)).thenReturn(Optional.of(verified));
+        when(repository.findWithLockById(1L)).thenReturn(Optional.of(verified));
         when(phoneVerifier.start(PHONE)).thenReturn("request-2");
         when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -174,7 +174,7 @@ class PhoneVerificationServiceTest {
     @Test
     void verifiesTheRightCode() {
         PhoneVerification pending = pendingVerification(NOW.minusMinutes(1));
-        when(repository.findById(1L)).thenReturn(Optional.of(pending));
+        when(repository.findWithLockById(1L)).thenReturn(Optional.of(pending));
         when(phoneVerifier.check("request-1", "123456")).thenReturn(CodeCheckResult.MATCHED);
 
         PhoneVerificationResponse response = service.check(1L, "123456");
@@ -186,7 +186,7 @@ class PhoneVerificationServiceTest {
     @Test
     void rejectsAWrongCodeAndCountsTheAttempt() {
         PhoneVerification pending = pendingVerification(NOW.minusMinutes(1));
-        when(repository.findById(1L)).thenReturn(Optional.of(pending));
+        when(repository.findWithLockById(1L)).thenReturn(Optional.of(pending));
         when(phoneVerifier.check("request-1", "000000")).thenReturn(CodeCheckResult.WRONG_CODE);
 
         assertThatThrownBy(() -> service.check(1L, "000000")).isInstanceOf(VerificationCodeInvalidException.class);
@@ -197,7 +197,7 @@ class PhoneVerificationServiceTest {
     @Test
     void failsAfterThreeWrongCodes() {
         PhoneVerification pending = pendingVerification(NOW.minusMinutes(1));
-        when(repository.findById(1L)).thenReturn(Optional.of(pending));
+        when(repository.findWithLockById(1L)).thenReturn(Optional.of(pending));
         when(phoneVerifier.check("request-1", "000000")).thenReturn(CodeCheckResult.WRONG_CODE);
 
         assertThatThrownBy(() -> service.check(1L, "000000")).isInstanceOf(VerificationCodeInvalidException.class);
@@ -209,7 +209,7 @@ class PhoneVerificationServiceTest {
     @Test
     void expiresAfterFiveMinutesWithoutCallingVonage() {
         PhoneVerification pending = pendingVerification(NOW.minusMinutes(5));
-        when(repository.findById(1L)).thenReturn(Optional.of(pending));
+        when(repository.findWithLockById(1L)).thenReturn(Optional.of(pending));
 
         assertThatThrownBy(() -> service.check(1L, "123456")).isInstanceOf(VerificationExpiredException.class);
         assertThat(pending.getStatus()).isEqualTo(PhoneVerificationStatus.EXPIRED);
@@ -219,7 +219,7 @@ class PhoneVerificationServiceTest {
     @Test
     void failsWhenVonageEndsTheRequestBeforeFiveMinutes() {
         PhoneVerification pending = pendingVerification(NOW.minusMinutes(1));
-        when(repository.findById(1L)).thenReturn(Optional.of(pending));
+        when(repository.findWithLockById(1L)).thenReturn(Optional.of(pending));
         when(phoneVerifier.check("request-1", "000000")).thenReturn(CodeCheckResult.ENDED);
 
         assertThatThrownBy(() -> service.check(1L, "000000")).isInstanceOf(VerificationTooManyAttemptsException.class);
@@ -230,7 +230,7 @@ class PhoneVerificationServiceTest {
     void rejectsACodeForAFailedVerificationWithoutCallingVonage() {
         PhoneVerification failed = pendingVerification(NOW.minusMinutes(1));
         failed.markFailed();
-        when(repository.findById(1L)).thenReturn(Optional.of(failed));
+        when(repository.findWithLockById(1L)).thenReturn(Optional.of(failed));
 
         assertThatThrownBy(() -> service.check(1L, "123456")).isInstanceOf(VerificationTooManyAttemptsException.class);
         verify(phoneVerifier, never()).check(any(), any());
@@ -238,7 +238,7 @@ class PhoneVerificationServiceTest {
 
     @Test
     void rejectsAnUnknownVerification() {
-        when(repository.findById(1L)).thenReturn(Optional.empty());
+        when(repository.findWithLockById(1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.check(1L, "123456")).isInstanceOf(VerificationNotFoundException.class);
     }

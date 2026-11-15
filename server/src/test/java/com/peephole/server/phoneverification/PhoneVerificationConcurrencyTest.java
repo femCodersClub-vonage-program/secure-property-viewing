@@ -3,6 +3,7 @@ package com.peephole.server.phoneverification;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import com.peephole.server.vonage.CodeCheckResult;
 import com.peephole.server.vonage.PhoneVerifier;
 import java.time.Clock;
 import java.time.Instant;
@@ -87,5 +88,44 @@ class PhoneVerificationConcurrencyTest {
         executor.shutdown();
 
         assertThat(started).isEqualTo(5);
+    }
+
+    @Test
+    void neverLosesAVerifiedCodeWhenTwoChecksArriveAtTheSameTime() throws Exception {
+        when(phoneVerifier.start(PHONE)).thenReturn("request-id");
+        long id = service.start(PHONE, PhoneVerificationPurpose.VISIT, null).id();
+        // A slow Vonage, so without the row lock both checks would read the row before either one saves it
+        when(phoneVerifier.check("request-id", "111111")).thenAnswer(invocation -> {
+            Thread.sleep(200);
+            return CodeCheckResult.MATCHED;
+        });
+        when(phoneVerifier.check("request-id", "000000")).thenAnswer(invocation -> {
+            Thread.sleep(200);
+            return CodeCheckResult.WRONG_CODE;
+        });
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        CountDownLatch startTogether = new CountDownLatch(1);
+        List<Future<?>> results = new ArrayList<>();
+        for (String code : List.of("111111", "000000")) {
+            results.add(executor.submit(() -> {
+                startTogether.await();
+                try {
+                    service.check(id, code);
+                } catch (VerificationCodeInvalidException exception) {
+                    // Expected for the wrong code, when it runs first
+                }
+                return null;
+            }));
+        }
+        startTogether.countDown();
+        for (Future<?> result : results) {
+            result.get(30, TimeUnit.SECONDS);
+        }
+        executor.shutdown();
+
+        String status =
+                jdbcTemplate.queryForObject("SELECT status FROM phone_verification WHERE id = ?", String.class, id);
+        assertThat(status).isEqualTo("VERIFIED");
     }
 }

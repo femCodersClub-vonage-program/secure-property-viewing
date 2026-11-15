@@ -13,7 +13,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jayway.jsonpath.JsonPath;
-import com.peephole.server.vonage.*;
+import com.peephole.server.vonage.CodeCheckResult;
+import com.peephole.server.vonage.ConcurrentVerificationException;
+import com.peephole.server.vonage.PhoneNumberRejectedException;
+import com.peephole.server.vonage.PhoneVerifier;
+import com.peephole.server.vonage.PhoneVerifierException;
+import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -135,6 +140,32 @@ class PhoneVerificationControllerTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void keepsThePreviousVerificationExpiredWhenTheNewCodeFails() throws Exception {
+        // One minute old for the fixed clock, so the 30-second wait has passed
+        Long previousId = jdbcTemplate.queryForObject(
+                "INSERT INTO phone_verification (purpose, phone_hash, vonage_request_id, status, created_at)"
+                        + " VALUES ('VISIT', 'previous-hash', 'previous-request', 'PENDING', ?) RETURNING id",
+                Long.class,
+                Timestamp.from(Instant.parse("2099-01-01T11:59:00Z")));
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PhoneVerificationController.SESSION_ATTRIBUTE, previousId);
+        when(phoneVerifier.start(PHONE)).thenThrow(new ConcurrentVerificationException());
+
+        try {
+            expectProblem(start(session, PHONE), 409, "VERIFICATION_IN_PROGRESS");
+
+            verify(phoneVerifier).cancel("previous-request");
+            String status = jdbcTemplate.queryForObject(
+                    "SELECT status FROM phone_verification WHERE id = ?", String.class, previousId);
+            assertThat(status).isEqualTo("EXPIRED");
+        } finally {
+            // Without the test transaction, nothing is rolled back on its own
+            jdbcTemplate.update("DELETE FROM phone_verification WHERE id = ?", previousId);
+        }
+    }
+
+    @Test
     void rejectsANewCodeBeforeThirtySeconds() throws Exception {
         MockHttpSession session = new MockHttpSession();
         startedId(session);
@@ -161,6 +192,15 @@ class PhoneVerificationControllerTest {
                 .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
                 .andExpect(jsonPath("$.errors.phone").isNotEmpty())
                 .andExpect(jsonPath("$.errors.purpose").isNotEmpty());
+        verify(phoneVerifier, never()).start(any());
+    }
+
+    @Test
+    void rejectsANumberThatIsTooShort() throws Exception {
+        start(new MockHttpSession(), "+34600")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors.phone").isNotEmpty());
         verify(phoneVerifier, never()).start(any());
     }
 
@@ -224,15 +264,6 @@ class PhoneVerificationControllerTest {
         check(session, id, CODE);
 
         assertThat(output).doesNotContain("611222333").doesNotContain(CODE);
-    }
-
-    @Test
-    void rejectsANumberThatIsTooShort() throws Exception {
-        start(new MockHttpSession(), "+34600")
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
-                .andExpect(jsonPath("$.errors.phone").isNotEmpty());
-        verify(phoneVerifier, never()).start(any());
     }
 
     @Test

@@ -45,8 +45,9 @@ class PhoneVerificationService {
         this.clock = clock;
     }
 
-    // previousId is the verification saved in the session, if any: a new code replaces it
-    @Transactional
+    // previousId is the verification saved in the session, if any: a new code replaces it.
+    // Business errors keep the changes, so a previous verification already canceled in Vonage stays EXPIRED here
+    @Transactional(noRollbackFor = {BusinessException.class, FieldValidationException.class})
     StartPhoneVerificationResponse start(String phone, PhoneVerificationPurpose purpose, Long previousId) {
         startLock.acquire();
         OffsetDateTime now = OffsetDateTime.now(clock);
@@ -55,7 +56,7 @@ class PhoneVerificationService {
 
         if (previousId != null) {
             repository
-                    .findById(previousId)
+                    .findWithLockById(previousId)
                     .filter(previous -> previous.getStatus() != PhoneVerificationStatus.VERIFIED)
                     .ifPresent(previous -> replace(previous, now));
         }
@@ -69,7 +70,8 @@ class PhoneVerificationService {
     // Business errors keep the changes, so a wrong code is still counted
     @Transactional(noRollbackFor = BusinessException.class)
     PhoneVerificationResponse check(long id, String code) {
-        PhoneVerification verification = repository.findById(id).orElseThrow(VerificationNotFoundException::new);
+        PhoneVerification verification =
+                repository.findWithLockById(id).orElseThrow(VerificationNotFoundException::new);
         OffsetDateTime now = OffsetDateTime.now(clock);
 
         if (verification.getStatus() == PhoneVerificationStatus.VERIFIED) {
