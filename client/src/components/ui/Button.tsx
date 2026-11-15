@@ -32,7 +32,7 @@ function Button({
       disabled={isDisabled}
       aria-busy={loading || undefined}
       className={[
-        'inline-flex items-center justify-center gap-2 rounded-md font-body font-semibold px-5 py-2 transition-all',
+        'inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] font-body font-semibold px-5 py-2 transition-all',
         variantClasses[variant],
         isDisabled && !loading ? 'cursor-not-allowed opacity-40' : '',
         loading ? 'cursor-wait opacity-80' : '',
