@@ -84,13 +84,16 @@ Errors, following the [error format](data-model-and-api-contract.md#errors):
 
 | Status | `code` | When |
 | :---- | :---- | :---- |
-| 400 | `VALIDATION_FAILED` | The phone is not a valid E.164 number, the purpose is not `VISIT` or `LISTING_REQUEST`, or the code is not 6 digits |
+| 400 | `VALIDATION_FAILED` | The phone is not a valid E.164 number or Vonage cannot send an SMS to it, the purpose is not `VISIT` or `LISTING_REQUEST`, or the code is not 6 digits |
 | 404 | `VERIFICATION_NOT_FOUND` | The verification was not started by this browser |
+| 409 | `VERIFICATION_IN_PROGRESS` | Vonage already has a code on its way to this number from another session |
 | 422 | `VERIFICATION_CODE_INVALID` | The code does not match |
 | 422 | `VERIFICATION_EXPIRED` | The verification has expired |
 | 429 | `VERIFICATION_TOO_MANY_ATTEMPTS` | 3 wrong codes have been entered |
 | 429 | `VERIFICATION_RESEND_TOO_SOON` | A new code is requested before 30 seconds |
 | 429 | `VERIFICATION_LIMIT_REACHED` | The phone number has started 5 verifications in the last hour, or the server has started 30 |
+
+If Vonage's own rate limit is reached, the server answers `500 INTERNAL_ERROR` and logs that it came from that limit. With our limit of 30 per hour this is not expected.
 
 To ask for a new code, the client calls `POST /api/phone-verifications` again with the same phone. The server cancels the previous verification, unless it is already `VERIFIED`, and answers with a new `id`.
 

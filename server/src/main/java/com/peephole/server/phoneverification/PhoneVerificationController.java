@@ -45,7 +45,8 @@ class PhoneVerificationController {
     @ApiResponse(responseCode = "201", description = "The code was sent")
     @ApiResponse(
             responseCode = "400",
-            description = "VALIDATION_FAILED: the phone is not in international format, or the purpose is not valid",
+            description = "VALIDATION_FAILED: the phone is not in international format, Vonage cannot send an SMS to"
+                    + " it, or the purpose is not valid",
             content =
                     @Content(
                             mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
@@ -53,6 +54,13 @@ class PhoneVerificationController {
     @ApiResponse(
             responseCode = "403",
             description = "CSRF_TOKEN_INVALID: the X-XSRF-TOKEN header is missing or does not match the cookie",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemResponse.class)))
+    @ApiResponse(
+            responseCode = "409",
+            description = "VERIFICATION_IN_PROGRESS: a code is already on its way to this number from another session",
             content =
                     @Content(
                             mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
