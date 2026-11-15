@@ -83,10 +83,10 @@ Public:
 | :---- | :---- | :---- |
 | `GET /api/properties?operation=` | Catalog, with an optional filter | [Property browsing](property-browsing.md) |
 | `GET /api/properties/{id}` | Property details | [Property browsing](property-browsing.md) |
-| `GET /api/properties/{id}/slots?from=&to=` | Available visit slots | Visit booking (week 2) |
+| `GET /api/properties/{id}/slots?from=&to=` | Available visit slots | [Visit booking](visit-booking.md) |
 | `POST /api/phone-verifications` | Start a phone verification | [Phone verification](phone-verification.md) |
 | `POST /api/phone-verifications/{id}/check` | Check the code | [Phone verification](phone-verification.md) |
-| `POST /api/visits` | Book a visit with a verified phone | Visit booking (week 2) |
+| `POST /api/visits` | Book a visit with a verified phone | [Visit booking](visit-booking.md) |
 | `POST /api/listing-requests` | Send a listing request with a verified phone | Owner listing (week 2) |
 
 Agency:
