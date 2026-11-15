@@ -14,6 +14,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.jayway.jsonpath.JsonPath;
 import com.peephole.server.vonage.CodeCheckResult;
+import com.peephole.server.vonage.ConcurrentVerificationException;
+import com.peephole.server.vonage.PhoneNumberRejectedException;
 import com.peephole.server.vonage.PhoneVerifier;
 import java.time.Clock;
 import java.time.Instant;
@@ -196,6 +198,24 @@ class PhoneVerificationControllerTest {
                 403,
                 "CSRF_TOKEN_INVALID");
         verify(phoneVerifier, never()).start(any());
+    }
+
+    @Test
+    void reportsAVerificationInProgressFromAnotherSession() throws Exception {
+        when(phoneVerifier.start(PHONE)).thenThrow(new ConcurrentVerificationException());
+
+        expectProblem(start(new MockHttpSession(), PHONE), 409, "VERIFICATION_IN_PROGRESS");
+    }
+
+    @Test
+    void rejectsANumberVonageCannotSendTo() throws Exception {
+        when(phoneVerifier.start(PHONE)).thenThrow(new PhoneNumberRejectedException());
+
+        start(new MockHttpSession(), PHONE)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Validation failed"))
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors.phone").isNotEmpty());
     }
 
     @Test

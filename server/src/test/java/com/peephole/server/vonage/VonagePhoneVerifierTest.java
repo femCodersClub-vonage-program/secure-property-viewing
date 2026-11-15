@@ -67,6 +67,24 @@ class VonagePhoneVerifierTest {
                 .hasNoCause();
     }
 
+    @Test
+    void reportsAVerificationInProgressWhenVonageAnswers409() {
+        VerifyResponseException concurrent = apiError(409);
+        when(verify2Client.sendVerification(any())).thenThrow(concurrent);
+
+        assertThatThrownBy(() -> verifier.start(PHONE)).isInstanceOf(ConcurrentVerificationException.class);
+    }
+
+    @Test
+    void reportsARejectedNumberWhenVonageAnswers422() {
+        VerifyResponseException invalidParams = apiError(422);
+        when(verify2Client.sendVerification(any())).thenThrow(invalidParams);
+
+        assertThatThrownBy(() -> verifier.start(PHONE))
+                .isInstanceOf(PhoneNumberRejectedException.class)
+                .hasMessageNotContaining(PHONE);
+    }
+
     // Checking a code
 
     @Test

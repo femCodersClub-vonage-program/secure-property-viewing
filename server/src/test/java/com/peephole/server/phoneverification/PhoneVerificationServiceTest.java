@@ -7,9 +7,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.peephole.server.common.FieldValidationException;
 import com.peephole.server.phoneverification.dto.PhoneVerificationResponse;
 import com.peephole.server.phoneverification.dto.StartPhoneVerificationResponse;
 import com.peephole.server.vonage.CodeCheckResult;
+import com.peephole.server.vonage.ConcurrentVerificationException;
+import com.peephole.server.vonage.PhoneNumberRejectedException;
 import com.peephole.server.vonage.PhoneVerifier;
 import java.time.Clock;
 import java.time.OffsetDateTime;
@@ -142,6 +145,24 @@ class PhoneVerificationServiceTest {
 
         verify(phoneVerifier, never()).cancel(any());
         assertThat(verified.getStatus()).isEqualTo(PhoneVerificationStatus.VERIFIED);
+    }
+
+    @Test
+    void reportsAVerificationInProgressFromAnotherSession() {
+        when(phoneVerifier.start(PHONE)).thenThrow(new ConcurrentVerificationException());
+
+        assertThatThrownBy(() -> service.start(PHONE, PhoneVerificationPurpose.VISIT, null))
+                .isInstanceOf(VerificationInProgressException.class);
+    }
+
+    @Test
+    void reportsANumberVonageCannotSendTo() {
+        when(phoneVerifier.start(PHONE)).thenThrow(new PhoneNumberRejectedException());
+
+        assertThatThrownBy(() -> service.start(PHONE, PhoneVerificationPurpose.VISIT, null))
+                .isInstanceOf(FieldValidationException.class)
+                .extracting("field")
+                .isEqualTo("phone");
     }
 
     // Checking a code

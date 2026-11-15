@@ -8,6 +8,7 @@ import com.vonage.client.verify2.VerifyResponseException;
 import java.util.UUID;
 
 public class VonagePhoneVerifier implements PhoneVerifier {
+
     private static final String BRAND = "Peephole";
     private static final int CODE_LENGTH = 6;
     // 5 minutes, as decided in the spec. Verify's default is 180 seconds
@@ -30,8 +31,16 @@ public class VonagePhoneVerifier implements PhoneVerifier {
         try {
             return verify2Client.sendVerification(request).getRequestId().toString();
         } catch (VerifyResponseException exception) {
-            throw new PhoneVerifierException(
-                    "Vonage answered " + exception.getStatusCode() + " when starting a verification");
+            throw switch (exception.getStatusCode()) {
+                case 409 -> new ConcurrentVerificationException();
+                // The SDK checks every other parameter before sending, so a 422 here can only be the number
+                case 422 -> new PhoneNumberRejectedException();
+                case 429 ->
+                    new PhoneVerifierException("Vonage's rate limit was reached when starting a verification (429)");
+                default ->
+                    new PhoneVerifierException(
+                            "Vonage answered " + exception.getStatusCode() + " when starting a verification");
+            };
         } catch (VonageClientException exception) {
             throw new PhoneVerifierException("Could not reach Vonage to start a verification");
         }

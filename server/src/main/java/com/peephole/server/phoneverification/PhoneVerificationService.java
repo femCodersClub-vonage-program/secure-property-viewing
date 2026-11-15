@@ -1,9 +1,12 @@
 package com.peephole.server.phoneverification;
 
 import com.peephole.server.common.BusinessException;
+import com.peephole.server.common.FieldValidationException;
 import com.peephole.server.phoneverification.dto.PhoneVerificationResponse;
 import com.peephole.server.phoneverification.dto.StartPhoneVerificationResponse;
 import com.peephole.server.vonage.CodeCheckResult;
+import com.peephole.server.vonage.ConcurrentVerificationException;
+import com.peephole.server.vonage.PhoneNumberRejectedException;
 import com.peephole.server.vonage.PhoneVerifier;
 import java.time.Clock;
 import java.time.Duration;
@@ -47,7 +50,7 @@ class PhoneVerificationService {
                     .ifPresent(previous -> replace(previous, now));
         }
 
-        String requestId = phoneVerifier.start(phone);
+        String requestId = sendCode(phone);
         PhoneVerification verification = repository.save(new PhoneVerification(purpose, phoneHash, requestId, now));
         return new StartPhoneVerificationResponse(
                 verification.getId(), verification.getStatus().name(), now.plus(RESEND_WAIT));
@@ -113,5 +116,16 @@ class PhoneVerificationService {
     private static PhoneVerificationResponse toResponse(PhoneVerification verification) {
         return new PhoneVerificationResponse(
                 verification.getId(), verification.getStatus().name());
+    }
+
+    // Vonage answers these two cases on purpose, so they reach the person as errors they can act on
+    private String sendCode(String phone) {
+        try {
+            return phoneVerifier.start(phone);
+        } catch (ConcurrentVerificationException exception) {
+            throw new VerificationInProgressException();
+        } catch (PhoneNumberRejectedException exception) {
+            throw new FieldValidationException("phone", "we cannot send an SMS to this number, check it and try again");
+        }
     }
 }

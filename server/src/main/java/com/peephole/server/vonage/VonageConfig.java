@@ -1,5 +1,6 @@
 package com.peephole.server.vonage;
 
+import com.vonage.client.HttpConfig;
 import com.vonage.client.VonageClient;
 import java.util.Base64;
 import java.util.UUID;
@@ -20,6 +21,8 @@ class VonageConfig {
             VonageClient client = VonageClient.builder()
                     .applicationId(id)
                     .privateKeyContents(key)
+                    // Starting a verification holds a database lock, so a slow Vonage must not keep it for long
+                    .httpConfig(HttpConfig.builder().timeoutMillis(10_000).build())
                     .build();
             return new VonagePhoneVerifier(client.getVerify2Client());
         } catch (RuntimeException exception) {

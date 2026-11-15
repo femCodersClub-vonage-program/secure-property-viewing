@@ -91,6 +91,14 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(FieldValidationException.class)
+    ProblemDetail handleFieldValidationException(FieldValidationException exception) {
+        return validationProblem(
+                HttpStatus.BAD_REQUEST,
+                "One or more fields are invalid.",
+                Map.of(exception.getField(), exception.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     ProblemDetail handleUnexpectedException(Exception exception) {
         LOGGER.error("Unexpected error while handling request", exception);
