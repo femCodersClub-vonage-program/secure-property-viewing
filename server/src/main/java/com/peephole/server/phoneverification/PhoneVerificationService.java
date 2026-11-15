@@ -11,6 +11,8 @@ import com.peephole.server.vonage.PhoneVerifier;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,7 @@ class PhoneVerificationService {
     private static final int MAX_WRONG_CODES = 3;
     private static final int MAX_PER_PHONE_PER_HOUR = 5;
     private static final int MAX_PER_HOUR = 30;
+    private static final Logger LOGGER = LoggerFactory.getLogger(PhoneVerificationService.class);
 
     private final PhoneVerificationRepository repository;
     private final PhoneVerifier phoneVerifier;
@@ -123,6 +126,8 @@ class PhoneVerificationService {
         } catch (ConcurrentVerificationException exception) {
             throw new VerificationInProgressException();
         } catch (PhoneNumberRejectedException exception) {
+            // Without the number, so a sudden rise can be noticed without personal data
+            LOGGER.warn("Vonage rejected the phone number when starting a verification");
             throw new FieldValidationException("phone", "we cannot send an SMS to this number, check it and try again");
         }
     }

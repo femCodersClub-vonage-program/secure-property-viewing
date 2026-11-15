@@ -13,10 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jayway.jsonpath.JsonPath;
-import com.peephole.server.vonage.CodeCheckResult;
-import com.peephole.server.vonage.ConcurrentVerificationException;
-import com.peephole.server.vonage.PhoneNumberRejectedException;
-import com.peephole.server.vonage.PhoneVerifier;
+import com.peephole.server.vonage.*;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -227,6 +224,25 @@ class PhoneVerificationControllerTest {
         check(session, id, CODE);
 
         assertThat(output).doesNotContain("611222333").doesNotContain(CODE);
+    }
+
+    @Test
+    void rejectsANumberThatIsTooShort() throws Exception {
+        start(new MockHttpSession(), "+34600")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors.phone").isNotEmpty());
+        verify(phoneVerifier, never()).start(any());
+    }
+
+    @Test
+    void neverLogsThePhoneWhenVonageFails(CapturedOutput output) throws Exception {
+        when(phoneVerifier.start(PHONE))
+                .thenThrow(new PhoneVerifierException("Vonage answered 500 when starting a verification"));
+
+        expectProblem(start(new MockHttpSession(), PHONE), 500, "INTERNAL_ERROR");
+
+        assertThat(output).doesNotContain("611222333");
     }
 
     private long startedId(MockHttpSession session) throws Exception {

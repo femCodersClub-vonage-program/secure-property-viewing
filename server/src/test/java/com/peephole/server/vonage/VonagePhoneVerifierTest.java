@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -14,6 +15,7 @@ import com.vonage.client.verify2.VerificationRequest;
 import com.vonage.client.verify2.VerificationResponse;
 import com.vonage.client.verify2.Verify2Client;
 import com.vonage.client.verify2.VerifyResponseException;
+import java.net.URI;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +29,7 @@ class VonagePhoneVerifierTest {
 
     private static final String PHONE = "+34600000000";
     private static final String REQUEST_ID = "c11236f4-00bf-4b89-84ba-88b25df97315";
+    private static final URI INVALID_PARAMS = URI.create("https://developer.vonage.com/en/api-errors#invalid-params");
 
     @Mock
     private Verify2Client verify2Client;
@@ -56,6 +59,15 @@ class VonagePhoneVerifierTest {
     }
 
     @Test
+    void rejectsANumberTheSdkCannotParseWithoutThePhoneInTheMessage() {
+        assertThatThrownBy(() -> verifier.start("+34600"))
+                .isInstanceOf(PhoneNumberRejectedException.class)
+                .hasMessageNotContaining("34600")
+                .hasNoCause();
+        verify(verify2Client, never()).sendVerification(any());
+    }
+
+    @Test
     void turnsAStartErrorIntoAPhoneVerifierExceptionWithoutThePhone() {
         VerifyResponseException rateLimited = apiError(429);
         when(verify2Client.sendVerification(any())).thenThrow(rateLimited);
@@ -76,13 +88,27 @@ class VonagePhoneVerifierTest {
     }
 
     @Test
-    void reportsARejectedNumberWhenVonageAnswers422() {
+    void reportsARejectedNumberWhenVonageAnswersInvalidParams() {
         VerifyResponseException invalidParams = apiError(422);
+        when(invalidParams.getType()).thenReturn(INVALID_PARAMS);
         when(verify2Client.sendVerification(any())).thenThrow(invalidParams);
 
         assertThatThrownBy(() -> verifier.start(PHONE))
                 .isInstanceOf(PhoneNumberRejectedException.class)
                 .hasMessageNotContaining(PHONE);
+    }
+
+    @Test
+    void turnsAnyOther422IntoAPhoneVerifierException() {
+        VerifyResponseException otherError = apiError(422);
+        when(otherError.getType()).thenReturn(URI.create("https://developer.vonage.com/en/api-errors#other"));
+        when(verify2Client.sendVerification(any())).thenThrow(otherError);
+
+        assertThatThrownBy(() -> verifier.start(PHONE))
+                .isInstanceOf(PhoneVerifierException.class)
+                .hasMessageContaining("422")
+                .hasMessageNotContaining(PHONE)
+                .hasNoCause();
     }
 
     // Checking a code

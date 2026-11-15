@@ -5,6 +5,7 @@ import com.vonage.client.verify2.SmsWorkflow;
 import com.vonage.client.verify2.VerificationRequest;
 import com.vonage.client.verify2.Verify2Client;
 import com.vonage.client.verify2.VerifyResponseException;
+import java.net.URI;
 import java.util.UUID;
 
 public class VonagePhoneVerifier implements PhoneVerifier {
@@ -13,6 +14,8 @@ public class VonagePhoneVerifier implements PhoneVerifier {
     private static final int CODE_LENGTH = 6;
     // 5 minutes, as decided in the spec. Verify's default is 180 seconds
     private static final int CHANNEL_TIMEOUT_SECONDS = 300;
+    // The error type Vonage uses for an invalid phone number, according to the Vonage Documentation MCP Server
+    private static final URI INVALID_PARAMS = URI.create("https://developer.vonage.com/en/api-errors#invalid-params");
 
     private final Verify2Client verify2Client;
 
@@ -22,19 +25,21 @@ public class VonagePhoneVerifier implements PhoneVerifier {
 
     @Override
     public String start(String phone) {
-        VerificationRequest request = VerificationRequest.builder()
-                .brand(BRAND)
-                .addWorkflow(new SmsWorkflow(phone))
-                .codeLength(CODE_LENGTH)
-                .channelTimeout(CHANNEL_TIMEOUT_SECONDS)
-                .build();
         try {
+            VerificationRequest request = VerificationRequest.builder()
+                    .brand(BRAND)
+                    .addWorkflow(new SmsWorkflow(phone))
+                    .codeLength(CODE_LENGTH)
+                    .channelTimeout(CHANNEL_TIMEOUT_SECONDS)
+                    .build();
             return verify2Client.sendVerification(request).getRequestId().toString();
+        } catch (IllegalArgumentException exception) {
+            // The SDK checks the number before sending it, and its message includes the number, so it is dropped
+            throw new PhoneNumberRejectedException();
         } catch (VerifyResponseException exception) {
             throw switch (exception.getStatusCode()) {
                 case 409 -> new ConcurrentVerificationException();
-                // The SDK checks every other parameter before sending, so a 422 here can only be the number
-                case 422 -> new PhoneNumberRejectedException();
+                case 422 -> rejectedNumberOrSystemError(exception);
                 case 429 ->
                     new PhoneVerifierException("Vonage's rate limit was reached when starting a verification (429)");
                 default ->
@@ -78,5 +83,14 @@ public class VonagePhoneVerifier implements PhoneVerifier {
         } catch (VonageClientException exception) {
             throw new PhoneVerifierException("Could not reach Vonage to cancel request " + requestId);
         }
+    }
+
+    // Only an invalid-params 422 is about the number. Any other 422 is a problem on our side, so it is a system error
+    private static RuntimeException rejectedNumberOrSystemError(VerifyResponseException exception) {
+        if (INVALID_PARAMS.equals(exception.getType())) {
+            return new PhoneNumberRejectedException();
+        }
+        return new PhoneVerifierException(
+                "Vonage answered 422 (" + exception.getType() + ") when starting a verification");
     }
 }

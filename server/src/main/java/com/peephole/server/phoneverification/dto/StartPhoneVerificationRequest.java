@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Pattern;
 public record StartPhoneVerificationRequest(
         @NotBlank
         @Pattern(
-                regexp = "\\+[1-9]\\d{1,14}",
+                regexp = "\\+[1-9]\\d{6,14}",
                 message = "must be a phone number in international format, such as +34600000000")
         String phone,
 
