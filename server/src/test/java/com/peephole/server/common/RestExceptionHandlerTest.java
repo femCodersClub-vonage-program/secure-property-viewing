@@ -1,11 +1,13 @@
 package com.peephole.server.common;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.peephole.server.config.SecurityConfig;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -32,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
             RestExceptionHandlerTest.PathVariableConversionController.class
         })
 @Import({
+    SecurityConfig.class,
     RestExceptionHandler.class,
     RestExceptionHandlerTest.ValidationController.class,
     RestExceptionHandlerTest.ParameterValidationController.class,
@@ -47,6 +50,7 @@ class RestExceptionHandlerTest {
     @Test
     void returnsProblemDetailWhenRequestValidationFails() throws Exception {
         mockMvc.perform(post("/api/test-validation")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"\"}"))
                 .andExpect(status().isBadRequest())
@@ -139,6 +143,7 @@ class RestExceptionHandlerTest {
     @Test
     void returnsBadRequestWhenJsonIsMalformed() throws Exception {
         mockMvc.perform(post("/api/test-validation")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{"))
                 .andExpect(status().isBadRequest())

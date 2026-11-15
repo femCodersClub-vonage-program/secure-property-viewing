@@ -32,9 +32,11 @@ Three constraints shaped the decision:
 | Backend build | Maven, through the Maven Wrapper | Pinned in `server/.mvn/` |
 | Database | PostgreSQL | 17 |
 | Database migrations | Flyway | Managed by Spring Boot |
+| Authentication and CSRF | Spring Security (`spring-boot-starter-security`) | Managed by Spring Boot, see [ADR 0004](0004-agency-sign-in.md) |
+| API documentation | springdoc-openapi (`springdoc-openapi-starter-webmvc-ui`), local only | 3.2.x, pinned in `pom.xml`: not managed by Spring Boot |
 | Vonage | Java Server SDK (`com.vonage:server-sdk`) | 9.x, added with the first Vonage feature |
 | Backend formatter | Spotless with palantir-java-format | Pinned in `pom.xml` |
-| Server tests | JUnit, Spring Boot Test and Mockito | Managed by Spring Boot |
+| Server tests | JUnit, Spring Boot Test, Spring Security Test and Mockito | Managed by Spring Boot |
 | Client tests | Vitest, jsdom and Testing Library | Vitest 5.x |
 | Deployment | Railway | See [ADR 0002](0002-deployment-railway.md) |
 

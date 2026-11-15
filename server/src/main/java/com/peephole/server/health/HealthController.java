@@ -1,5 +1,8 @@
 package com.peephole.server.health;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -8,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Tag(name = "Health", description = "Whether the server can reach its database")
 class HealthController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HealthController.class);
@@ -19,6 +23,9 @@ class HealthController {
     }
 
     @GetMapping("/api/health")
+    @Operation(
+            summary = "Check the database",
+            description = "Always answers 200, with UP when the server can query the database and DOWN otherwise.")
     HealthResponse health() {
         try {
             Integer result = jdbcTemplate.queryForObject("SELECT 1", Integer.class);
@@ -29,5 +36,9 @@ class HealthController {
         }
     }
 
-    record HealthResponse(String database) {}
+    record HealthResponse(
+            @Schema(
+                    allowableValues = {"UP", "DOWN"},
+                    example = "UP")
+            String database) {}
 }

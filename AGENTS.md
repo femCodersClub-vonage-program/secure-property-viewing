@@ -19,6 +19,7 @@ Every file has a fixed place, so nothing is left lying around. The folder struct
 | Project presentation | `docs/presentations/` |
 | End-to-end test | `e2e/` |
 | AI agent | `.claude/agents/`, with a pointer in `.github/agents/` so Copilot in IntelliJ finds it |
+| AI skill | `.claude/skills/`, one folder per skill, as described in its [`README.md`](.claude/skills/README.md) |
 
 Never:
 

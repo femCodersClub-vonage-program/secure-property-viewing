@@ -87,7 +87,7 @@ cp .env.example .env
 
 En PowerShell de Windows, usa `copy` en lugar de `cp`.
 
-Abre `server/.env` y sustituye los cuatro valores de ejemplo:
+Abre `server/.env` y sustituye los seis valores de ejemplo:
 
 | Variable | Valor |
 | :---- | :---- |
@@ -95,10 +95,40 @@ Abre `server/.env` y sustituye los cuatro valores de ejemplo:
 | `DB_USERNAME` | `peephole` |
 | `DB_PASSWORD` | La contraseña compartida del Drive |
 | `LOAD_DEMO_DATA` | `true` para cargar los datos de ejemplo al arrancar el servidor, `false` para arrancar solo con las tablas |
+| `SESSION_COOKIE_SECURE` | `false`, porque el servidor local funciona sobre `http://localhost`. Solo es `true` en Railway, donde la cookie de sesión de la agencia solo debe enviarse por HTTPS, como se decidió en el [ADR 0004](adr/0004-agency-sign-in.md) |
+| `API_DOCS_ENABLED` | `true` para abrir la documentación de la API en Swagger UI, en `http://localhost:8080/swagger-ui.html`, con el servidor arrancado. En Railway no se pone nunca, así que allí está apagada |
 
 Los datos de ejemplo son ficticios y están en `server/src/main/resources/db/seed/`. Solo se cargan cuando `LOAD_DEMO_DATA` es `true`, y las tablas se crean en los dos casos.
 
 `DB_URL` apunta siempre a tu base de datos local, nunca a la de Railway, porque los tests escriben en la base a la que apunte. Un `DB_URL` definido en tu terminal, o inyectado por una herramienta como `railway run`, tiene prioridad sobre `.env`, así que la misma regla se aplica a él.
+
+### Variables de Vonage
+
+Cada API de Vonage funciona con la aplicación de Vonage de una persona del equipo, así que el servidor tiene un grupo de variables por API: el ID de la aplicación y su clave privada, y además el signature secret con el que Messages comprueba sus webhooks.
+
+| Grupo | Variables | Valores en Railway |
+| :---- | :---- | :---- |
+| Verify | `VONAGE_VERIFY_APPLICATION_ID`, `VONAGE_VERIFY_PRIVATE_KEY` | Candé |
+| Video | `VONAGE_VIDEO_APPLICATION_ID`, `VONAGE_VIDEO_PRIVATE_KEY` | Viviana |
+| Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY`, `VONAGE_MESSAGES_SIGNATURE_SECRET` | Damaris |
+
+En local, pon en `server/.env` los valores de tu propia aplicación de Vonage y deja los demás grupos con sus valores de ejemplo.
+
+**La clave privada en base64.** Cada clave privada va en una sola línea, así el mismo valor funciona en `server/.env` y en Railway. Para copiar la tuya:
+
+```bash
+# macOS
+base64 -i ruta/a/tu.key | tr -d '\n' | pbcopy
+```
+
+```powershell
+# PowerShell de Windows
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("ruta\a\tu.key")) | Set-Clipboard
+```
+
+**Compartir tus credenciales.** Cada persona sube las suyas a la carpeta compartida del Drive del equipo: su API key, su API secret, el ID de su aplicación y el archivo de la clave privada (`.key`), y el signature secret si construye Messages. Nunca las envíes por Slack, en una issue, en el repositorio ni a un asistente de IA.
+
+**En Railway.** Las mismas variables van en el servicio `server`, como se explica en [Railway desde la terminal](guides/railway.md).
 
 ## 5. Arrancar el servidor
 
@@ -140,6 +170,7 @@ Abre `http://localhost:5173`. Para pararlo, pulsa `Ctrl+C`.
 | `The server requested SCRAM-based authentication, but no password was provided` | `DB_PASSWORD` está vacío en `server/.env` | Pon la contraseña compartida, sin comillas ni espacios |
 | `password authentication failed for user "peephole"` | `DB_PASSWORD` de `server/.env` no coincide con la contraseña del usuario `peephole` | Comprueba que las dos son la contraseña compartida del Drive |
 | `Could not resolve placeholder 'app.flyway.locations.…'` | `LOAD_DEMO_DATA` en `server/.env` todavía tiene el valor de ejemplo de `.env.example` | Ponlo en `true` o `false` |
+| `Failed to bind properties under 'server.servlet.session.cookie.secure'` | `SESSION_COOKIE_SECURE` en `server/.env` todavía tiene el valor de ejemplo de `.env.example` | Ponlo en `false` |
 | `database "peephole" does not exist` | No se completó el paso 3 | Lanza el comando `createdb` del paso 3 |
 | `npm error code EBADENGINE` en `client/` | Tu versión de Node.js es más antigua que la que necesita el proyecto | Instala una versión más nueva (paso 2) y vuelve a lanzar `npm ci` |
 | `Connection refused` en el puerto `5432` | PostgreSQL no está arrancado | Windows: arranca el servicio `postgresql-x64-17`. macOS: `brew services start postgresql@17` |
