@@ -1,6 +1,6 @@
 # Owner listing
 
-- **Status:** In review
+- **Status:** Approved
 - **Issue:** [#28](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/28)
 - **Journey:** journey B, steps 1, 2, 3 and 5 in [`docs/user-journeys.md`](../docs/user-journeys.md)
 
@@ -60,7 +60,7 @@ All screens:
 
 - Phone verification (step 4): covered by the [phone verification spec](phone-verification.md). This spec only sends its `phoneVerificationId`
 - The video call with the agency (step 6): it will have its own spec
-- Sending the SMS that keeps the owner informed: part of the messages feature, which fills in the `message` table
+- Sending the SMS that keeps the owner informed: covered by the [messages spec](messages.md)
 - Photo upload: an approved property shows a generic image
 - A municipality field: Peephole covers Barcelona only
 - Owner accounts, and a page where the owner can follow the request
@@ -118,6 +118,8 @@ Errors, following the [error format](data-model-and-api-contract.md#errors):
 | 422 | `PHONE_VERIFICATION_INVALID` | The verification breaks one of the rules above |
 
 One code covers every verification rule because the client does the same in all cases: it sends the owner back to verify the phone again. `POST /api/visits` can reuse it.
+
+"Not used before" is checked in Java and enforced by the `UNIQUE` constraint on `phone_verification_id` in `listing_request`. With a double submit, the second request can pass the Java check and be rejected by the database. The server maps that constraint error to `422 PHONE_VERIFICATION_INVALID` too, never to a `500`.
 
 ### Vonage
 
