@@ -126,6 +126,41 @@ SET agency_id = EXCLUDED.agency_id,
     video_visit_available = EXCLUDED.video_visit_available,
     status = EXCLUDED.status;
 
+INSERT INTO property (
+    id, agency_id, listing_request_id, title, operation, property_type,
+    price_euros, area, address, latitude, longitude, bedrooms, size_m2,
+    floor, description, video_visit_available, status
+)
+OVERRIDING SYSTEM VALUE
+VALUES
+    (21, 1, NULL, 'Unlisted apartment in Eixample', 'SALE', 'APARTMENT',
+     360000, 'Eixample', 'Fictional demo address 21, Barcelona',
+     41.3925, 2.1630, 2, 80, 3,
+     'A fictional property retained as an inactive catalog example.',
+     FALSE, 'INACTIVE'),
+    (22, 1, NULL, 'New owner listing in Gràcia', 'RENT', 'APARTMENT',
+     1180, 'Gràcia', 'Fictional demo address 22, Barcelona',
+     NULL, NULL, 2, 72, 1,
+     'A newly approved listing without catalog photos or precise location.',
+     TRUE, 'ACTIVE')
+ON CONFLICT (id) DO UPDATE
+SET agency_id = EXCLUDED.agency_id,
+    listing_request_id = EXCLUDED.listing_request_id,
+    title = EXCLUDED.title,
+    operation = EXCLUDED.operation,
+    property_type = EXCLUDED.property_type,
+    price_euros = EXCLUDED.price_euros,
+    area = EXCLUDED.area,
+    address = EXCLUDED.address,
+    latitude = EXCLUDED.latitude,
+    longitude = EXCLUDED.longitude,
+    bedrooms = EXCLUDED.bedrooms,
+    size_m2 = EXCLUDED.size_m2,
+    floor = EXCLUDED.floor,
+    description = EXCLUDED.description,
+    video_visit_available = EXCLUDED.video_visit_available,
+    status = EXCLUDED.status;
+
 INSERT INTO property_image (id, property_id, url, alt_text, position)
 OVERRIDING SYSTEM VALUE
 VALUES
