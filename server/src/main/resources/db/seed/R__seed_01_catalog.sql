@@ -252,3 +252,5 @@ SET property_id = EXCLUDED.property_id,
 
 SELECT setval(pg_get_serial_sequence('agency', 'id'), (SELECT MAX(id) FROM agency));
 SELECT setval(pg_get_serial_sequence('agency_user', 'id'), (SELECT MAX(id) FROM agency_user));
+SELECT setval(pg_get_serial_sequence('property', 'id'), (SELECT MAX(id) FROM property));
+SELECT setval(pg_get_serial_sequence('property_image', 'id'), (SELECT MAX(id) FROM property_image));
