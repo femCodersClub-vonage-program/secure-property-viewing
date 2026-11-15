@@ -61,7 +61,7 @@ class PhoneVerificationServiceTest {
         StartPhoneVerificationResponse response = service.start(PHONE, PhoneVerificationPurpose.VISIT, null);
 
         assertThat(response.status()).isEqualTo("PENDING");
-        assertThat(response.resendAvailableAt()).isEqualTo(NOW.plusSeconds(30));
+        assertThat(response.resendAvailableAt()).isEqualTo(NOW.plusSeconds(32));
         PhoneVerification saved = savedVerification();
         assertThat(saved.getVonageRequestId()).isEqualTo("request-1");
         assertThat(saved.getPhoneHash()).isEqualTo(phoneHasher.hash(PHONE));
@@ -88,8 +88,8 @@ class PhoneVerificationServiceTest {
     }
 
     @Test
-    void rejectsANewCodeBeforeThirtySeconds() {
-        PhoneVerification pending = pendingVerification(NOW.minusSeconds(29));
+    void rejectsANewCodeBeforeThirtyTwoSeconds() {
+        PhoneVerification pending = pendingVerification(NOW.minusSeconds(31));
         when(repository.findWithLockById(1L)).thenReturn(Optional.of(pending));
 
         assertThatThrownBy(() -> service.start(PHONE, PhoneVerificationPurpose.VISIT, 1L))
@@ -98,8 +98,8 @@ class PhoneVerificationServiceTest {
     }
 
     @Test
-    void replacesThePendingVerificationAfterThirtySeconds() {
-        PhoneVerification pending = pendingVerification(NOW.minusSeconds(30));
+    void replacesThePendingVerificationAfterThirtyTwoSeconds() {
+        PhoneVerification pending = pendingVerification(NOW.minusSeconds(32));
         when(repository.findWithLockById(1L)).thenReturn(Optional.of(pending));
         when(phoneVerifier.start(PHONE)).thenReturn("request-2");
         when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));

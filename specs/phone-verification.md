@@ -65,7 +65,7 @@ The hash lets the server check two things without keeping the number in this tab
 Response `201`:
 
 ```json
-{ "id": 42, "status": "PENDING", "resendAvailableAt": "2026-11-10T11:00:30+01:00" }
+{ "id": 42, "status": "PENDING", "resendAvailableAt": "2026-11-10T11:00:32+01:00" }
 ```
 
 `POST /api/phone-verifications/{id}/check`
@@ -90,12 +90,14 @@ Errors, following the [error format](data-model-and-api-contract.md#errors):
 | 422 | `VERIFICATION_CODE_INVALID` | The code does not match |
 | 422 | `VERIFICATION_EXPIRED` | The verification has expired |
 | 429 | `VERIFICATION_TOO_MANY_ATTEMPTS` | 3 wrong codes have been entered |
-| 429 | `VERIFICATION_RESEND_TOO_SOON` | A new code is requested before 30 seconds |
+| 429 | `VERIFICATION_RESEND_TOO_SOON` | A new code is requested before `resendAvailableAt` |
 | 429 | `VERIFICATION_LIMIT_REACHED` | The phone number has started 5 verifications in the last hour, or the server has started 30 |
 
 If Vonage's own rate limit is reached, the server answers `500 INTERNAL_ERROR` and logs that it came from that limit. With our limit of 30 per hour this is not expected.
 
 To ask for a new code, the client calls `POST /api/phone-verifications` again with the same phone. The server cancels the previous verification, unless it is already `VERIFIED`, and answers with a new `id`.
+
+`resendAvailableAt` is 32 seconds after the start: the 30 seconds Verify requires before a cancel, plus 2 seconds for the time the call to Vonage takes. The documentation does not say what Verify answers to a cancel sent too early, so the margin avoids it.
 
 `POST /api/visits` and `POST /api/listing-requests` receive the `phoneVerificationId` and check that it is saved in the session of the same browser, is `VERIFIED`, matches the purpose, belongs to the same phone number (by comparing hashes) and has not been used before.
 

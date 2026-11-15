@@ -19,7 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 class PhoneVerificationService {
 
-    private static final Duration RESEND_WAIT = Duration.ofSeconds(30);
+    // Verify allows a cancel 30 seconds after it receives the request, and our clock starts a little earlier,
+    // before the call. The 2 extra seconds make sure Verify always accepts the cancel when we allow a new code
+    private static final Duration RESEND_WAIT = Duration.ofSeconds(32);
     private static final Duration EXPIRY = Duration.ofMinutes(5);
     private static final int MAX_WRONG_CODES = 3;
     private static final int MAX_PER_PHONE_PER_HOUR = 5;
