@@ -26,7 +26,7 @@ The client and the server are built at the same time by different people. If eac
 ## Out of scope
 
 - Video sessions and tokens: defined in the video spec in week 2
-- Message sending rules: defined in the messages spec in week 2
+- Message sending rules: defined in the [messages spec](messages.md)
 - Pagination: the MVP has about twenty properties, so lists return everything that matches the filters
 - Several agencies: the MVP has one demo agency, although the model keeps `agency_id` so it can grow
 - Cities other than Barcelona: every property is in Barcelona, so there is no municipality field
@@ -106,8 +106,8 @@ Vonage webhooks, called by Vonage with a signed JWT that the server verifies, so
 
 | Method and path | Purpose | Spec |
 | :---- | :---- | :---- |
-| `POST /api/webhooks/messages/inbound` | Messages sent to our number. The MVP does not process replies, so it only answers `200` | Messages (week 2) |
-| `POST /api/webhooks/messages/status` | Delivery status of each message, which updates `message.status` | Messages (week 2) |
+| `POST /api/webhooks/messages/inbound` | Messages sent to our number. The MVP does not process replies, so it only answers `200` | [Messages](messages.md) |
+| `POST /api/webhooks/messages/status` | Delivery status of each message, which updates `message.status` | [Messages](messages.md) |
 
 Each feature spec defines the exact request and response of its endpoints.
 
@@ -128,7 +128,7 @@ Every error is a `ProblemDetail`, as required in `server/AGENTS.md`, with an ext
 | Status | When | `code` |
 | :---- | :---- | :---- |
 | 400 | The request body or a parameter is not valid | `VALIDATION_FAILED`, with the invalid fields in `errors` |
-| 401 | An agency endpoint is called without a signed-in user, or the email or password is wrong | `AUTHENTICATION_REQUIRED`, `INVALID_CREDENTIALS` |
+| 401 | An agency endpoint is called without a signed-in user, the email or password is wrong, or a Vonage webhook has no valid signature | `AUTHENTICATION_REQUIRED`, `INVALID_CREDENTIALS`, `WEBHOOK_SIGNATURE_INVALID` |
 | 403 | A `POST`, `PUT`, `PATCH` or `DELETE` request has no valid CSRF token | `CSRF_TOKEN_INVALID` |
 | 404 | The resource does not exist | `NOT_FOUND` |
 | 409 | The action conflicts with the current state, such as booking a slot that is already taken | Defined by each feature |
