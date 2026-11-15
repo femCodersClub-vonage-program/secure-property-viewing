@@ -26,19 +26,26 @@ class PhoneVerificationService {
     private final PhoneVerificationRepository repository;
     private final PhoneVerifier phoneVerifier;
     private final PhoneHasher phoneHasher;
+    private final VerificationStartLock startLock;
     private final Clock clock;
 
     PhoneVerificationService(
-            PhoneVerificationRepository repository, PhoneVerifier phoneVerifier, PhoneHasher phoneHasher, Clock clock) {
+            PhoneVerificationRepository repository,
+            PhoneVerifier phoneVerifier,
+            PhoneHasher phoneHasher,
+            VerificationStartLock startLock,
+            Clock clock) {
         this.repository = repository;
         this.phoneVerifier = phoneVerifier;
         this.phoneHasher = phoneHasher;
+        this.startLock = startLock;
         this.clock = clock;
     }
 
     // previousId is the verification saved in the session, if any: a new code replaces it
     @Transactional
     StartPhoneVerificationResponse start(String phone, PhoneVerificationPurpose purpose, Long previousId) {
+        startLock.acquire();
         OffsetDateTime now = OffsetDateTime.now(clock);
         String phoneHash = phoneHasher.hash(phone);
         checkLimits(phoneHash, now);
@@ -109,15 +116,6 @@ class PhoneVerificationService {
         }
     }
 
-    private static boolean hasExpired(PhoneVerification verification, OffsetDateTime now) {
-        return !now.isBefore(verification.getCreatedAt().plus(EXPIRY));
-    }
-
-    private static PhoneVerificationResponse toResponse(PhoneVerification verification) {
-        return new PhoneVerificationResponse(
-                verification.getId(), verification.getStatus().name());
-    }
-
     // Vonage answers these two cases on purpose, so they reach the person as errors they can act on
     private String sendCode(String phone) {
         try {
@@ -127,5 +125,14 @@ class PhoneVerificationService {
         } catch (PhoneNumberRejectedException exception) {
             throw new FieldValidationException("phone", "we cannot send an SMS to this number, check it and try again");
         }
+    }
+
+    private static boolean hasExpired(PhoneVerification verification, OffsetDateTime now) {
+        return !now.isBefore(verification.getCreatedAt().plus(EXPIRY));
+    }
+
+    private static PhoneVerificationResponse toResponse(PhoneVerification verification) {
+        return new PhoneVerificationResponse(
+                verification.getId(), verification.getStatus().name());
     }
 }

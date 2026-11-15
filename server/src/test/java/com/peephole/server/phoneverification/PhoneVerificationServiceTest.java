@@ -37,6 +37,10 @@ class PhoneVerificationServiceTest {
     @Mock
     private PhoneVerifier phoneVerifier;
 
+    // A test double: these tests run one at a time, so there is nothing to lock
+    @Mock
+    private VerificationStartLock startLock;
+
     private final PhoneHasher phoneHasher = new PhoneHasher("test-secret");
 
     private PhoneVerificationService service;
@@ -44,7 +48,7 @@ class PhoneVerificationServiceTest {
     @BeforeEach
     void setUp() {
         Clock clock = Clock.fixed(NOW.toInstant(), ZoneOffset.UTC);
-        service = new PhoneVerificationService(repository, phoneVerifier, phoneHasher, clock);
+        service = new PhoneVerificationService(repository, phoneVerifier, phoneHasher, startLock, clock);
     }
 
     // Starting a verification
