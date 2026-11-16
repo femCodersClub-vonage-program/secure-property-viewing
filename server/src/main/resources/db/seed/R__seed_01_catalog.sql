@@ -110,7 +110,6 @@ VALUES
     FALSE, 'ACTIVE')
 ON CONFLICT (id) DO UPDATE
 SET agency_id = EXCLUDED.agency_id,
-    listing_request_id = EXCLUDED.listing_request_id,
     title = EXCLUDED.title,
     operation = EXCLUDED.operation,
     property_type = EXCLUDED.property_type,
@@ -145,7 +144,6 @@ VALUES
      TRUE, 'ACTIVE')
 ON CONFLICT (id) DO UPDATE
 SET agency_id = EXCLUDED.agency_id,
-    listing_request_id = EXCLUDED.listing_request_id,
     title = EXCLUDED.title,
     operation = EXCLUDED.operation,
     property_type = EXCLUDED.property_type,
