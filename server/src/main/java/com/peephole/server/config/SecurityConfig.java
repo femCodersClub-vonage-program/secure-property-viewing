@@ -30,9 +30,9 @@ public class SecurityConfig {
         return CookieCsrfTokenRepository.withHttpOnlyFalse();
     }
 
-    // There is no CORS configuration on purpose: the browser always calls /api from the client's own origin,
-    // through the Vite proxy locally and the client's Caddyfile on Railway (ADR 0004). The server sends no CORS
-    // headers, so another site cannot read its responses. It can still send requests, so CSRF protects every write
+    // No CORS configuration on purpose: the browser always calls /api from the client's own origin (ADR 0004), so
+    // the server sends no CORS headers and other sites cannot read its responses. They can still send requests, so
+    // CSRF protects every write, except the Vonage webhooks, which are checked with the JWT that Vonage signs
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, CsrfTokenRepository csrfTokenRepository)
             throws Exception {

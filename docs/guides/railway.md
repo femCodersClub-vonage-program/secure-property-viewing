@@ -79,9 +79,11 @@ El servicio `server` necesita `LOAD_DEMO_DATA=true` para cargar los datos de eje
 
 El servicio `server` también necesita `SESSION_COOKIE_SECURE=true`, para que la cookie de sesión de la agencia solo viaje por HTTPS, como decide el [ADR 0004](../adr/0004-agency-sign-in.md). Si falta, el servidor arranca igual pero envía la cookie sin `Secure`.
 
+El servicio `server` no tiene la variable `PORT`, así que escucha en el puerto `8080`, que es el que usa `client/Caddyfile`. Si algún día se añade `PORT`, hay que cambiar también el `Caddyfile`.
+
 La variable `API_DOCS_ENABLED` no se pone en Railway: la documentación de la API (Swagger UI) solo se usa en local.
 
-El servicio `client` no necesita ninguna variable para llegar a la API. `VITE_API_URL` y `CORS_ALLOWED_ORIGINS` se usaban antes del proxy y ya no existen.
+El servicio `client` no necesita ninguna variable para llegar a la API. `VITE_API_URL`, en `client`, y `CORS_ALLOWED_ORIGINS`, en `server`, se usaban antes del proxy y el código ya no las lee. Si todavía aparecen en Railway, se pueden borrar.
 
 ## Lo que no se hace
 

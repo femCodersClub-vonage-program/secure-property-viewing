@@ -122,7 +122,7 @@ Never:
 
 ## Other rules
 
-- Call the server under `/api`. In development, Vite proxies `/api` to `http://localhost:8080`
+- Call the server under `/api`, always with a relative path such as `/api/health`, so the browser sees one origin. In development, Vite proxies `/api` to `http://localhost:8080`, and on Railway the client's `Caddyfile` sends it to the server over the private network, as decided in [ADR 0004](../docs/adr/0004-agency-sign-in.md)
 - Every variable prefixed with `VITE_` ends up in the browser, so a secret never goes in the client environment. Calls that need credentials go through `server/`
 - For video, the client only uses the session token that the server generates
 
