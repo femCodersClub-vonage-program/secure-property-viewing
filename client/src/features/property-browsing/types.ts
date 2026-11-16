@@ -23,12 +23,12 @@ export interface PropertySummary {
   latitude: number | null
   longitude: number | null
   coverImage: CoverImage | null
+  agency: Agency
 }
 
 export interface PropertyDetail extends PropertySummary {
   floor: number | null
   description: string
   videoVisitAvailable: boolean
-  agency: Agency
   images: CoverImage[]
 }
