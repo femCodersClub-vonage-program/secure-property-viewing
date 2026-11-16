@@ -6,12 +6,22 @@ import PhoneVerification from './PhoneVerification'
 const startedFromSpec = {
   id: 42,
   status: 'PENDING',
-  resendAvailableAt: '2026-11-10T11:00:30+01:00',
+  resendAvailableAt: '2026-11-10T11:00:32+01:00',
 }
 const checkedFromSpec = { id: 42, status: 'VERIFIED' }
 
-// The moment the code is sent: 30 seconds before resendAvailableAt in the spec example
+// The moment the code is sent: 32 seconds before resendAvailableAt in the spec example
 const SENT_AT = new Date('2026-11-10T11:00:00+01:00')
+
+// The detail texts are the ones the server sends, from the exceptions in server/.../phoneverification/
+const EXPIRED = 'The code has expired. Ask for a new code.'
+const TOO_MANY_ATTEMPTS = 'You entered a wrong code too many times. Ask for a new code.'
+const RESEND_TOO_SOON =
+  'Wait until you can ask for a new code, as the countdown on the screen shows.'
+const LIMIT_REACHED = 'Too many codes have been sent. Try again in an hour.'
+const NOT_FOUND = 'This verification was not found. Ask for a new code.'
+const IN_PROGRESS = 'A code is already on its way to this number. Wait a few minutes and try again.'
+const CODE_INVALID = 'The code does not match. Check the SMS and try again.'
 
 const json = (body: unknown, status: number) =>
   new Response(JSON.stringify(body), {
@@ -58,6 +68,20 @@ function typeCode(code: string) {
   fireEvent.click(screen.getByRole('button', { name: 'Verify' }))
 }
 
+function passTime(milliseconds: number) {
+  act(() => {
+    vi.advanceTimersByTime(milliseconds)
+  })
+}
+
+// The body also contains the message, so check that the focus did not fall back to it
+async function expectFocusOnTheMessage() {
+  await waitFor(() => {
+    expect(document.activeElement).not.toBe(document.body)
+    expect(document.activeElement).toContainElement(screen.getByRole('alert'))
+  })
+}
+
 describe('PhoneVerification', () => {
   it('says what the number is used for, and sends it in international format without spaces', async () => {
     fetchMock.mockResolvedValueOnce(json(startedFromSpec, 201))
@@ -74,6 +98,19 @@ describe('PhoneVerification', () => {
     expect(screen.getByRole('status')).toHaveTextContent(
       "We've sent a 6-digit code by SMS to +34600000000.",
     )
+  })
+
+  it('sends LISTING_REQUEST and says the number confirms the listing request', async () => {
+    fetchMock.mockResolvedValueOnce(json(startedFromSpec, 201))
+    render(<PhoneVerification purpose="LISTING_REQUEST" onVerified={vi.fn()} />)
+
+    expect(screen.getByRole('textbox', { name: 'Phone number' })).toHaveAccessibleDescription(
+      /to confirm your listing request/,
+    )
+
+    await sendCodeTo('+34600000000')
+
+    expect(sentBody(0)).toEqual({ phone: '+34600000000', purpose: 'LISTING_REQUEST' })
   })
 
   it('hands the verified phone to the page once the code matches', async () => {
@@ -96,30 +133,101 @@ describe('PhoneVerification', () => {
     expect(sentBody(1)).toEqual({ code: '482931' })
   })
 
-  it('keeps the new code button disabled with a countdown until resendAvailableAt', async () => {
+  it('counts down to resendAvailableAt from the server before offering a new code', async () => {
     fetchMock.mockResolvedValueOnce(json(startedFromSpec, 201))
     render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
     await sendCodeTo('+34600000000')
 
-    expect(screen.getByRole('button', { name: 'Send a new code in 30 s' })).toBeDisabled()
+    expect(screen.getByText('You can ask for a new code in 32 s.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Send a new code' })).toBeDisabled()
 
-    act(() => {
-      vi.advanceTimersByTime(30_000)
+    passTime(30_000)
+    expect(screen.getByRole('button', { name: 'Send a new code' })).toBeDisabled()
+
+    passTime(2_000)
+    expect(screen.queryByText(/You can ask for a new code/)).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Send a new code' })).toBeEnabled()
+  })
+
+  it('checks the new verification after asking for a new code', async () => {
+    fetchMock
+      .mockResolvedValueOnce(json(startedFromSpec, 201))
+      .mockResolvedValueOnce(
+        json({ id: 43, status: 'PENDING', resendAvailableAt: '2026-11-10T11:01:04+01:00' }, 201),
+      )
+      .mockResolvedValueOnce(json({ id: 43, status: 'VERIFIED' }, 200))
+    const onVerified = vi.fn()
+    render(<PhoneVerification purpose="VISIT" onVerified={onVerified} />)
+    await sendCodeTo('+34600000000')
+    passTime(32_000)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Send a new code' }))
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent(/a new 6-digit code/))
+    typeCode('482931')
+
+    await waitFor(() =>
+      expect(onVerified).toHaveBeenCalledWith({ verificationId: 43, phone: '+34600000000' }),
+    )
+    expect(sentBody(1)).toEqual({ phone: '+34600000000', purpose: 'VISIT' })
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      '/api/phone-verifications/43/check',
+      expect.anything(),
+    )
+  })
+
+  it('moves the focus to the code field once the code is sent, and back to the phone field to change it', async () => {
+    fetchMock.mockResolvedValueOnce(json(startedFromSpec, 201))
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
+
+    await sendCodeTo('+34600000000')
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus(),
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Change the number' }))
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Phone number' })).toHaveFocus())
+  })
+
+  it('keeps the six digits of a code pasted with a space', async () => {
+    fetchMock.mockResolvedValueOnce(json(startedFromSpec, 201))
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
+    await sendCodeTo('+34600000000')
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Code from the SMS' }), {
+      target: { value: '482 931' },
     })
 
-    expect(screen.getByRole('button', { name: 'Send a new code' })).toBeEnabled()
+    expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveValue('482931')
+  })
+
+  it('asks for the missing digits instead of calling the server', async () => {
+    fetchMock.mockResolvedValueOnce(json(startedFromSpec, 201))
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
+    await sendCodeTo('+34600000000')
+
+    typeCode('4829')
+
+    expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveAccessibleDescription(
+      /Enter the 6 digits from the SMS./,
+    )
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('asks for a number when the field is empty, without calling the server', () => {
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Send code' }))
+
+    expect(screen.getByRole('textbox', { name: 'Phone number' })).toHaveAccessibleDescription(
+      /Enter your phone number in international format/,
+    )
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 
   it('shows a wrong code next to the field, so the person can try again', async () => {
     fetchMock
       .mockResolvedValueOnce(json(startedFromSpec, 201))
-      .mockResolvedValueOnce(
-        problem(
-          422,
-          'VERIFICATION_CODE_INVALID',
-          'The code does not match. Check the SMS and try again.',
-        ),
-      )
+      .mockResolvedValueOnce(problem(422, 'VERIFICATION_CODE_INVALID', CODE_INVALID))
     render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
     await sendCodeTo('+34600000000')
 
@@ -127,29 +235,46 @@ describe('PhoneVerification', () => {
 
     const field = await screen.findByRole('textbox', { name: 'Code from the SMS' })
     await waitFor(() => expect(field).toHaveAttribute('aria-invalid', 'true'))
-    expect(field).toHaveAccessibleDescription(
-      /The code does not match. Check the SMS and try again./,
-    )
+    expect(field).toHaveAccessibleDescription(new RegExp(CODE_INVALID))
     expect(screen.getByRole('button', { name: 'Verify' })).toBeInTheDocument()
   })
 
-  it('offers only a new code once the verification has expired', async () => {
+  it.each([
+    ['VERIFICATION_EXPIRED', 422, EXPIRED],
+    ['VERIFICATION_TOO_MANY_ATTEMPTS', 429, TOO_MANY_ATTEMPTS],
+    ['VERIFICATION_NOT_FOUND', 404, NOT_FOUND],
+  ])(
+    'offers only a new code after %s, with the focus on the message',
+    async (code, status, detail) => {
+      fetchMock
+        .mockResolvedValueOnce(json(startedFromSpec, 201))
+        .mockResolvedValueOnce(problem(status, code, detail))
+      render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
+      await sendCodeTo('+34600000000')
+      passTime(32_000)
+
+      typeCode('482931')
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(detail)
+      await expectFocusOnTheMessage()
+      expect(screen.queryByRole('button', { name: 'Verify' })).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Send a new code' })).toBeEnabled()
+    },
+  )
+
+  it('keeps the current code usable when a new one is asked for too soon', async () => {
     fetchMock
       .mockResolvedValueOnce(json(startedFromSpec, 201))
-      .mockResolvedValueOnce(
-        problem(422, 'VERIFICATION_EXPIRED', 'The code has expired. Ask for a new one.'),
-      )
+      .mockResolvedValueOnce(problem(429, 'VERIFICATION_RESEND_TOO_SOON', RESEND_TOO_SOON))
     render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
     await sendCodeTo('+34600000000')
-    act(() => {
-      vi.advanceTimersByTime(30_000)
-    })
+    passTime(32_000)
 
-    typeCode('482931')
+    fireEvent.click(screen.getByRole('button', { name: 'Send a new code' }))
 
-    expect(await screen.findByText('The code has expired. Ask for a new one.')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Verify' })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Send a new code' })).toBeEnabled()
+    expect(await screen.findByRole('alert')).toHaveTextContent(RESEND_TOO_SOON)
+    expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Verify' })).toBeInTheDocument()
   })
 
   it('shows the server message next to the phone field when the number is not valid', async () => {
@@ -158,7 +283,7 @@ describe('PhoneVerification', () => {
         phone: 'must be a phone number in international format, such as +34600000000',
       }),
     )
-    render(<PhoneVerification purpose="LISTING_REQUEST" onVerified={vi.fn()} />)
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Phone number' }), {
       target: { value: '600' },
@@ -170,14 +295,11 @@ describe('PhoneVerification', () => {
     expect(field).toHaveAccessibleDescription(/must be a phone number in international format/)
   })
 
-  it('explains the hourly limit when it is reached', async () => {
-    fetchMock.mockResolvedValueOnce(
-      problem(
-        429,
-        'VERIFICATION_LIMIT_REACHED',
-        'Too many codes for this number. Try again in an hour.',
-      ),
-    )
+  it.each([
+    ['VERIFICATION_LIMIT_REACHED', 429, LIMIT_REACHED],
+    ['VERIFICATION_IN_PROGRESS', 409, IN_PROGRESS],
+  ])('explains %s and stays on the phone step', async (code, status, detail) => {
+    fetchMock.mockResolvedValueOnce(problem(status, code, detail))
     render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Phone number' }), {
@@ -185,8 +307,7 @@ describe('PhoneVerification', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: 'Send code' }))
 
-    expect(
-      await screen.findByText('Too many codes for this number. Try again in an hour.'),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('alert')).toHaveTextContent(detail)
+    expect(screen.getByRole('textbox', { name: 'Phone number' })).toBeInTheDocument()
   })
 })

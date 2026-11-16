@@ -1,6 +1,7 @@
-import type { InputHTMLAttributes } from 'react'
+import type { ComponentPropsWithRef } from 'react'
 
-type InputProps = InputHTMLAttributes<HTMLInputElement>
+// With ref, so a screen can move the focus to the field
+type InputProps = ComponentPropsWithRef<'input'>
 
 function Input({ className, type = 'text', ...props }: InputProps) {
   return (
