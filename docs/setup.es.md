@@ -87,7 +87,7 @@ cp .env.example .env
 
 En PowerShell de Windows, usa `copy` en lugar de `cp`.
 
-Abre `server/.env` y sustituye los seis valores de ejemplo:
+Abre `server/.env` y sustituye los siete valores de ejemplo:
 
 | Variable | Valor |
 | :---- | :---- |
@@ -97,6 +97,19 @@ Abre `server/.env` y sustituye los seis valores de ejemplo:
 | `LOAD_DEMO_DATA` | `true` para cargar los datos de ejemplo al arrancar el servidor, `false` para arrancar solo con las tablas |
 | `SESSION_COOKIE_SECURE` | `false`, porque el servidor local funciona sobre `http://localhost`. Solo es `true` en Railway, donde la cookie de sesión de la agencia solo debe enviarse por HTTPS, como se decidió en el [ADR 0004](adr/0004-agency-sign-in.md) |
 | `API_DOCS_ENABLED` | `true` para abrir la documentación de la API en Swagger UI, en `http://localhost:8080/swagger-ui.html`, con el servidor arrancado. En Railway no se pone nunca, así que allí está apagada |
+| `PHONE_HASH_SECRET` | Un valor aleatorio largo que generas tú (ver abajo). El servidor lo usa para hacer un hash de los teléfonos, así nunca se guardan tal cual |
+
+Para generar el secreto del hash, en PowerShell:
+
+```powershell
+$bytes = New-Object byte[] 32
+[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+[Convert]::ToBase64String($bytes)
+```
+
+En macOS, usa `openssl rand -base64 32`. Copia el resultado directamente en `server/.env`, y nunca lo pegues en un asistente de IA.
+
+El `PHONE_HASH_SECRET` de Railway es otro distinto, y está en la carpeta compartida del Drive del equipo.
 
 Los datos de ejemplo son ficticios y están en `server/src/main/resources/db/seed/`. Solo se cargan cuando `LOAD_DEMO_DATA` es `true`, y las tablas se crean en los dos casos.
 
@@ -112,7 +125,7 @@ Cada API de Vonage funciona con la aplicación de Vonage de una persona del equi
 | Video | `VONAGE_VIDEO_APPLICATION_ID`, `VONAGE_VIDEO_PRIVATE_KEY` | Viviana |
 | Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY`, `VONAGE_MESSAGES_SIGNATURE_SECRET` | Damaris |
 
-En local, pon en `server/.env` los valores de tu propia aplicación de Vonage y deja los demás grupos con sus valores de ejemplo.
+En local, todas rellenan el grupo de Verify con su propia aplicación de Vonage, porque el servidor no arranca sin él. Verify no necesita ninguna capacidad, así que sirve cualquiera de tus aplicaciones. Rellena los demás grupos solo si son tuyos, y deja el resto con sus valores de ejemplo.
 
 **La clave privada en base64.** Cada clave privada va en una sola línea, así el mismo valor funciona en `server/.env` y en Railway. Para copiar la tuya:
 
@@ -174,3 +187,7 @@ Abre `http://localhost:5173`. Para pararlo, pulsa `Ctrl+C`.
 | `database "peephole" does not exist` | No se completó el paso 3 | Lanza el comando `createdb` del paso 3 |
 | `npm error code EBADENGINE` en `client/` | Tu versión de Node.js es más antigua que la que necesita el proyecto | Instala una versión más nueva (paso 2) y vuelve a lanzar `npm ci` |
 | `Connection refused` en el puerto `5432` | PostgreSQL no está arrancado | Windows: arranca el servicio `postgresql-x64-17`. macOS: `brew services start postgresql@17` |
+| `PHONE_HASH_SECRET is not set` o `VONAGE_VERIFY_… is not set` | Esa variable está vacía en `server/.env` | Rellénala: el secreto del hash como en el paso 4, y el grupo de Verify con tu propia aplicación de Vonage, como en [Variables de Vonage](#variables-de-vonage) |
+| `VONAGE_VERIFY_PRIVATE_KEY does not match VONAGE_VERIFY_APPLICATION_ID` | La clave y el ID son de aplicaciones distintas, o la clave no se copió entera | Vuelve a copiar las dos de la misma aplicación, con la clave en base64 en una sola línea |
+| `VONAGE_VERIFY_APPLICATION_ID is not a valid application ID` | El valor no es un Application ID, que tiene esta forma: `aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee` | Vuelve a copiarlo de tu aplicación en el dashboard de Vonage |
+| `VONAGE_VERIFY_PRIVATE_KEY is not valid base64` | La clave se pegó tal cual, o con espacios o saltos de línea | Vuelve a convertirla con el comando de [Variables de Vonage](#variables-de-vonage) y pega la línea entera |

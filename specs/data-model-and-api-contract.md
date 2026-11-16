@@ -25,7 +25,7 @@ The client and the server are built at the same time by different people. If eac
 
 ## Out of scope
 
-- Video sessions and tokens: defined in the video spec in week 2
+- Video sessions, room links and tokens: defined in the [video visit spec](video-visit.md)
 - Message sending rules: defined in the [messages spec](messages.md)
 - Pagination: the MVP has about twenty properties, so lists return everything that matches the filters
 - Several agencies: the MVP has one demo agency, although the model keeps `agency_id` so it can grow
@@ -58,6 +58,7 @@ erDiagram
     AGENCY_USER ||--o{ LISTING_REQUEST : reviews
     LISTING_REQUEST ||--o| PROPERTY : "becomes"
     VISIT ||--o{ MESSAGE : triggers
+    VISIT ||--o{ VIDEO_ACCESS : grants
     LISTING_REQUEST ||--o{ MESSAGE : triggers
 ```
 
@@ -68,7 +69,8 @@ erDiagram
 | `property` | id, agency_id, listing_request_id (nullable), title, operation (`RENT`, `SALE`), property_type (`APARTMENT`, `HOUSE`, `STUDIO`), price_euros, area, address, latitude (nullable), longitude (nullable), bedrooms, size_m2, floor (nullable), description, video_visit_available, status (`ACTIVE`, `INACTIVE`), created_at | Only `ACTIVE` properties appear in the catalog. `area` is the neighborhood, such as Gràcia. Coordinates are approximate, at neighborhood level, and place the pin on the map |
 | `property_image` | id, property_id, url, alt_text, position | `alt_text` is required: it describes what the photo shows |
 | `visit_slot` | id, property_id, starts_at, ends_at, status (`AVAILABLE`, `BOOKED`) | Slots of 30 minutes in the screen map |
-| `visit` | id, property_id, visit_slot_id, phone_verification_id, visitor_name, visitor_phone, status (`CONFIRMED`, `CANCELED`, `COMPLETED`), created_at | A visit exists only once the phone is verified |
+| `visit` | id, property_id, visit_slot_id, phone_verification_id, visitor_name, visitor_phone, status (`CONFIRMED`, `CANCELED`, `COMPLETED`), video_session_id (nullable), created_at | A visit exists only once the phone is verified. `video_session_id` is filled the first time someone enters its [video visit](video-visit.md) |
+| `video_access` | id, visit_id, role (`VISITOR`, `GUEST`), token_hash (unique), created_at | The room links of a visit: one for the visitor and up to 4 for guests. Only the hash of each token is stored. Detailed in the [video visit spec](video-visit.md) |
 | `listing_request` | id, phone_verification_id, owner_full_name, owner_phone, title, description, property_type, operation, area, address, price_euros, bedrooms, size_m2, floor (nullable), status (`PENDING`, `APPROVED`, `REJECTED`), reviewed_by (nullable), rejection_reason (nullable), created_at, reviewed_at (nullable) | Approving it creates an `ACTIVE` property with its data, no coordinates and a generic image |
 | `phone_verification` | id, purpose (`VISIT`, `LISTING_REQUEST`), phone_hash, vonage_request_id, status (`PENDING`, `VERIFIED`, `FAILED`, `EXPIRED`), check_attempts, created_at, verified_at (nullable) | Detailed in the [phone verification spec](phone-verification.md). The code is never stored, and the phone is kept only as a hash |
 | `message` | id, visit_id (nullable), listing_request_id (nullable), type (`CONFIRMATION`, `REMINDER`, `STATUS_UPDATE`), channel (`SMS`), vonage_message_id (nullable), status (`SCHEDULED`, `SUBMITTED`, `DELIVERED`, `FAILED`), scheduled_at, updated_at | Filled in by the messages feature in weeks 3 and 4 |
@@ -83,10 +85,12 @@ Public:
 | :---- | :---- | :---- |
 | `GET /api/properties?operation=` | Catalog, with an optional filter | [Property browsing](property-browsing.md) |
 | `GET /api/properties/{id}` | Property details | [Property browsing](property-browsing.md) |
-| `GET /api/properties/{id}/slots?from=&to=` | Available visit slots | Visit booking (week 2) |
+| `GET /api/properties/{id}/slots?from=&to=` | Available visit slots | [Visit booking](visit-booking.md) |
 | `POST /api/phone-verifications` | Start a phone verification | [Phone verification](phone-verification.md) |
 | `POST /api/phone-verifications/{id}/check` | Check the code | [Phone verification](phone-verification.md) |
-| `POST /api/visits` | Book a visit with a verified phone | Visit booking (week 2) |
+| `POST /api/visits` | Book a visit with a verified phone | [Visit booking](visit-booking.md) |
+| `POST /api/visits/{id}/room-links` | Create the visitor's room link or a guest link, right after booking | [Video visit](video-visit.md) |
+| `POST /api/room-links/video-token` | Enter the video visit with a room link | [Video visit](video-visit.md) |
 | `POST /api/listing-requests` | Send a listing request with a verified phone | Owner listing (week 2) |
 
 Agency:
@@ -101,6 +105,7 @@ Agency:
 | `POST /api/agency/listing-requests/{id}/reject` | Reject with a reason | [Agency dashboard](agency-dashboard.md) |
 | `GET /api/agency/visits?from=&to=` | Visits for the calendar | [Agency dashboard](agency-dashboard.md) |
 | `GET /api/agency/messages` | Sent and scheduled messages | [Agency dashboard](agency-dashboard.md) |
+| `POST /api/agency/visits/{id}/video-token` | Enter the video visit as the agency | [Video visit](video-visit.md) |
 
 Vonage webhooks, called by Vonage with a signed JWT that the server verifies, so they need no agency session:
 

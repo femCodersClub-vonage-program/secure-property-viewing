@@ -6,18 +6,34 @@ How Peephole uses each Vonage API, and the Vonage tools we rely on during develo
 
 ### Verify API
 
-Phone verification for visitors and owners using a one-time passcode (OTP) sent by SMS.
+Phone verification for visitors and owners using a one-time passcode (OTP) sent by SMS. It is built in `server/` and decided in [`specs/phone-verification.md`](../specs/phone-verification.md):
+
+- Each request uses the brand `Peephole`, one `sms` step, a 6-digit code and a `channel_timeout` of 300 seconds
+- A new code cancels the previous request first, which Verify allows from 30 seconds after the start
+- A `410` on a check means Verify has ended the request: the server marks it `EXPIRED` when the 5 minutes are up and `FAILED` otherwise
+- The Verify application needs no capability, so locally each person uses her own
+- The server reaches Verify only through the `PhoneVerifier` interface in `vonage/`, and the tests use a test double
 
 Silent Authentication is planned for later. In Spain it is available in the sandbox environment with Orange, Telefónica and Vodafone and requires mobile data, so SMS OTP would remain as a fallback even once it is added.
 
 ### Video API
 
-We distinguish two session types, because each one meets a different need:
+Every video visit uses one routed session, because the visitor can invite up to 4 guests to join the agent. With Adaptive Media Routing, a routed session still behaves like a direct one when only two people are in the call. The details are in the [video visit spec](../specs/video-visit.md).
 
-| Session type | Where it is used |
-| :---- | :---- |
-| **One-to-one** | Guided visit between the agent and the visitor (journey A), and video call between the owner and the agency (journey B) |
-| **Multi-party** | Visit joined by a second interested person or by the owner. Later on, signing or ratification with the property manager and all parties |
+Planned for later: the video call between the owner and the agency (journey B), and signing or ratification with the property manager and all parties.
+
+#### A working reference: OffLoad
+
+[OffLoad](https://github.com/ctrl-Ella/OffLoad) is a public project that Irina's team built for the Vonage challenge at HackBarna 2026. It ran a multi-party video room with `@vonage/client-sdk-video` 2.35.2, and a person who received a link joined the same call from outside, with no account. That is what the video visit needs, so it is the first place to look before writing video code:
+
+| What | Where in OffLoad | How Peephole differs |
+| :---- | :---- | :---- |
+| Joining a room from React: loading the SDK, `initSession`, `connect`, publishing and subscribing, and cleaning up | `src/components/useRoom.ts`, `Room.tsx` and `GuestRoom.tsx` | The same approach. The SDK touches `window` when it loads, which is why OffLoad imports it with a dynamic `import()` |
+| Entering with a link and no account, where the token is the credential | `src/app/api/room/guest/[token]/route.ts` | Peephole stores only a hash of the token and sends it in the request body, not in the path. See the [video visit spec](../specs/video-visit.md) |
+| Creating the session and the tokens | `src/lib/video.ts` and `src/lib/room.ts` | OffLoad uses the Node SDK (`@vonage/jwt`). Peephole uses the Java Server SDK in `server/` |
+| Sending the guest link | The invite by SMS in `docs/specs/0009-inviting-the-support-network-by-sms.md` | Peephole never sends links by SMS, as the [messages spec](../specs/messages.md) says. The link is copied from the confirmation screen |
+
+OffLoad shows what worked in practice. The Vonage Documentation MCP Server is still the source for every detail, and the Peephole specs decide how it is built here.
 
 ### Messages API
 
@@ -28,7 +44,7 @@ Visit confirmations, reminders and request status updates, always sent from the 
 | Tool | What we use it for | Where |
 | :---- | :---- | :---- |
 | **Java Server SDK** (`com.vonage:server-sdk`) | Calling Verify, Video and Messages from the server and generating video session tokens | `server/` |
-| **Video Client SDK** | Embedding the video room in the browser | `client/` |
+| **Video Client SDK** (`@vonage/client-sdk-video`) | Embedding the video room in the browser | `client/` |
 | **Vonage CLI** | Creating and configuring the Vonage application, its keys and test numbers from the terminal, and checking that configuration, such as webhook URLs, before an end-to-end test | Project setup and manual checks |
 | **Documentation MCP Server** | Querying Vonage documentation, SDKs and sample code from the AI assistant without leaving the editor, so answers are checked against the official source. It is read-only | AI assistants |
 | **MCP Tooling Server** | Letting an agent perform real actions on the Vonage account, such as sending messages or checking the balance | AI assistants, with restrictions |

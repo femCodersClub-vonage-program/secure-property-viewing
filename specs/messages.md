@@ -38,7 +38,7 @@ Visitors and owners need to hear from Peephole after they leave the page: the co
 - Processing replies: the inbound webhook only answers `200`
 - Sending or resending a message by hand from the dashboard
 - A message when a visit is changed or canceled
-- The link to the video room: the video spec decides whether the visitor receives it, and how
+- The link to the video room: it is never sent by SMS, as the [video visit spec](video-visit.md) describes
 - Messages to the agency, and messages in more than one language
 
 ## Open questions
