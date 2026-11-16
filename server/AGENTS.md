@@ -19,7 +19,7 @@ The server is organized by feature, like the client: everything one feature need
 ```text
 src/main/java/com/peephole/server/
 ├── ServerApplication.java
-├── config/                    Cross-cutting configuration, such as CorsConfig
+├── config/                    Cross-cutting configuration, such as SecurityConfig
 ├── common/                    Shared code, such as the @RestControllerAdvice for errors
 ├── vonage/                    Interfaces to Vonage, such as PhoneVerifier, and their implementations
 └── visit/                     One package per business feature
@@ -72,10 +72,10 @@ Never:
 
 ## API
 
-- Every endpoint lives under `/api`, because that is the path the client proxies in development. The local-only API documentation, `/v3/api-docs` and `/swagger-ui.html`, is the exception
+- Every endpoint lives under `/api`, because that is the path the client proxies: through Vite locally and through the client's `Caddyfile` on Railway. The local-only API documentation, `/v3/api-docs` and `/swagger-ui.html`, is the exception
 - Spring Security is configured once in `config/SecurityConfig.java`, as decided in [ADR 0004](../docs/adr/0004-agency-sign-in.md): `/api/agency/**` needs a signed-in user, except `POST /api/agency/session`, and every `POST`, `PUT`, `PATCH` and `DELETE` needs a CSRF token, except under `/api/webhooks/**`. A `@WebMvcTest` needs `@Import(SecurityConfig.class)` and `.with(csrf())` on those requests
 - Every endpoint is documented for springdoc: `@Operation`, one `@ApiResponse` per `ProblemDetail` error with `ProblemResponse` as its schema, and `@SecurityRequirement(name = OpenApiConfig.AGENCY_SESSION)` on agency endpoints. The documentation is only published with `API_DOCS_ENABLED=true`
-- CORS is configured once in `config/CorsConfig.java` for `/api/**`. The allowed origins come from `CORS_ALLOWED_ORIGINS`, with `http://localhost:5173` by default. Never add `@CrossOrigin` to a controller
+- There is no CORS configuration: the browser always calls `/api` from the client's own origin, so other origins are refused. Never add `@CrossOrigin` to a controller or a CORS configuration to the server
 - The server listens on `PORT` when it is set, as on Railway, and on `8080` otherwise. Deployment is described in [ADR 0002](../docs/adr/0002-deployment-railway.md)
 
 ## Validation and errors

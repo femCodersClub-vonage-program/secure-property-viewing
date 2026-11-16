@@ -12,6 +12,14 @@ Cada servicio se despliega solo cuando llega un cambio a `dev` en su carpeta. No
 
 El porqué de esta organización está en el [ADR 0002](../adr/0002-deployment-railway.md).
 
+## Cómo llegan las llamadas a la API
+
+El navegador nunca llama directamente al servidor: llama a `/api` en la misma dirección del cliente, como en local. El servicio `client` sirve la web con Caddy y, siguiendo su `client/Caddyfile`, pasa todo lo que empieza por `/api/` al servidor por la red privada de Railway, en `server.railway.internal:8080`. Así el navegador ve un solo origen y la cookie de sesión de la agencia funciona, como decide el [ADR 0004](../adr/0004-agency-sign-in.md).
+
+Para comprobarlo, abre `https://client-production-c53a.up.railway.app/api/health`: tiene que responder el servidor.
+
+Los webhooks de Vonage son la excepción: siguen llamando a la dirección pública del servidor.
+
 ## Conectarte al proyecto
 
 Solo la primera vez. Necesitas que te hayan invitado al proyecto y tener instalado el CLI de Railway, siguiendo [su documentación oficial](https://docs.railway.com/guides/cli).
@@ -53,7 +61,8 @@ railway status
 | `Could not resolve placeholder` | Falta una variable en el servicio | Añádela, como se explica abajo |
 | `password authentication failed` o `Connection refused` | Las variables de la base de datos no coinciden o `Postgres` no está en marcha | Comprueba el estado de `Postgres` y las variables de `server` |
 | Un error de Flyway al arrancar | Una migración tiene un problema | Mira la tabla de errores de [la guía de migraciones](flyway-migrations.md#si-algo-falla) |
-| `Blocked by CORS` en el navegador | `CORS_ALLOWED_ORIGINS` no incluye la dirección del cliente | Comprueba esa variable en `server` |
+| `502 Bad Gateway` en una dirección `/api/...` del cliente | Caddy no llega al servidor por la red privada: `server` no está en marcha o no escucha en el puerto `8080` | Comprueba el estado de `server` y sus registros. Mira también `railway logs --service client`, donde Caddy explica por qué falló |
+| `Blocked by CORS` en el navegador | Algo llama a la dirección pública del servidor en lugar de a `/api` en la dirección del cliente | Las llamadas del cliente usan siempre rutas relativas, como `/api/health`. El servidor no acepta llamadas de otros orígenes |
 | `NEEDS_APPROVAL` en `railway deployment list` | El despliegue no ha fallado: Railway lo ha retenido hasta que alguien con permiso lo apruebe | Avisa a la tech lead para que lo apruebe en el panel de Railway |
 
 ## Añadir una variable
@@ -71,6 +80,8 @@ El servicio `server` necesita `LOAD_DEMO_DATA=true` para cargar los datos de eje
 El servicio `server` también necesita `SESSION_COOKIE_SECURE=true`, para que la cookie de sesión de la agencia solo viaje por HTTPS, como decide el [ADR 0004](../adr/0004-agency-sign-in.md). Si falta, el servidor arranca igual pero envía la cookie sin `Secure`.
 
 La variable `API_DOCS_ENABLED` no se pone en Railway: la documentación de la API (Swagger UI) solo se usa en local.
+
+El servicio `client` no necesita ninguna variable para llegar a la API. `VITE_API_URL` y `CORS_ALLOWED_ORIGINS` se usaban antes del proxy y ya no existen.
 
 ## Lo que no se hace
 

@@ -1,7 +1,5 @@
 package com.peephole.server.config;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,12 +30,13 @@ public class SecurityConfig {
         return CookieCsrfTokenRepository.withHttpOnlyFalse();
     }
 
+    // There is no CORS configuration on purpose: the browser always calls /api from the client's own origin,
+    // through the Vite proxy locally and the client's Caddyfile on Railway (ADR 0004), so other origins are refused
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, CsrfTokenRepository csrfTokenRepository)
             throws Exception {
         http.csrf((csrf) ->
                         csrf.spa().csrfTokenRepository(csrfTokenRepository).ignoringRequestMatchers("/api/webhooks/**"))
-                .cors(withDefaults())
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers(HttpMethod.POST, "/api/agency/session")
                         .permitAll()
