@@ -18,7 +18,8 @@
 		format json
 	}
 
-	# API calls go to the server through the private network
+	# API calls go to the server through the private network. The server listens on 8080 because PORT is not
+	# set on its Railway service. If that changes, change the port here too
 	handle /api/* {
 		reverse_proxy server.railway.internal:8080
 	}

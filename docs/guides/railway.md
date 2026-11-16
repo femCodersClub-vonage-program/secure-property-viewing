@@ -62,7 +62,7 @@ railway status
 | `password authentication failed` o `Connection refused` | Las variables de la base de datos no coinciden o `Postgres` no está en marcha | Comprueba el estado de `Postgres` y las variables de `server` |
 | Un error de Flyway al arrancar | Una migración tiene un problema | Mira la tabla de errores de [la guía de migraciones](flyway-migrations.md#si-algo-falla) |
 | `502 Bad Gateway` en una dirección `/api/...` del cliente | Caddy no llega al servidor por la red privada: `server` no está en marcha o no escucha en el puerto `8080` | Comprueba el estado de `server` y sus registros. Mira también `railway logs --service client`, donde Caddy explica por qué falló |
-| `Blocked by CORS` en el navegador | Algo llama a la dirección pública del servidor en lugar de a `/api` en la dirección del cliente | Las llamadas del cliente usan siempre rutas relativas, como `/api/health`. El servidor no acepta llamadas de otros orígenes |
+| `Blocked by CORS` en el navegador | Algo llama a la dirección pública del servidor en lugar de a `/api` en la dirección del cliente | Las llamadas del cliente usan siempre rutas relativas, como `/api/health`. El servidor no envía cabeceras CORS, así que ninguna otra web puede leer sus respuestas |
 | `NEEDS_APPROVAL` en `railway deployment list` | El despliegue no ha fallado: Railway lo ha retenido hasta que alguien con permiso lo apruebe | Avisa a la tech lead para que lo apruebe en el panel de Railway |
 
 ## Añadir una variable

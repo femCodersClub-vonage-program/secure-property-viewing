@@ -31,7 +31,8 @@ public class SecurityConfig {
     }
 
     // There is no CORS configuration on purpose: the browser always calls /api from the client's own origin,
-    // through the Vite proxy locally and the client's Caddyfile on Railway (ADR 0004), so other origins are refused
+    // through the Vite proxy locally and the client's Caddyfile on Railway (ADR 0004). The server sends no CORS
+    // headers, so another site cannot read its responses. It can still send requests, so CSRF protects every write
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, CsrfTokenRepository csrfTokenRepository)
             throws Exception {
