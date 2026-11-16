@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes } from 'react'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'danger'
+export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'link'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant
@@ -14,6 +14,8 @@ const variantClasses: Record<ButtonVariant, string> = {
     'bg-surface-page text-brand-primary border border-brand-primary hover:bg-brand-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary',
   danger:
     'bg-error text-surface-page hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error',
+  // An action that looks like a link, for a secondary step such as changing the number
+  link: 'min-h-11 bg-transparent text-brand-primary underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary',
 }
 
 function Button({
