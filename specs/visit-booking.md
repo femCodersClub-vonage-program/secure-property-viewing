@@ -142,7 +142,7 @@ None directly. Phone verification calls Verify, and the confirmation SMS goes th
 
 ### Client
 
-- A4 and A6 as pages in `src/pages/`, registered in `routes.tsx`, with a `visit-booking` feature that holds its `api.ts`, types and components, following `client/AGENTS.md`
+- A4 and A6 as pages in `src/pages/`, registered in `routes.tsx`, with A4 at `/properties/:id/visit`, where "Request a video visit" on the property details leads. They use a `visit-booking` feature that holds its `api.ts`, types and components, following `client/AGENTS.md`
 - A4 shows the property summary at the top, the days of the next 14 days that have free slots, the free times of the selected day and the name field. The design system has no calendar component, so the days and times are `Button`s with `aria-pressed` inside the feature, with an accessible name that includes the day and the time. No date picker library is added
 - A4 keeps the chosen slot and the name while the visitor goes through A5. When A5 ends with `VERIFIED`, the booking flow sends `POST /api/visits`
 - A `409` takes the visitor back to A4 with a message that says the time has just been taken. When she picks another time, the booking is sent again with the same verification, without going through A5. A `422` takes her back to A5
