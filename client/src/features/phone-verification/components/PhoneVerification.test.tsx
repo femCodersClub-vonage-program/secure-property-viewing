@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
 import PhoneVerification from './PhoneVerification'
 
 // Copied as-is from specs/phone-verification.md, "API"
@@ -59,6 +60,8 @@ async function sendCodeTo(phone: string) {
   })
   fireEvent.click(screen.getByRole('button', { name: 'Send code' }))
   await screen.findByRole('textbox', { name: 'Code from the SMS' })
+  // The countdown starts in an effect: moving the clock before it exists would skip it
+  await vi.waitFor(() => expect(vi.getTimerCount()).toBeGreaterThan(0))
 }
 
 function typeCode(code: string) {
@@ -89,7 +92,7 @@ describe('PhoneVerification', () => {
     render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
 
     expect(screen.getByRole('textbox', { name: 'Phone number' })).toHaveAccessibleDescription(
-      /to confirm your visit and send you its messages/,
+      'Such as +34 600 000 000. Used to confirm your visit and send you its messages.',
     )
 
     await sendCodeTo('+34 600 000 000')
@@ -106,7 +109,7 @@ describe('PhoneVerification', () => {
     render(<PhoneVerification purpose="LISTING_REQUEST" onVerified={vi.fn()} />)
 
     expect(screen.getByRole('textbox', { name: 'Phone number' })).toHaveAccessibleDescription(
-      /to confirm your listing request/,
+      'Such as +34 600 000 000. Used to confirm your listing request and send you its updates.',
     )
 
     await sendCodeTo('+34600000000')
@@ -150,6 +153,44 @@ describe('PhoneVerification', () => {
     passTime(2_000)
     expect(screen.queryByText(/You can ask for a new code/)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Send a new code' })).toBeEnabled()
+  })
+
+  it('follows the resendAvailableAt of each answer, not a fixed wait', async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        json({ ...startedFromSpec, resendAvailableAt: '2026-11-10T11:00:45+01:00' }, 201),
+      )
+      .mockResolvedValueOnce(
+        json({ id: 43, status: 'PENDING', resendAvailableAt: '2026-11-10T11:01:45+01:00' }, 201),
+      )
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
+    await sendCodeTo('+34600000000')
+
+    expect(screen.getByText('You can ask for a new code in 45 s.')).toBeInTheDocument()
+    passTime(32_000)
+    expect(screen.getByRole('button', { name: 'Send a new code' })).toBeDisabled()
+    passTime(13_000)
+    expect(screen.getByRole('button', { name: 'Send a new code' })).toBeEnabled()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Send a new code' }))
+
+    expect(await screen.findByText('You can ask for a new code in 60 s.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Send a new code' })).toBeDisabled()
+  })
+
+  it('shows the general error when the server fails without an explanation', async () => {
+    fetchMock.mockResolvedValueOnce(
+      problem(500, 'INTERNAL_ERROR', 'Something went wrong on our side.'),
+    )
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Phone number' }), {
+      target: { value: '+34600000000' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Send code' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(SYSTEM_ERROR_MESSAGE)
+    expect(screen.getByRole('textbox', { name: 'Phone number' })).toBeInTheDocument()
   })
 
   it('checks the new verification after asking for a new code', async () => {
@@ -233,15 +274,28 @@ describe('PhoneVerification', () => {
     fetchMock
       .mockResolvedValueOnce(json(startedFromSpec, 201))
       .mockResolvedValueOnce(problem(422, 'VERIFICATION_CODE_INVALID', CODE_INVALID))
-    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
+      .mockResolvedValueOnce(json(checkedFromSpec, 200))
+    const onVerified = vi.fn()
+    render(<PhoneVerification purpose="VISIT" onVerified={onVerified} />)
     await sendCodeTo('+34600000000')
 
-    typeCode('111111')
+    fireEvent.change(screen.getByRole('textbox', { name: 'Code from the SMS' }), {
+      target: { value: '111111' },
+    })
+    // A keyboard user presses Verify, which is disabled while the code is checked
+    const verify = screen.getByRole('button', { name: 'Verify' })
+    verify.focus()
+    fireEvent.click(verify)
 
     const field = await screen.findByRole('textbox', { name: 'Code from the SMS' })
     await waitFor(() => expect(field).toHaveAttribute('aria-invalid', 'true'))
     expect(field).toHaveAccessibleDescription(new RegExp(CODE_INVALID))
-    expect(screen.getByRole('button', { name: 'Verify' })).toBeInTheDocument()
+    await vi.waitFor(() => expect(field).toHaveFocus())
+
+    typeCode('482931')
+    await waitFor(() =>
+      expect(onVerified).toHaveBeenCalledWith({ verificationId: 42, phone: '+34600000000' }),
+    )
   })
 
   it.each([
@@ -324,11 +378,14 @@ describe('PhoneVerification', () => {
     fireEvent.change(screen.getByRole('textbox', { name: 'Phone number' }), {
       target: { value: '600' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Send code' }))
+    const sendButton = screen.getByRole('button', { name: 'Send code' })
+    sendButton.focus()
+    fireEvent.click(sendButton)
 
     const field = screen.getByRole('textbox', { name: 'Phone number' })
     await waitFor(() => expect(field).toHaveAttribute('aria-invalid', 'true'))
     expect(field).toHaveAccessibleDescription(/must be a phone number in international format/)
+    await vi.waitFor(() => expect(field).toHaveFocus())
   })
 
   it.each([

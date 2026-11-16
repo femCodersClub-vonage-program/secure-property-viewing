@@ -1,3 +1,4 @@
+import { Clock, Mail, ShieldCheck } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Alert, Button, Card, FormField, Input } from '../../../components/ui'
 import { ApiError, SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
@@ -87,7 +88,7 @@ function PhoneVerification({ purpose, onVerified }: Props) {
     if (focusTarget === 'phone') phoneInput.current?.focus()
     if (focusTarget === 'code') codeInput.current?.focus()
     if (focusTarget === 'message') message.current?.focus()
-  }, [focusTarget, step, ended, alert])
+  }, [focusTarget, step, ended, alert, fieldError])
 
   async function sendCode(phoneNumber: string) {
     setSending(true)
@@ -110,6 +111,8 @@ function PhoneVerification({ purpose, onVerified }: Props) {
       const phoneError = error instanceof ApiError ? error.fieldErrors.phone : undefined
       if (phoneError && step.name === 'phone') {
         setFieldError(phoneError)
+        // The send button was disabled while sending, so the focus goes back to the field to fix it
+        setFocusTarget('phone')
       } else {
         setAlert(errorMessage(error))
         // The resend button was disabled while sending, so the focus has to land somewhere useful
@@ -135,6 +138,7 @@ function PhoneVerification({ purpose, onVerified }: Props) {
         setFocusTarget('message')
       } else {
         setFieldError(errorMessage(error))
+        setFocusTarget('code')
       }
     } finally {
       setSending(false)
@@ -201,7 +205,13 @@ function PhoneVerification({ purpose, onVerified }: Props) {
               ended ? 'text-warning' : 'text-brand-primary',
             ].join(' ')}
           >
-            {step.name === 'phone' ? <ShieldIcon /> : ended ? <ClockIcon /> : <MessageIcon />}
+            {step.name === 'phone' ? (
+              <ShieldCheck className="size-8" />
+            ) : ended ? (
+              <Clock className="size-8" />
+            ) : (
+              <Mail className="size-8" />
+            )}
           </span>
           <h2
             id="phone-verification-title"
@@ -307,45 +317,6 @@ function PhoneVerification({ purpose, onVerified }: Props) {
         )}
       </Card>
     </section>
-  )
-}
-
-const iconProps = {
-  width: 34,
-  height: 34,
-  viewBox: '0 0 24 24',
-  fill: 'none',
-  stroke: 'currentColor',
-  strokeWidth: 1.8,
-  strokeLinecap: 'round',
-  strokeLinejoin: 'round',
-} as const
-
-function ShieldIcon() {
-  return (
-    <svg {...iconProps}>
-      <path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6z" />
-      <path d="M9 12l2 2 4-4" />
-    </svg>
-  )
-}
-
-function MessageIcon() {
-  return (
-    <svg {...iconProps}>
-      <rect x="3" y="5" width="18" height="14" rx="2" />
-      <path d="M3 7l9 6 9-6" />
-    </svg>
-  )
-}
-
-function ClockIcon() {
-  return (
-    <svg {...iconProps}>
-      <circle cx="12" cy="13" r="8" />
-      <path d="M12 9v4l2.5 2" />
-      <path d="M9 2h6" />
-    </svg>
   )
 }
 
