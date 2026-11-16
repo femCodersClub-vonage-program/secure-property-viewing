@@ -97,7 +97,7 @@ If Vonage's own rate limit is reached, the server answers `500 INTERNAL_ERROR` a
 
 To ask for a new code, the client calls `POST /api/phone-verifications` again with the same phone. The server cancels the previous verification, unless it is already `VERIFIED`, and answers with a new `id`.
 
-`resendAvailableAt` is 32 seconds after the start: the 30 seconds Verify requires before a cancel, plus 2 seconds for the time the call to Vonage takes. The documentation does not say what Verify answers to a cancel sent too early, so the margin avoids it.
+`resendAvailableAt` is 32 seconds after the start: the 30 seconds from the screen map, plus 2 seconds of margin. The Verify API reference says a cancel is only allowed 30 seconds after the start. A real test on 2026-11-16 accepted a cancel at about 10 seconds and a new code right after it, but the margin keeps the server safe if Verify starts enforcing that rule.
 
 `POST /api/visits` and `POST /api/listing-requests` receive the `phoneVerificationId` and check that it is saved in the session of the same browser, is `VERIFIED`, matches the purpose, belongs to the same phone number (by comparing hashes) and has not been used before.
 

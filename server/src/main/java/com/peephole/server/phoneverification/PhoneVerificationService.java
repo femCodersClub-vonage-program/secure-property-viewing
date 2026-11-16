@@ -20,8 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 class PhoneVerificationService {
 
-    // Verify allows a cancel 30 seconds after it receives the request, and our clock starts a little earlier,
-    // before the call. The 2 extra seconds make sure Verify always accepts the cancel when we allow a new code
+    // The screen map asks for 30 seconds before a new code, plus 2 seconds of margin. The Verify API reference
+    // says a cancel is only allowed after 30 seconds. A real test on 2026-11-16 accepted one at about 10 seconds,
+    // but the margin keeps the server safe if Verify starts enforcing it
     private static final Duration RESEND_WAIT = Duration.ofSeconds(32);
     private static final Duration EXPIRY = Duration.ofMinutes(5);
     private static final int MAX_WRONG_CODES = 3;
