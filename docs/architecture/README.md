@@ -37,11 +37,14 @@ sequenceDiagram
     S->>VY: Checks the code
     VY-->>S: Phone verified
     C->>S: Books the visit with the verified phone
-    S->>VV: Creates the visit session
     S->>VM: Schedules confirmation and reminder
     VM-->>V: Confirmation SMS
+    S-->>C: Visit confirmed
+    C->>S: Asks for the visitor's room link
+    S-->>C: Room link, shown once on the confirmation screen
     Note over V,VV: On the day of the visit
-    C->>S: Requests access to the room
+    C->>S: Enters the room with the room link
+    S->>VV: Creates the visit session, the first time someone enters
     S-->>C: Session token
     C->>VV: Joins the visit
 ```
