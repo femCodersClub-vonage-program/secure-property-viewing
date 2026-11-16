@@ -6,7 +6,13 @@ How Peephole uses each Vonage API, and the Vonage tools we rely on during develo
 
 ### Verify API
 
-Phone verification for visitors and owners using a one-time passcode (OTP) sent by SMS.
+Phone verification for visitors and owners using a one-time passcode (OTP) sent by SMS. It is built in `server/` and decided in [`specs/phone-verification.md`](../specs/phone-verification.md):
+
+- Each request uses the brand `Peephole`, one `sms` step, a 6-digit code and a `channel_timeout` of 300 seconds
+- A new code cancels the previous request first, which Verify allows from 30 seconds after the start
+- A `410` on a check means Verify has ended the request: the server marks it `EXPIRED` when the 5 minutes are up and `FAILED` otherwise
+- The Verify application needs no capability, so locally each person uses her own
+- The server reaches Verify only through the `PhoneVerifier` interface in `vonage/`, and the tests use a test double
 
 Silent Authentication is planned for later. In Spain it is available in the sandbox environment with Orange, Telefónica and Vodafone and requires mobile data, so SMS OTP would remain as a fallback even once it is added.
 
