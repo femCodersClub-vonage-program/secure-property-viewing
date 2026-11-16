@@ -16,6 +16,19 @@ Every video visit uses one routed session, because the visitor can invite up to 
 
 Planned for later: the video call between the owner and the agency (journey B), and signing or ratification with the property manager and all parties.
 
+#### A working reference: OffLoad
+
+[OffLoad](https://github.com/ctrl-Ella/OffLoad) is a public project that Irina's team built for the Vonage challenge at HackBarna 2026. It ran a multi-party video room with `@vonage/client-sdk-video` 2.35.2, and a person who received a link joined the same call from outside, with no account. That is what the video visit needs, so it is the first place to look before writing video code:
+
+| What | Where in OffLoad | How Peephole differs |
+| :---- | :---- | :---- |
+| Joining a room from React: loading the SDK, `initSession`, `connect`, publishing and subscribing, and cleaning up | `src/components/useRoom.ts`, `Room.tsx` and `GuestRoom.tsx` | The same approach. The SDK touches `window` when it loads, which is why OffLoad imports it with a dynamic `import()` |
+| Entering with a link and no account, where the token is the credential | `src/app/api/room/guest/[token]/route.ts` | Peephole stores only a hash of the token and sends it in the request body, not in the path. See the [video visit spec](../specs/video-visit.md) |
+| Creating the session and the tokens | `src/lib/video.ts` and `src/lib/room.ts` | OffLoad uses the Node SDK (`@vonage/jwt`). Peephole uses the Java Server SDK in `server/` |
+| Sending the guest link | The invite by SMS in `docs/specs/0009-inviting-the-support-network-by-sms.md` | Peephole never sends links by SMS, as the [messages spec](../specs/messages.md) says. The link is copied from the confirmation screen |
+
+OffLoad shows what worked in practice. The Vonage Documentation MCP Server is still the source for every detail, and the Peephole specs decide how it is built here.
+
 ### Messages API
 
 Visit confirmations, reminders and request status updates, always sent from the platform's official channel. We start with SMS, and WhatsApp Business is planned for later.

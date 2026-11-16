@@ -89,7 +89,7 @@ Never:
 ## Before writing code
 
 - A feature starts from its spec in `specs/`, which ends with a *Technical plan* section on how it is built. A bug or a task starts from its issue. If the change needs something they do not cover, such as a new table or endpoint, stop and ask
-- Check anything about Vonage against the official documentation through the Vonage Documentation MCP Server, not from memory
+- Check anything about Vonage against the official documentation through the Vonage Documentation MCP Server, not from memory. For video, start from the working reference project described in [`docs/vonage.md`](docs/vonage.md#a-working-reference-offload)
 - Commit messages follow Conventional Commits, such as `feat(server): add OTP verification endpoint`
 - Write a code comment only when it is really necessary, to explain something the code cannot say by itself, and never longer than 2 or 3 lines
 - Format the code before committing: `npm run format` in `client/` and `./mvnw spotless:apply` in `server/`. The CI fails on unformatted code
