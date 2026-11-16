@@ -1,4 +1,5 @@
 import type { ComponentPropsWithRef } from 'react'
+import { fieldBorderClasses, fieldClasses } from './fieldClasses'
 
 export type InputVariant = 'default' | 'code'
 
@@ -14,17 +15,14 @@ const variantClasses: Record<InputVariant, string> = {
 }
 
 function Input({ className, type = 'text', variant = 'default', ...props }: InputProps) {
-  const invalid = props['aria-invalid'] === true || props['aria-invalid'] === 'true'
-
   return (
     <input
       {...props}
       type={type}
       className={[
-        'w-full rounded-sm bg-surface-input font-body text-text-default',
-        invalid ? 'border-2 border-error' : 'border border-border-input',
+        fieldClasses,
+        fieldBorderClasses(props['aria-invalid']),
         variantClasses[variant],
-        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary',
         className ?? '',
       ]
         .join(' ')
