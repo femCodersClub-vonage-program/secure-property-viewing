@@ -129,3 +129,5 @@ Never:
 ## Before opening a pull request
 
 Run the `ui-reviewer` agent when the change touches `client/`. It reviews the design system and the AA rules in the code. Interaction checks are limited to Tab and Shift+Tab navigation and visible focus, with any checks it could not run reported as not verified. It does not require screen reader tests or additional manual accessibility checks.
+
+Run `test-reviewer` too: it checks that every acceptance criterion has a test, and that the fake API and sample data have the same shape as the spec.

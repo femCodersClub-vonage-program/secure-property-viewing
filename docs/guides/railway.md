@@ -59,6 +59,7 @@ railway status
 | Qué ves | Por qué pasa | Cómo se arregla |
 | :---- | :---- | :---- |
 | `Could not resolve placeholder` | Falta una variable en el servicio | Añádela, como se explica abajo |
+| `PHONE_HASH_SECRET is not set` o `VONAGE_VERIFY_… is not set` | Falta una variable de la verificación de teléfono | Añádela, como se explica abajo |
 | `password authentication failed` o `Connection refused` | Las variables de la base de datos no coinciden o `Postgres` no está en marcha | Comprueba el estado de `Postgres` y las variables de `server` |
 | Un error de Flyway al arrancar | Una migración tiene un problema | Mira la tabla de errores de [la guía de migraciones](flyway-migrations.md#si-algo-falla) |
 | `502 Bad Gateway` en una dirección `/api/...` del cliente | Caddy no llega al servidor por la red privada: `server` no está en marcha o no escucha en el puerto `8080` | Comprueba el estado de `server` y sus registros. Mira también `railway logs --service client`, donde Caddy explica por qué falló |
@@ -78,6 +79,8 @@ Al guardarla, el servicio se vuelve a desplegar.
 El servicio `server` necesita `LOAD_DEMO_DATA=true` para cargar los datos de ejemplo de `db/seed/`.
 
 El servicio `server` también necesita `SESSION_COOKIE_SECURE=true`, para que la cookie de sesión de la agencia solo viaje por HTTPS, como decide el [ADR 0004](../adr/0004-agency-sign-in.md). Si falta, el servidor arranca igual pero envía la cookie sin `Secure`.
+
+El servicio `server` también necesita las variables de la verificación de teléfono, o no arranca: `VONAGE_VERIFY_APPLICATION_ID` y `VONAGE_VERIFY_PRIVATE_KEY`, con la aplicación de Candé, y `PHONE_HASH_SECRET`. El valor de `PHONE_HASH_SECRET` en Railway está en la carpeta compartida del Drive y no se cambia nunca: si cambiara, los teléfonos ya guardados dejarían de coincidir con los nuevos y los límites por teléfono empezarían de cero.
 
 El servicio `server` no tiene la variable `PORT`, así que escucha en el puerto `8080`, que es el que usa `client/Caddyfile`. Si algún día se añade `PORT`, hay que cambiar también el `Caddyfile`.
 

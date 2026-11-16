@@ -65,7 +65,7 @@ The hash lets the server check two things without keeping the number in this tab
 Response `201`:
 
 ```json
-{ "id": 42, "status": "PENDING", "resendAvailableAt": "2026-11-10T11:00:30+01:00" }
+{ "id": 42, "status": "PENDING", "resendAvailableAt": "2026-11-10T11:00:32+01:00" }
 ```
 
 `POST /api/phone-verifications/{id}/check`
@@ -84,14 +84,20 @@ Errors, following the [error format](data-model-and-api-contract.md#errors):
 
 | Status | `code` | When |
 | :---- | :---- | :---- |
-| 400 | `VALIDATION_FAILED` | The phone is not a valid E.164 number, or the code is empty |
+| 400 | `VALIDATION_FAILED` | The phone is not a valid E.164 number or Vonage cannot send an SMS to it, the purpose is not `VISIT` or `LISTING_REQUEST`, or the code is not 6 digits |
+| 404 | `VERIFICATION_NOT_FOUND` | The verification was not started by this browser |
+| 409 | `VERIFICATION_IN_PROGRESS` | Vonage already has a code on its way to this number from another session |
 | 422 | `VERIFICATION_CODE_INVALID` | The code does not match |
 | 422 | `VERIFICATION_EXPIRED` | The verification has expired |
 | 429 | `VERIFICATION_TOO_MANY_ATTEMPTS` | 3 wrong codes have been entered |
-| 429 | `VERIFICATION_RESEND_TOO_SOON` | A new code is requested before 30 seconds |
+| 429 | `VERIFICATION_RESEND_TOO_SOON` | A new code is requested before `resendAvailableAt` |
 | 429 | `VERIFICATION_LIMIT_REACHED` | The phone number has started 5 verifications in the last hour, or the server has started 30 |
 
-To ask for a new code, the client calls `POST /api/phone-verifications` again with the same phone. The server cancels the pending verification and answers with a new `id`.
+If Vonage's own rate limit is reached, the server answers `500 INTERNAL_ERROR` and logs that it came from that limit. With our limit of 30 per hour this is not expected.
+
+To ask for a new code, the client calls `POST /api/phone-verifications` again with the same phone. The server cancels the previous verification, unless it is already `VERIFIED`, and answers with a new `id`.
+
+`resendAvailableAt` is 32 seconds after the start: the 30 seconds from the screen map, plus 2 seconds of margin. The Verify API reference says a cancel is only allowed 30 seconds after the start. A real test on 2026-11-16 accepted a cancel at about 10 seconds and a new code right after it, but the margin keeps the server safe if Verify starts enforcing that rule.
 
 `POST /api/visits` and `POST /api/listing-requests` receive the `phoneVerificationId` and check that it is saved in the session of the same browser, is `VERIFIED`, matches the purpose, belongs to the same phone number (by comparing hashes) and has not been used before.
 
@@ -106,7 +112,7 @@ The Verify API, called from the server only:
 
 In code, the feature talks to a `PhoneVerifier` interface in `vonage/`. Its implementation uses the Java Server SDK, which is added to `pom.xml` with this feature, with its exact version recorded in [ADR 0001](../docs/adr/0001-tech-stack.md). Tests use a test double of `PhoneVerifier`.
 
-Credentials will come from the Verify group of variables in `server/.env`, documented in `docs/setup.md` and `docs/setup.es.md` when this feature adds them.
+Credentials come from the Verify group of variables in `server/.env`, together with `PHONE_HASH_SECRET` for the hash, as `docs/setup.md` and `docs/setup.es.md` explain.
 
 ### Adding Silent Authentication later
 

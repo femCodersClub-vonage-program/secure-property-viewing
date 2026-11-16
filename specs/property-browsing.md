@@ -23,7 +23,7 @@ Home page (A1):
 
 Catalog (A2):
 
-- [ ] It lists the active properties from `GET /api/properties`, each card with photo, title, neighborhood, price, bedrooms and size
+- [ ] It lists the active properties from `GET /api/properties`, each card with photo, title, neighborhood, price, bedrooms, size and the verified agency badge
 - [ ] The visitor can filter by all, rent or sale, and the filter is kept in the URL so a filtered catalog can be shared
 - [ ] A map of Barcelona next to the list shows one pin per property with coordinates. Selecting a pin shows the title and price, with a link to the details
 - [ ] It shows a loading state, an empty state with a way to clear the filters, and an error state with a way to try again
@@ -70,12 +70,13 @@ No new tables: `property` and `property_image` from the [data model](data-model-
     "sizeM2": 70,
     "latitude": 41.4036,
     "longitude": 2.1566,
-    "coverImage": { "url": "https://...", "altText": "Bright living room with a balcony" }
+    "coverImage": { "url": "https://...", "altText": "Bright living room with a balcony" },
+    "agency": { "name": "...", "verified": true }
   }
 ]
 ```
 
-The filter is optional. `videoVisitAvailable` and `agency.verified` come from the `property` and `agency` tables in the data model. An unknown `operation` returns `400 VALIDATION_FAILED`. A property approved from a listing request has no coordinates or photos: `latitude` and `longitude` are `null`, so it has no pin, and `coverImage` is `null`, so the client shows a generic image.
+The filter is optional. `agency.verified`, in both endpoints, and `videoVisitAvailable`, in the details, come from the `agency` and `property` tables in the data model. In the MVP every property belongs to the verified demo agency, so the badge always shows. An unknown `operation` returns `400 VALIDATION_FAILED`. A property approved from a listing request has no coordinates or photos: `latitude` and `longitude` are `null`, so it has no pin, and `coverImage` is `null`, so the client shows a generic image.
 
 `GET /api/properties/{id}`
 

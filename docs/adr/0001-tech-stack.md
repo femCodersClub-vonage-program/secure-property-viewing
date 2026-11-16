@@ -24,6 +24,7 @@ Three constraints shaped the decision:
 | Build tool | Vite | 8.3 |
 | Routing | React Router | 8.x |
 | Icons | lucide-react | 1.x |
+| Video in the browser | Vonage Video Client SDK (`@vonage/client-sdk-video`) | 2.35.2, pinned exactly in `package.json` |
 | Frontend linter | oxlint | 1.x |
 | Frontend formatter | Prettier | 3.x |
 | Frontend runtime | Node.js | 22.22.2 or later |
@@ -34,7 +35,7 @@ Three constraints shaped the decision:
 | Database migrations | Flyway | Managed by Spring Boot |
 | Authentication and CSRF | Spring Security (`spring-boot-starter-security`) | Managed by Spring Boot, see [ADR 0004](0004-agency-sign-in.md) |
 | API documentation | springdoc-openapi (`springdoc-openapi-starter-webmvc-ui`), local only | 3.2.x, pinned in `pom.xml`: not managed by Spring Boot |
-| Vonage | Java Server SDK (`com.vonage:server-sdk`) | 9.x, added with the first Vonage feature |
+| Vonage | Java Server SDK (`com.vonage:server-sdk`) | 9.15.1, pinned in `pom.xml`: not managed by Spring Boot |
 | Backend formatter | Spotless with palantir-java-format | Pinned in `pom.xml` |
 | Server tests | JUnit, Spring Boot Test, Spring Security Test and Mockito | Managed by Spring Boot |
 | Client tests | Vitest, jsdom and Testing Library | Vitest 5.x |

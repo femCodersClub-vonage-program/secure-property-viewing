@@ -108,7 +108,7 @@ Las pull requests de la propia tech lead pueden integrarse sin la aprobación de
 
 1. Actualiza tu rama con los últimos cambios de `dev`  
 2. Pasa los tests en local  
-3. Pasa los **agentes de revisión** sobre tus cambios y resuelve lo que señalen: `docs-reviewer` siempre, `ui-reviewer` cuando el cambio toca `client/`, y `server-reviewer` cuando toca `server/`. Funcionan con Claude Code y con GitHub Copilot, como se explica en [Cómo pasar los agentes de revisión](#cómo-pasar-los-agentes-de-revisión). En la pull request, la sección *Review agents* resume qué encontró cada uno y qué hiciste con ello: si lo arreglaste o si lo dejaste como estaba y por qué  
+3. Pasa los **agentes de revisión** sobre tus cambios y resuelve lo que señalen: `docs-reviewer` siempre, `test-reviewer` cuando el cambio toca `client/` o `server/`, `ui-reviewer` cuando toca `client/`, y `server-reviewer` cuando toca `server/`. Funcionan con Claude Code y con GitHub Copilot, como se explica en [Cómo pasar los agentes de revisión](#cómo-pasar-los-agentes-de-revisión). En la pull request, la sección *Review agents* resume qué encontró cada uno y qué hiciste con ello: si lo arreglaste o si lo dejaste como estaba y por qué  
 4. Revisa que entiendes y puedes explicar cada línea, también la que haya generado la IA
 
 >   
@@ -133,15 +133,25 @@ Cada PR ejecuta [`.github/workflows/ci.yml`](.github/workflows/ci.yml) en GitHub
 
 ## Testing
 
-Cada funcionalidad se entrega con sus tests, y los criterios de aceptación de la spec son el punto de partida para escribirlos.
+Cada funcionalidad se entrega con sus tests, y los criterios de aceptación de la spec son el punto de partida para escribirlos: cada criterio tiene un test que fallaría sin el cambio.
 
-| Nivel | Qué cubre |
-| :---- | :---- |
-| **Unitarios** | Lógica de negocio aislada en `client/` y en `server/` |
-| **Integración** | Endpoints del servidor y su relación con la base de datos y con Vonage, usando dobles de prueba en lugar de llamadas reales |
-| **End-to-end** | Los recorridos completos de la aplicación, desde el punto de vista de quien la usa |
+Somos cinco construyendo piezas que tienen que encajar, así que, además de probar cada pieza, los tests comprueban que encajan. Hay cuatro capas:
 
-Estamos valorando trabajar con **TDD** en la lógica de negocio. El servidor se prueba con JUnit, Spring Boot Test y Mockito, y el cliente con Vitest y Testing Library, según el [ADR 0001](docs/adr/0001-tech-stack.md). Los tests de integración se lanzan contra una base de datos PostgreSQL real, nunca contra un sustituto en memoria.
+| Capa | Qué comprueba | Cuándo hace falta |
+| :---- | :---- | :---- |
+| **Contrato** | El JSON de cada endpoint coincide con el ejemplo de su spec: nombres de campos, tipos, valores `null` y códigos de error. En el cliente, la API de pega y los datos de ejemplo usan ese mismo ejemplo | Cada endpoint nuevo o modificado, y cada pantalla que lo usa |
+| **Recorrido** | Un test del servidor por cada recorrido lo hace entero por la API, paso a paso, contra PostgreSQL real y con dobles de prueba solo para Vonage. Se pone en rojo cuando una pieza rompe otra | Cuando se añade o cambia un paso de un recorrido, una vez que los pasos anteriores están en `dev` |
+| **Concurrencia** | Las peticiones que llegan a la vez no rompen ninguna regla: dos reservas del mismo hueco, límites por hora, enlaces por visita | Siempre que la spec diga «a la vez», «dos veces» o fije un límite |
+| **Navegador** | El recorrido feliz en un navegador de verdad, con Vonage sustituido por dobles de prueba | Unos pocos tests al final, cuando existan las pantallas |
+
+Dos reglas valen para todos los tests:
+
+- **Verlo fallar primero.** Cada test nuevo se ve en rojo una vez antes de que el cambio lo ponga en verde. Un test que nadie ha visto fallar no demuestra nada
+- **Probar el comportamiento, no la implementación.** Los tests del cliente buscan los elementos por rol y nombre accesible, como haría alguien con un lector de pantalla, y los del servidor comprueban el cuerpo que define la spec, no solo el código de estado
+
+El servidor se prueba con JUnit, Spring Boot Test y Mockito, y el cliente con Vitest y Testing Library, según el [ADR 0001](docs/adr/0001-tech-stack.md). Los tests se lanzan contra una base de datos PostgreSQL real, nunca contra un sustituto en memoria, y nunca llaman a una API real de Vonage.
+
+Antes de la pull request, `test-reviewer` revisa los tests de tu rama según la spec y estas capas, y te lo dice cuando un cambio no necesita tests nuevos.
 
 ## IA en el proyecto: agentes, skills y tools
 
@@ -150,7 +160,7 @@ La IA forma parte del trabajo diario, y por eso la tratamos como una herramienta
 | Elemento | Para qué sirve | Dónde |
 | :---- | :---- | :---- |
 | **Instrucciones** | Contexto y convenciones del proyecto, generales y por carpeta | `AGENTS.md` en la raíz, en `client/` y en `server/` |
-| **Agentes** | Asistentes especializados que revisan una rama antes de su pull request: `docs-reviewer` para la documentación y el idioma, `ui-reviewer` para la interfaz del cliente, que lanza `design-system-reviewer` y `accessibility-reviewer`, y `server-reviewer` para el código del servidor | `.claude/agents/`, con un enlace en `.github/agents/` para Copilot en IntelliJ |
+| **Agentes** | Asistentes especializados que revisan una rama antes de su pull request: `docs-reviewer` para la documentación y el idioma, `ui-reviewer` para la interfaz del cliente, que lanza `design-system-reviewer` y `accessibility-reviewer`, `server-reviewer` para el código del servidor, y `test-reviewer` para los tests de los dos | `.claude/agents/`, con un enlace en `.github/agents/` para Copilot en IntelliJ |
 | **Skills** | Procedimientos reutilizables del equipo, como redactar una spec o un ADR | `.claude/skills/` |
 | **Tools** | Conexiones externas que pueden usar los agentes, empezando por los servidores MCP de Vonage | Configuración de MCP del proyecto |
 
@@ -158,7 +168,7 @@ La IA forma parte del trabajo diario, y por eso la tratamos como una herramienta
 
 Puedes usar Claude Code o GitHub Copilot: los dos leen las mismas instrucciones de `.claude/agents/`, así que la revisión es la misma elijas la que elijas.
 
-- **Claude Code:** pídele que pase `docs-reviewer`, `ui-reviewer` o `server-reviewer` sobre tu rama
+- **Claude Code:** pídele que pase `docs-reviewer`, `test-reviewer`, `ui-reviewer` o `server-reviewer` sobre tu rama
 - **Copilot en VS Code:** elige el agente en el desplegable de agentes del chat. VS Code lee `.claude/agents/` directamente
 - **Copilot en IntelliJ:** elige el agente en el desplegable de agentes, abajo en el chat. IntelliJ lee el enlace de `.github/agents/`, que lleva a Copilot a las mismas instrucciones
 
