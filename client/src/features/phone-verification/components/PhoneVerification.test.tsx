@@ -89,7 +89,7 @@ describe('PhoneVerification', () => {
     render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
 
     expect(screen.getByRole('textbox', { name: 'Phone number' })).toHaveAccessibleDescription(
-      /to confirm your visit and to send you its messages/,
+      /to confirm your visit and send you its messages/,
     )
 
     await sendCodeTo('+34 600 000 000')

@@ -23,9 +23,8 @@ type Step =
 type FocusTarget = 'phone' | 'code' | 'message'
 
 const USE_OF_THE_NUMBER: Record<PhoneVerificationPurpose, string> = {
-  VISIT: 'We use this number to confirm your visit and to send you its messages.',
-  LISTING_REQUEST:
-    'We use this number to confirm your listing request and to send you its updates.',
+  VISIT: 'Used to confirm your visit and send you its messages.',
+  LISTING_REQUEST: 'Used to confirm your listing request and send you its updates.',
 }
 
 // These errors end the verification: the person has to ask for a new code
@@ -226,7 +225,7 @@ function PhoneVerification({ purpose, onVerified }: Props) {
             <FormField
               id="verification-phone"
               label="Phone number"
-              hint={`In international format, such as +34 600 000 000. ${USE_OF_THE_NUMBER[purpose]}`}
+              hint={`Such as +34 600 000 000. ${USE_OF_THE_NUMBER[purpose]}`}
               error={fieldError}
             >
               {(props) => (
