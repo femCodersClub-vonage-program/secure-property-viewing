@@ -24,6 +24,7 @@ Three constraints shaped the decision:
 | Build tool | Vite | 8.3 |
 | Routing | React Router | 8.x |
 | Icons | lucide-react | 1.x |
+| Video in the browser | Vonage Video Client SDK (`@vonage/client-sdk-video`) | 2.35.2, pinned exactly in `package.json` |
 | Frontend linter | oxlint | 1.x |
 | Frontend formatter | Prettier | 3.x |
 | Frontend runtime | Node.js | 22.22.2 or later |
