@@ -115,7 +115,6 @@ Every interactive element shows a focus ring using `outline-2 outline-offset-2`.
 | All elements except danger button | `outline-brand-primary` | 7.38:1 on white — passes AA |
 | Danger button | `outline-error` | 6.31:1 on white — passes AA |
 | Elements on dark navigation (`bg-brand-dark`) | `outline-white` | 17.61:1 on `#23122B` — passes AA |
-Every interactive element shows the same focus ring: `outline-2 outline-offset-2 outline-brand-primary` (7.38:1 on white). It uses an outline rather than a shadow because Windows high contrast mode keeps outlines and removes shadows.
 
 ## Agency dashboard
 
