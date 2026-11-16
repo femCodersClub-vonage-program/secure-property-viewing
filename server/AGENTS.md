@@ -114,4 +114,4 @@ The schema only changes through Flyway migrations in `src/main/resources/db/migr
 
 ## Before opening a pull request
 
-Run the `server-reviewer` agent when the change touches `server/`. It reviews the rules in this file, errors and validation, security and personal data, Vonage access, migrations, tests and clean code.
+Run the `server-reviewer` agent when the change touches `server/`. It reviews the rules in this file, errors and validation, security and personal data, Vonage access, migrations and clean code. Run `test-reviewer` too: it checks that every acceptance criterion has a test, and the contract, journey and concurrency tests described in `CONTRIBUTING.md`.

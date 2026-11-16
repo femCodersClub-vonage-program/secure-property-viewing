@@ -1,6 +1,6 @@
 ---
 name: server-reviewer
-description: Reviews the server changes on a branch before opening a pull request. Checks the Java and Spring rules in server/AGENTS.md, errors, validation, security, personal data, Vonage access, migrations, tests and clean code. Read-only: it suggests, it never edits.
+description: Reviews the server changes on a branch before opening a pull request. Checks the Java and Spring rules in server/AGENTS.md, errors, validation, security, personal data, Vonage access, migrations and clean code. Read-only: it suggests, it never edits.
 tools: ["read", "search", "execute"]
 ---
 

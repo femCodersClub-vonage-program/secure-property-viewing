@@ -28,9 +28,11 @@ Types: feat, fix, docs, test, refactor, perf, ci, chore
 
 <!--
 What each agent you ran found, and what you did with each finding: fixed, or kept as it is and why.
-Run docs-reviewer always, ui-reviewer if client/ changed, and server-reviewer if server/ changed.
+Run docs-reviewer always, test-reviewer if client/ or server/ changed, ui-reviewer if client/ changed, and server-reviewer if server/ changed.
+test-reviewer says "No new tests needed" when the change doesn't need any: write that here too.
 Example:
 - docs-reviewer: asked to add the new variables to docs/setup.es.md. Done
+- test-reviewer: the 429 for too many attempts had no test. Added, and I saw it fail before the fix
 - server-reviewer: found the phone number in a log line. Removed. It also suggested splitting start() in two; I kept it, because each part is three lines
 -->
 
@@ -50,7 +52,7 @@ Example:
 
 **If applicable** (delete the items that don't apply)
 
-- [ ] Tests added or updated from the spec's acceptance criteria
+- [ ] Tests added or updated from the spec's acceptance criteria, and I saw each new test fail before my change made it pass
 - [ ] Docs updated: `docs/` (specs, ADR, diagrams, guides), and both language versions of every file that has a `.es.md` version, such as README, CONTRIBUTING or `docs/setup.md`
 - [ ] ADR added for an architecture, dependency or security decision
 - [ ] New dependency: the description explains why it is needed, its license and its maintenance, and nothing we already use solves the problem
