@@ -41,15 +41,6 @@ export class ApiError extends Error {
   }
 }
 
-// In development VITE_API_URL is empty, so calls stay relative and Vite proxies /api.
-// In production it holds the server origin.
-function readBaseUrl(): string {
-  const value: unknown = import.meta.env.VITE_API_URL
-  return typeof value === 'string' ? value.replace(/\/$/, '') : ''
-}
-
-const BASE_URL = readBaseUrl()
-
 function isProblemDetail(value: unknown): value is ProblemDetail {
   return (
     typeof value === 'object' &&
@@ -81,6 +72,8 @@ function systemError(status?: number, cause?: unknown): ApiError {
 
 /**
  * Calls the server and returns the body checked by `parse`.
+ * `path` is always relative, such as /api/health, so the browser sees one origin (ADR 0004):
+ * in development Vite proxies /api to the local server, and on Railway the client's Caddyfile does.
  * `parse` receives unknown data and must return a T or throw.
  */
 export async function request<T>(
@@ -95,13 +88,13 @@ export async function request<T>(
 
   let response: Response
   try {
-    response = await fetch(`${BASE_URL}${path}`, { ...init, headers })
+    response = await fetch(path, { ...init, headers })
   } catch (cause) {
     // A canceled request is not an error to show: let the caller ignore it
     if (cause instanceof DOMException && cause.name === 'AbortError') {
       throw cause
     }
-    // fetch only rejects when there is no response at all: network down, DNS, CORS
+    // fetch only rejects when there is no response at all: network down, DNS
     throw systemError(undefined, cause)
   }
 
