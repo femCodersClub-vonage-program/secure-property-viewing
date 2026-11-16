@@ -72,6 +72,8 @@ Never:
 
 ## API
 
+To add an endpoint, follow the `new-endpoint` skill in `.claude/skills/new-endpoint/SKILL.md`: it walks through the steps in order, with phone verification as the model.
+
 - Every endpoint lives under `/api`, because that is the path the client proxies in development. The local-only API documentation, `/v3/api-docs` and `/swagger-ui.html`, is the exception
 - Spring Security is configured once in `config/SecurityConfig.java`, as decided in [ADR 0004](../docs/adr/0004-agency-sign-in.md): `/api/agency/**` needs a signed-in user, except `POST /api/agency/session`, and every `POST`, `PUT`, `PATCH` and `DELETE` needs a CSRF token, except under `/api/webhooks/**`. A `@WebMvcTest` needs `@Import(SecurityConfig.class)` and `.with(csrf())` on those requests
 - Every endpoint is documented for springdoc: `@Operation`, one `@ApiResponse` per `ProblemDetail` error with `ProblemResponse` as its schema, and `@SecurityRequirement(name = OpenApiConfig.AGENCY_SESSION)` on agency endpoints. The documentation is only published with `API_DOCS_ENABLED=true`
@@ -113,7 +115,5 @@ The schema only changes through Flyway migrations in `src/main/resources/db/migr
 - Before merging, update your branch from `dev`. If your migration is older than the newest one there, rename it with the current date and time. When you can, do this before asking for review: new commits dismiss an approval. The full rules, and what the CI checks, are in [`CONTRIBUTING.md`](../CONTRIBUTING.md#database-migrations)
 
 ## Before opening a pull request
-
-To add an endpoint, follow the `new-endpoint` skill in `.claude/skills/new-endpoint/SKILL.md`: it walks through the steps in order, with phone verification as the model.
 
 Run the `server-reviewer` agent when the change touches `server/`. It reviews the rules in this file, errors and validation, security and personal data, Vonage access, migrations and clean code. Run `test-reviewer` too: it checks that every acceptance criterion has a test, and the contract, journey and concurrency tests described in `CONTRIBUTING.md`.
