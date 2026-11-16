@@ -8,6 +8,7 @@ import com.peephole.server.vonage.CodeCheckResult;
 import com.peephole.server.vonage.ConcurrentVerificationException;
 import com.peephole.server.vonage.PhoneNumberRejectedException;
 import com.peephole.server.vonage.PhoneVerifier;
+import com.peephole.server.vonage.PhoneVerifierException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -48,8 +49,10 @@ class PhoneVerificationService {
     }
 
     // previousId is the verification saved in the session, if any: a new code replaces it.
-    // Business errors keep the changes, so a previous verification already canceled in Vonage stays EXPIRED here
-    @Transactional(noRollbackFor = {BusinessException.class, FieldValidationException.class})
+    // If the new code fails, the changes are kept, so a previous verification already canceled in Vonage stays
+    // EXPIRED here. Nothing else can be half done: the new verification is only saved once Vonage has sent the code
+    @Transactional(
+            noRollbackFor = {BusinessException.class, FieldValidationException.class, PhoneVerifierException.class})
     StartPhoneVerificationResponse start(String phone, PhoneVerificationPurpose purpose, Long previousId) {
         startLock.acquire();
         OffsetDateTime now = OffsetDateTime.now(clock);

@@ -166,7 +166,34 @@ class PhoneVerificationControllerTest {
     }
 
     @Test
-    void rejectsANewCodeBeforeThirtySeconds() throws Exception {
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void keepsThePreviousVerificationExpiredWhenVonageFailsOnTheNewCode() throws Exception {
+        // One minute old for the fixed clock, so the wait before a new code has passed
+        Long previousId = jdbcTemplate.queryForObject(
+                "INSERT INTO phone_verification (purpose, phone_hash, vonage_request_id, status, created_at)"
+                        + " VALUES ('VISIT', 'previous-hash', 'previous-request', 'PENDING', ?) RETURNING id",
+                Long.class,
+                Timestamp.from(Instant.parse("2099-01-01T11:59:00Z")));
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PhoneVerificationController.SESSION_ATTRIBUTE, previousId);
+        when(phoneVerifier.start(PHONE))
+                .thenThrow(new PhoneVerifierException("Vonage answered 500 when starting a verification"));
+
+        try {
+            expectProblem(start(session, PHONE), 500, "INTERNAL_ERROR");
+
+            verify(phoneVerifier).cancel("previous-request");
+            String status = jdbcTemplate.queryForObject(
+                    "SELECT status FROM phone_verification WHERE id = ?", String.class, previousId);
+            assertThat(status).isEqualTo("EXPIRED");
+        } finally {
+            // Without the test transaction, nothing is rolled back on its own
+            jdbcTemplate.update("DELETE FROM phone_verification WHERE id = ?", previousId);
+        }
+    }
+
+    @Test
+    void rejectsANewCodeBeforeResendAvailableAt() throws Exception {
         MockHttpSession session = new MockHttpSession();
         startedId(session);
 

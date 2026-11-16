@@ -67,7 +67,7 @@ class PhoneVerificationController {
                             schema = @Schema(implementation = ProblemResponse.class)))
     @ApiResponse(
             responseCode = "429",
-            description = "VERIFICATION_RESEND_TOO_SOON: less than 30 seconds since the last code."
+            description = "VERIFICATION_RESEND_TOO_SOON: a new code was asked for before resendAvailableAt."
                     + " VERIFICATION_LIMIT_REACHED: 5 verifications for this phone or 30 in total in the last hour",
             content =
                     @Content(

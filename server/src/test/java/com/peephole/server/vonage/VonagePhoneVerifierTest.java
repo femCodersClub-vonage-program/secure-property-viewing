@@ -10,12 +10,14 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.jayway.jsonpath.JsonPath;
 import com.vonage.client.VonageClientException;
 import com.vonage.client.verify2.VerificationRequest;
 import com.vonage.client.verify2.VerificationResponse;
 import com.vonage.client.verify2.Verify2Client;
 import com.vonage.client.verify2.VerifyResponseException;
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,6 +58,10 @@ class VonagePhoneVerifierTest {
         assertThat(request.getValue().getBrand()).isEqualTo("Peephole");
         assertThat(request.getValue().getCodeLength()).isEqualTo(6);
         assertThat(request.getValue().getChannelTimeout()).isEqualTo(300);
+        // The workflow list is not public in the SDK, so the check reads the JSON that is sent to Vonage
+        String json = request.getValue().toJson();
+        List<String> channels = JsonPath.read(json, "$.workflow[*].channel");
+        assertThat(channels).containsExactly("sms");
     }
 
     @Test
