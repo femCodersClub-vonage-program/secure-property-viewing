@@ -31,6 +31,8 @@ railway login
 railway link --project peephole
 ```
 
+`railway link` te pide elegir el workspace, el proyecto, el entorno (`production`) y un servicio. Elige `server` como servicio: pulsar Esc cancela todo el enlace, y los comandos de esta guía indican el servicio con `--service` de todas formas.
+
 Comprueba que estás en el proyecto correcto:
 
 ```powershell
