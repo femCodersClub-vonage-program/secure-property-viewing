@@ -74,9 +74,10 @@ function passTime(milliseconds: number) {
   })
 }
 
-// The body also contains the message, so check that the focus did not fall back to it
+// The body also contains the message, so check that the focus did not fall back to it.
+// vi.waitFor, not waitFor: moving the focus changes no DOM, and setInterval is faked here
 async function expectFocusOnTheMessage() {
-  await waitFor(() => {
+  await vi.waitFor(() => {
     expect(document.activeElement).not.toBe(document.body)
     expect(document.activeElement).toContainElement(screen.getByRole('alert'))
   })
@@ -180,12 +181,14 @@ describe('PhoneVerification', () => {
     render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
 
     await sendCodeTo('+34600000000')
-    await waitFor(() =>
+    await vi.waitFor(() =>
       expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus(),
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'Change the number' }))
-    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Phone number' })).toHaveFocus())
+    await vi.waitFor(() =>
+      expect(screen.getByRole('textbox', { name: 'Phone number' })).toHaveFocus(),
+    )
   })
 
   it('keeps the six digits of a code pasted with a space', async () => {
@@ -262,6 +265,36 @@ describe('PhoneVerification', () => {
     },
   )
 
+  it('keeps the new code button disabled after too many attempts until the countdown ends', async () => {
+    let answerNewCode: (response: Response) => void = () => {}
+    fetchMock
+      .mockResolvedValueOnce(json(startedFromSpec, 201))
+      .mockResolvedValueOnce(problem(429, 'VERIFICATION_TOO_MANY_ATTEMPTS', TOO_MANY_ATTEMPTS))
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          answerNewCode = resolve
+        }),
+      )
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
+    await sendCodeTo('+34600000000')
+    typeCode('111111')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(TOO_MANY_ATTEMPTS)
+    expect(screen.getByText('You can ask for a new code in 32 s.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Send a new code' })).toBeDisabled()
+
+    passTime(32_000)
+    fireEvent.click(screen.getByRole('button', { name: 'Send a new code' }))
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+
+    answerNewCode(
+      json({ id: 43, status: 'PENDING', resendAvailableAt: '2026-11-10T11:01:04+01:00' }, 201),
+    )
+    await vi.waitFor(() =>
+      expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus(),
+    )
+  })
+
   it('keeps the current code usable when a new one is asked for too soon', async () => {
     fetchMock
       .mockResolvedValueOnce(json(startedFromSpec, 201))
@@ -273,6 +306,7 @@ describe('PhoneVerification', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Send a new code' }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent(RESEND_TOO_SOON)
+    await expectFocusOnTheMessage()
     expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Verify' })).toBeInTheDocument()
   })

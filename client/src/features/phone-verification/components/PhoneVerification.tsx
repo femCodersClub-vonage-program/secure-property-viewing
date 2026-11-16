@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Alert, Button, FormField, Input } from '../../../components/ui'
+import { Alert, Button, Card, FormField, Input } from '../../../components/ui'
 import { ApiError, SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
 import { checkPhoneVerificationCode, startPhoneVerification } from '../api'
 import type { PhoneVerificationPurpose, VerifiedPhone } from '../types'
@@ -20,7 +20,7 @@ type Step =
     }
 
 // Where the focus goes after the screen changes, so it never falls back to the page body
-type FocusTarget = 'phone' | 'code' | 'ended'
+type FocusTarget = 'phone' | 'code' | 'message'
 
 const USE_OF_THE_NUMBER: Record<PhoneVerificationPurpose, string> = {
   VISIT: 'We use this number to confirm your visit and to send you its messages.',
@@ -63,7 +63,7 @@ function PhoneVerification({ purpose, onVerified }: Props) {
 
   const phoneInput = useRef<HTMLInputElement>(null)
   const codeInput = useRef<HTMLInputElement>(null)
-  const endedMessage = useRef<HTMLDivElement>(null)
+  const message = useRef<HTMLDivElement>(null)
 
   const secondsLeft = step.name === 'code' ? secondsUntil(step.resendAvailableAt, now) : 0
 
@@ -80,8 +80,8 @@ function PhoneVerification({ purpose, onVerified }: Props) {
   useEffect(() => {
     if (focusTarget === 'phone') phoneInput.current?.focus()
     if (focusTarget === 'code') codeInput.current?.focus()
-    if (focusTarget === 'ended') endedMessage.current?.focus()
-  }, [focusTarget, step, ended])
+    if (focusTarget === 'message') message.current?.focus()
+  }, [focusTarget, step, ended, alert])
 
   async function sendCode(phoneNumber: string) {
     setSending(true)
@@ -106,6 +106,8 @@ function PhoneVerification({ purpose, onVerified }: Props) {
         setFieldError(phoneError)
       } else {
         setAlert(errorMessage(error))
+        // The resend button was disabled while sending, so the focus has to land somewhere useful
+        if (step.name === 'code') setFocusTarget('message')
       }
     } finally {
       setSending(false)
@@ -124,7 +126,7 @@ function PhoneVerification({ purpose, onVerified }: Props) {
       if (errorCode && ENDED_CODES.has(errorCode)) {
         setEnded(true)
         setAlert(errorMessage(error))
-        setFocusTarget('ended')
+        setFocusTarget('message')
       } else {
         setFieldError(errorMessage(error))
       }
@@ -166,23 +168,51 @@ function PhoneVerification({ purpose, onVerified }: Props) {
   const statusText =
     step.name === 'code'
       ? `We've sent ${step.resent ? 'a new' : 'a'} 6-digit code by SMS to ${step.phone}.`
-      : ''
+      : "We'll text you a 6-digit code to check it's you."
+
+  const title =
+    step.name === 'phone'
+      ? 'Verify your phone number'
+      : ended
+        ? "Let's send you a new code"
+        : 'Check your messages'
+
+  const countdown =
+    secondsLeft > 0 ? (
+      <p className="font-body text-text-muted">You can ask for a new code in {secondsLeft} s.</p>
+    ) : null
 
   return (
-    <section className="flex flex-col gap-4" aria-labelledby="phone-verification-title">
-      <h2
-        id="phone-verification-title"
-        className="font-display text-2xl font-bold text-balance text-brand-dark"
-      >
-        Verify your phone number
-      </h2>
-      {/* Mounted in both steps, so a change of text is announced */}
-      <p className="font-body text-text-default" role="status">
-        {statusText}
-      </p>
+    <section className="flex flex-col gap-8" aria-labelledby="phone-verification-title">
+      <header className="flex flex-col items-center gap-3 text-center">
+        <span
+          aria-hidden="true"
+          className={[
+            'flex size-18 items-center justify-center rounded-pill bg-surface-input',
+            ended ? 'text-warning' : 'text-brand-primary',
+          ].join(' ')}
+        >
+          {step.name === 'phone' ? <ShieldIcon /> : ended ? <ClockIcon /> : <MessageIcon />}
+        </span>
+        <h2
+          id="phone-verification-title"
+          className="font-display text-2xl font-bold text-balance text-brand-dark"
+        >
+          {title}
+        </h2>
+        {/* Mounted in both steps, so a change of text is announced */}
+        <p className="max-w-xs font-body text-pretty text-text-default" role="status">
+          {statusText}
+        </p>
+        {step.name === 'code' ? (
+          <Button type="button" variant="link" onClick={changeNumber}>
+            Change the number
+          </Button>
+        ) : null}
+      </header>
 
       {step.name === 'phone' ? (
-        <form onSubmit={handlePhoneSubmit} noValidate className="flex flex-col gap-4">
+        <form onSubmit={handlePhoneSubmit} noValidate className="flex flex-col gap-5">
           <FormField
             id="verification-phone"
             label="Phone number"
@@ -201,13 +231,29 @@ function PhoneVerification({ purpose, onVerified }: Props) {
             )}
           </FormField>
           {alert ? <Alert variant="error">{alert}</Alert> : null}
-          <Button type="submit" loading={sending}>
+          <Button type="submit" loading={sending} className="min-h-12">
             Send code
           </Button>
         </form>
+      ) : ended ? (
+        <div className="flex flex-col gap-4">
+          <div ref={message} tabIndex={-1}>
+            {alert ? <Alert variant="warning">{alert}</Alert> : null}
+          </div>
+          <Button
+            type="button"
+            loading={sending}
+            disabled={secondsLeft > 0}
+            onClick={() => void sendCode(step.phone)}
+            className="min-h-12"
+          >
+            Send a new code
+          </Button>
+          {countdown}
+        </div>
       ) : (
-        <form onSubmit={handleCodeSubmit} noValidate className="flex flex-col gap-4">
-          {ended ? null : (
+        <>
+          <form onSubmit={handleCodeSubmit} noValidate className="flex flex-col gap-5">
             <FormField
               id="verification-code"
               label="Code from the SMS"
@@ -218,6 +264,7 @@ function PhoneVerification({ purpose, onVerified }: Props) {
                 <Input
                   {...props}
                   ref={codeInput}
+                  variant="code"
                   inputMode="numeric"
                   autoComplete="one-time-code"
                   value={code}
@@ -225,40 +272,70 @@ function PhoneVerification({ purpose, onVerified }: Props) {
                   onChange={(event) =>
                     setCode(event.target.value.replace(/\D/g, '').slice(0, CODE_LENGTH))
                   }
-                  className="text-center"
                 />
               )}
             </FormField>
-          )}
-          {alert ? (
-            <div ref={endedMessage} tabIndex={-1}>
-              <Alert variant="error">{alert}</Alert>
+            <div ref={message} tabIndex={-1}>
+              {alert ? <Alert variant="error">{alert}</Alert> : null}
             </div>
-          ) : null}
-          {ended ? null : (
-            <Button type="submit" loading={sending}>
+            <Button type="submit" loading={sending} className="min-h-12">
               Verify
             </Button>
-          )}
-          {secondsLeft > 0 ? (
-            <p className="font-body text-text-muted">
-              You can ask for a new code in {secondsLeft} s.
-            </p>
-          ) : null}
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={secondsLeft > 0 || sending}
-            onClick={() => void sendCode(step.phone)}
-          >
-            Send a new code
-          </Button>
-          <Button type="button" variant="secondary" onClick={changeNumber}>
-            Change the number
-          </Button>
-        </form>
+          </form>
+          <Card className="flex flex-col items-center gap-1 text-center">
+            <p className="font-body text-text-default">Didn't get it?</p>
+            {countdown}
+            <Button
+              type="button"
+              variant="link"
+              disabled={secondsLeft > 0 || sending}
+              onClick={() => void sendCode(step.phone)}
+            >
+              Send a new code
+            </Button>
+          </Card>
+        </>
       )}
     </section>
+  )
+}
+
+const iconProps = {
+  width: 34,
+  height: 34,
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.8,
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+} as const
+
+function ShieldIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6z" />
+      <path d="M9 12l2 2 4-4" />
+    </svg>
+  )
+}
+
+function MessageIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M3 7l9 6 9-6" />
+    </svg>
+  )
+}
+
+function ClockIcon() {
+  return (
+    <svg {...iconProps}>
+      <circle cx="12" cy="13" r="8" />
+      <path d="M12 9v4l2.5 2" />
+      <path d="M9 2h6" />
+    </svg>
   )
 }
 
