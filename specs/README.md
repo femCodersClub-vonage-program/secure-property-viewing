@@ -29,3 +29,4 @@ One file per feature, named in English and in kebab-case, such as `phone-verific
 | [Visit booking](visit-booking.md) | Free visit slots, booking a visit with a verified phone, and its confirmation (journey A, steps 4 and 6) |
 | [Agency dashboard](agency-dashboard.md) | The five screens of the agency dashboard |
 | [Messages](messages.md) | Visit confirmation and reminder, listing request updates and their delivery status |
+| [Owner listing](owner-listing.md) | Owner listing request: owner and property details and the confirmation (journey B, steps 1, 2, 3 and 5) |
