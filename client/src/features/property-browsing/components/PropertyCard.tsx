@@ -1,46 +1,21 @@
-import { Bed, MapPin, Maximize2, ShieldCheck, Video } from 'lucide-react'
+import { Bed, MapPin, Maximize2, ShieldCheck } from 'lucide-react'
 import { Badge, Card, Link } from '../../../components/ui'
-import type { PropertyDetail, PropertyType } from '../types'
+import type { PropertySummary } from '../types'
 
 interface PropertyCardProps {
-  property: PropertyDetail
+  property: PropertySummary
 }
 
-function formatPrice(priceEuros: number, operation: PropertyDetail['operation']): string {
+function formatPrice(priceEuros: number, operation: PropertySummary['operation']): string {
   const formatted = new Intl.NumberFormat('es-ES').format(priceEuros)
   return operation === 'RENT' ? `${formatted} €/month` : `${formatted} €`
-}
-
-function formatFloor(floor: number): string {
-  const suffixes: Record<number, string> = { 1: 'st', 2: 'nd', 3: 'rd' }
-  const suffix = suffixes[floor] ?? 'th'
-  return `${floor}${suffix} floor`
-}
-
-const PROPERTY_TYPE_LABELS: Record<PropertyType, string> = {
-  APARTMENT: 'Apartment',
-  HOUSE: 'House',
-  STUDIO: 'Studio',
 }
 
 const GENERIC_IMAGE_SRC = '/images/property-placeholder.webp'
 const GENERIC_IMAGE_ALT = 'Property image not available'
 
 function PropertyCard({ property }: PropertyCardProps) {
-  const {
-    id,
-    title,
-    operation,
-    propertyType,
-    priceEuros,
-    area,
-    bedrooms,
-    sizeM2,
-    floor,
-    coverImage,
-    agency,
-    videoVisitAvailable,
-  } = property
+  const { id, title, operation, priceEuros, area, bedrooms, sizeM2, coverImage, agency } = property
 
   return (
     <Card className="overflow-hidden p-0 flex flex-col h-full">
@@ -51,9 +26,6 @@ function PropertyCard({ property }: PropertyCardProps) {
       />
       <div className="p-card flex flex-col gap-3 flex-1">
         <div>
-          <p className="font-body text-text-muted text-xs uppercase tracking-wide mb-1">
-            {PROPERTY_TYPE_LABELS[propertyType]}
-          </p>
           <h2 className="font-display text-text-default text-lg font-semibold">{title}</h2>
           <p className="font-body font-semibold text-brand-primary text-base mt-1">
             {formatPrice(priceEuros, operation)}
@@ -69,34 +41,20 @@ function PropertyCard({ property }: PropertyCardProps) {
             <Maximize2 className="size-4 shrink-0" aria-hidden="true" />
             {sizeM2} m²
           </li>
-          {floor !== null && (
-            <li className="flex items-center gap-1 font-body text-text-muted text-sm">
-              <span aria-hidden="true" className="text-text-muted text-sm">
-                ↑
-              </span>
-              {formatFloor(floor)}
-            </li>
-          )}
           <li className="flex items-center gap-1 font-body text-text-muted text-sm">
             <MapPin className="size-4 shrink-0" aria-hidden="true" />
             {area}
           </li>
         </ul>
 
-        <div className="flex flex-wrap gap-2">
-          {agency.verified && (
+        {agency.verified && (
+          <div>
             <Badge variant="approved">
               <ShieldCheck className="size-3 mr-1 inline" aria-hidden="true" />
               Verified agency
             </Badge>
-          )}
-          {videoVisitAvailable && (
-            <Badge variant="pending">
-              <Video className="size-3 mr-1 inline" aria-hidden="true" />
-              Video visit available
-            </Badge>
-          )}
-        </div>
+          </div>
+        )}
 
         <Link to={`/properties/${id}/visit`} variant="button" className="w-full mt-auto">
           Request a video visit

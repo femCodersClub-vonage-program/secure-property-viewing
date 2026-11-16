@@ -15,7 +15,6 @@ export interface PropertySummary {
   id: number
   title: string
   operation: Operation
-  propertyType: PropertyType
   priceEuros: number
   area: string
   bedrooms: number
@@ -27,6 +26,7 @@ export interface PropertySummary {
 }
 
 export interface PropertyDetail extends PropertySummary {
+  propertyType: PropertyType
   floor: number | null
   description: string
   videoVisitAvailable: boolean

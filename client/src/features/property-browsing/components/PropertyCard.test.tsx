@@ -2,31 +2,26 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, it, expect } from 'vitest'
 import PropertyCard from './PropertyCard'
-import type { PropertyDetail } from '../types'
+import type { PropertySummary } from '../types'
 
-const baseProperty: PropertyDetail = {
+const baseProperty: PropertySummary = {
   id: 7,
-  title: 'Apartment in Gràcia',
+  title: 'Apartment in Gr\u00e0cia',
   operation: 'RENT',
-  propertyType: 'APARTMENT',
   priceEuros: 950,
-  area: 'Gràcia',
+  area: 'Gr\u00e0cia',
   bedrooms: 2,
   sizeM2: 70,
-  floor: 2,
   latitude: 41.4036,
   longitude: 2.1566,
   coverImage: {
     url: 'https://example.com/photo.jpg',
     altText: 'Bright living room with a balcony',
   },
-  description: 'A lovely apartment.',
   agency: { name: 'Test Agency', verified: true },
-  videoVisitAvailable: true,
-  images: [],
 }
 
-function renderCard(property: PropertyDetail = baseProperty) {
+function renderCard(property: PropertySummary = baseProperty) {
   return render(
     <MemoryRouter>
       <PropertyCard property={property} />
@@ -37,22 +32,22 @@ function renderCard(property: PropertyDetail = baseProperty) {
 describe('PropertyCard', () => {
   it('shows the property title', () => {
     renderCard()
-    expect(screen.getByRole('heading', { name: 'Apartment in Gràcia' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Apartment in Gr\u00e0cia' })).toBeInTheDocument()
   })
 
   it('shows the neighborhood', () => {
     renderCard()
-    expect(screen.getByText('Gràcia')).toBeInTheDocument()
+    expect(screen.getByText('Gr\u00e0cia')).toBeInTheDocument()
   })
 
   it('formats a rent price', () => {
     renderCard()
-    expect(screen.getByText(/950.*€\/month/)).toBeInTheDocument()
+    expect(screen.getByText(/950.*\u20ac\/month/)).toBeInTheDocument()
   })
 
   it('formats a sale price', () => {
     renderCard({ ...baseProperty, operation: 'SALE', priceEuros: 250000 })
-    expect(screen.getByText(/250.*€/)).toBeInTheDocument()
+    expect(screen.getByText(/250.*\u20ac/)).toBeInTheDocument()
   })
 
   it('shows bedrooms', () => {
@@ -62,17 +57,7 @@ describe('PropertyCard', () => {
 
   it('shows size', () => {
     renderCard()
-    expect(screen.getByText('70 m²')).toBeInTheDocument()
-  })
-
-  it('shows the floor', () => {
-    renderCard()
-    expect(screen.getByText('2nd floor')).toBeInTheDocument()
-  })
-
-  it('omits the floor when null', () => {
-    renderCard({ ...baseProperty, floor: null })
-    expect(screen.queryByText(/floor/)).not.toBeInTheDocument()
+    expect(screen.getByText('70 m\u00b2')).toBeInTheDocument()
   })
 
   it('shows the cover image with its alt text', () => {
@@ -92,11 +77,6 @@ describe('PropertyCard', () => {
     expect(screen.getByText('1 bed')).toBeInTheDocument()
   })
 
-  it('shows the property type label', () => {
-    renderCard({ ...baseProperty, propertyType: 'HOUSE' })
-    expect(screen.getByText('House')).toBeInTheDocument()
-  })
-
   it('shows verified agency badge when agency is verified', () => {
     renderCard()
     expect(screen.getByText(/Verified agency/)).toBeInTheDocument()
@@ -105,16 +85,6 @@ describe('PropertyCard', () => {
   it('hides verified agency badge when agency is not verified', () => {
     renderCard({ ...baseProperty, agency: { name: 'Test Agency', verified: false } })
     expect(screen.queryByText(/Verified agency/)).not.toBeInTheDocument()
-  })
-
-  it('shows video visit badge when available', () => {
-    renderCard()
-    expect(screen.getByText(/Video visit available/)).toBeInTheDocument()
-  })
-
-  it('hides video visit badge when not available', () => {
-    renderCard({ ...baseProperty, videoVisitAvailable: false })
-    expect(screen.queryByText(/Video visit available/)).not.toBeInTheDocument()
   })
 
   it('links to the visit request page', () => {
