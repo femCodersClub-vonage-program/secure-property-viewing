@@ -97,7 +97,7 @@ describe('PhoneVerification', () => {
     expect(fetchMock).toHaveBeenCalledWith('/api/phone-verifications', expect.anything())
     expect(sentBody(0)).toEqual({ phone: '+34600000000', purpose: 'VISIT' })
     expect(screen.getByRole('status')).toHaveTextContent(
-      "We've sent a 6-digit code by SMS to +34600000000.",
+      "We've sent a 6-digit code by SMS to +34 600 000 000.",
     )
   })
 
@@ -112,6 +112,8 @@ describe('PhoneVerification', () => {
     await sendCodeTo('+34600000000')
 
     expect(sentBody(0)).toEqual({ phone: '+34600000000', purpose: 'LISTING_REQUEST' })
+    // Typed without spaces, it is still shown in groups, so it is easy to check
+    expect(screen.getByRole('status')).toHaveTextContent('+34 600 000 000.')
   })
 
   it('hands the verified phone to the page once the code matches', async () => {
