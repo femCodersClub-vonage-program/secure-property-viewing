@@ -132,13 +132,17 @@ function PhoneVerification({ purpose, onVerified }: Props) {
       onVerified({ verificationId: checked.id, phone: verifiedPhone })
     } catch (error) {
       const errorCode = error instanceof ApiError ? error.code : undefined
+      const isAboutTheCode = error instanceof ApiError && error.kind === 'business'
       if (errorCode && ENDED_CODES.has(errorCode)) {
         setEnded(true)
         setAlert(errorMessage(error))
         setFocusTarget('message')
-      } else {
+      } else if (isAboutTheCode) {
         setFieldError(errorMessage(error))
         setFocusTarget('code')
+      } else {
+        setAlert(errorMessage(error))
+        setFocusTarget('message')
       }
     } finally {
       setSending(false)

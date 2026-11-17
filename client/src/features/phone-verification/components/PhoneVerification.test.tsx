@@ -298,6 +298,23 @@ describe('PhoneVerification', () => {
     )
   })
 
+  it('shows a server failure while checking as a message, and leaves the code field as it was', async () => {
+    fetchMock
+      .mockResolvedValueOnce(json(startedFromSpec, 201))
+      .mockResolvedValueOnce(problem(500, 'INTERNAL_ERROR', 'Something went wrong on our side.'))
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
+    await sendCodeTo('+34600000000')
+
+    typeCode('482931')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(SYSTEM_ERROR_MESSAGE)
+    await expectFocusOnTheMessage()
+    const field = screen.getByRole('textbox', { name: 'Code from the SMS' })
+    expect(field).not.toHaveAttribute('aria-invalid', 'true')
+    expect(field).toHaveValue('482931')
+    expect(screen.getByRole('button', { name: 'Verify' })).toBeEnabled()
+  })
+
   it.each([
     ['VERIFICATION_EXPIRED', 422, EXPIRED],
     ['VERIFICATION_TOO_MANY_ATTEMPTS', 429, TOO_MANY_ATTEMPTS],
