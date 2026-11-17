@@ -1,0 +1,34 @@
+# Serves the client build and sends /api to the server over Railway's private network,
+# so the browser sees one origin, as ADR 0004 decides. Based on Railway's guide:
+# https://docs.railway.com/guides/spa-routing-configuration
+{
+	admin off
+	persist_config off
+	auto_https off
+	log {
+		format json
+	}
+	servers {
+		trusted_proxies static private_ranges 100.0.0.0/8
+	}
+}
+
+:{$PORT:3000} {
+	log {
+		format json
+	}
+
+	# API calls go to the server through the private network. The server listens on 8080 because PORT is not
+	# set on its Railway service. If that changes, change the port here too
+	handle /api/* {
+		reverse_proxy server.railway.internal:8080
+	}
+
+	# Everything else is the client build. Unknown paths get index.html, so React Router handles them on reload
+	handle {
+		root * dist
+		encode gzip
+		try_files {path} /index.html
+		file_server
+	}
+}

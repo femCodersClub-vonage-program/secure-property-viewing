@@ -12,6 +12,14 @@ Cada servicio se despliega solo cuando llega un cambio a `dev` en su carpeta. No
 
 El porqué de esta organización está en el [ADR 0002](../adr/0002-deployment-railway.md).
 
+## Cómo llegan las llamadas a la API
+
+El navegador nunca llama directamente al servidor: llama a `/api` en la misma dirección del cliente, como en local. El servicio `client` sirve la web con Caddy y, siguiendo su `client/Caddyfile`, pasa todo lo que empieza por `/api/` al servidor por la red privada de Railway, en `server.railway.internal:8080`. Así el navegador ve un solo origen y la cookie de sesión de la agencia funciona, como decide el [ADR 0004](../adr/0004-agency-sign-in.md).
+
+Para comprobarlo, abre `https://client-production-c53a.up.railway.app/api/health`: tiene que responder el servidor.
+
+Los webhooks de Vonage son la excepción: siguen llamando a la dirección pública del servidor.
+
 ## Conectarte al proyecto
 
 Solo la primera vez. Necesitas que te hayan invitado al proyecto y tener instalado el CLI de Railway, siguiendo [su documentación oficial](https://docs.railway.com/guides/cli).
@@ -22,6 +30,8 @@ Desde la raíz del repositorio:
 railway login
 railway link --project peephole
 ```
+
+`railway link` te pide elegir el workspace, el proyecto, el entorno (`production`) y un servicio. Elige `server` como servicio: pulsar Esc cancela todo el enlace, y los comandos de esta guía indican el servicio con `--service` de todas formas.
 
 Comprueba que estás en el proyecto correcto:
 
@@ -54,7 +64,8 @@ railway status
 | `PHONE_HASH_SECRET is not set` o `VONAGE_VERIFY_… is not set` | Falta una variable de la verificación de teléfono | Añádela, como se explica abajo |
 | `password authentication failed` o `Connection refused` | Las variables de la base de datos no coinciden o `Postgres` no está en marcha | Comprueba el estado de `Postgres` y las variables de `server` |
 | Un error de Flyway al arrancar | Una migración tiene un problema | Mira la tabla de errores de [la guía de migraciones](flyway-migrations.md#si-algo-falla) |
-| `Blocked by CORS` en el navegador | `CORS_ALLOWED_ORIGINS` no incluye la dirección del cliente | Comprueba esa variable en `server` |
+| `502 Bad Gateway` en una dirección `/api/...` del cliente | Caddy no llega al servidor por la red privada: `server` no está en marcha o no escucha en el puerto `8080` | Comprueba el estado de `server` y sus registros. Mira también `railway logs --service client`, donde Caddy explica por qué falló |
+| `Blocked by CORS` en el navegador | Algo llama a la dirección pública del servidor en lugar de a `/api` en la dirección del cliente | Las llamadas del cliente usan siempre rutas relativas, como `/api/health`. El servidor no envía cabeceras CORS, así que ninguna otra web puede leer sus respuestas |
 | `NEEDS_APPROVAL` en `railway deployment list` | El despliegue no ha fallado: Railway lo ha retenido hasta que alguien con permiso lo apruebe | Avisa a la tech lead para que lo apruebe en el panel de Railway |
 
 ## Añadir una variable
@@ -73,7 +84,11 @@ El servicio `server` también necesita `SESSION_COOKIE_SECURE=true`, para que la
 
 El servicio `server` también necesita las variables de la verificación de teléfono, o no arranca: `VONAGE_VERIFY_APPLICATION_ID` y `VONAGE_VERIFY_PRIVATE_KEY`, con la aplicación de Candé, y `PHONE_HASH_SECRET`. El valor de `PHONE_HASH_SECRET` en Railway está en la carpeta compartida del Drive y no se cambia nunca: si cambiara, los teléfonos ya guardados dejarían de coincidir con los nuevos y los límites por teléfono empezarían de cero.
 
+El servicio `server` no tiene la variable `PORT`, así que escucha en el puerto `8080`, que es el que usa `client/Caddyfile`. Si algún día se añade `PORT`, hay que cambiar también el `Caddyfile`.
+
 La variable `API_DOCS_ENABLED` no se pone en Railway: la documentación de la API (Swagger UI) solo se usa en local.
+
+El servicio `client` no necesita ninguna variable para llegar a la API. `VITE_API_URL`, en `client`, y `CORS_ALLOWED_ORIGINS`, en `server`, se usaban antes del proxy y el código ya no las lee. Si todavía aparecen en Railway, se pueden borrar.
 
 ## Lo que no se hace
 
