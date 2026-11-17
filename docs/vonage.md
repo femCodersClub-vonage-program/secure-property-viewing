@@ -18,7 +18,7 @@ Silent Authentication is planned for later. In Spain it is available in the sand
 
 ### Video API
 
-Every video visit uses one routed session, because the visitor can invite up to 4 guests to join the agent. With Adaptive Media Routing, a routed session still behaves like a direct one when only two people are in the call. The details are in the [video visit spec](../specs/video-visit.md). In `server/`:
+Every video visit uses one routed session, because the visitor can share a link with as many guests as she wants, who join her and the agent. With Adaptive Media Routing, a routed session still behaves like a direct one when only two people are in the call. The details are in the [video visit spec](../specs/video-visit.md). In `server/`:
 
 - The session is created the first time someone enters the room, under a lock on the visit row, so everyone gets the same one
 - Tokens are `PUBLISHER` tokens generated on the server without calling Vonage. Their only `data` is the role, such as `role=GUEST`, and they expire when the room closes
