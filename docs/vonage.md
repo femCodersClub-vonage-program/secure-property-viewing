@@ -18,7 +18,13 @@ Silent Authentication is planned for later. In Spain it is available in the sand
 
 ### Video API
 
-Every video visit uses one routed session, because the visitor can invite up to 4 guests to join the agent. With Adaptive Media Routing, a routed session still behaves like a direct one when only two people are in the call. The details are in the [video visit spec](../specs/video-visit.md).
+Every video visit uses one routed session, because the visitor can invite up to 4 guests to join the agent. With Adaptive Media Routing, a routed session still behaves like a direct one when only two people are in the call. The details are in the [video visit spec](../specs/video-visit.md). In `server/`:
+
+- The session is created the first time someone enters the room, under a lock on the visit row, so everyone gets the same one
+- Tokens are `PUBLISHER` tokens generated on the server without calling Vonage. Their only `data` is the role, such as `role=GUEST`, and they expire when the room closes
+- If Vonage fails or times out while creating the session, the server answers `500 INTERNAL_ERROR`
+- Locally, everyone uses Viviana's application, unlike Verify
+- The server reaches Video only through the `VideoProvider` interface in `vonage/`, and the tests use a test double
 
 Planned for later: the video call between the owner and the agency (journey B), and signing or ratification with the property manager and all parties.
 
