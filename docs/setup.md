@@ -95,7 +95,7 @@ Open `server/.env` and replace the seven placeholders:
 | `DB_USERNAME` | `peephole` |
 | `DB_PASSWORD` | The shared password from the Drive folder |
 | `LOAD_DEMO_DATA` | `true` to load the demo data when the server starts, `false` to start with the tables only |
-| `SESSION_COOKIE_SECURE` | `false`, because the local server runs over `http://localhost`. It is `true` only on Railway, where the agency session cookie must be sent over HTTPS only, as decided in [ADR 0004](adr/0004-agency-sign-in.md) |
+| `SESSION_COOKIE_SECURE` | `false`, because the local server runs over `http://localhost`. It is `true` only on Railway, where the agency session cookie and the `XSRF-TOKEN` cookie must be sent over HTTPS only, as decided in [ADR 0004](adr/0004-agency-sign-in.md) |
 | `API_DOCS_ENABLED` | `true` to open the API documentation in Swagger UI at `http://localhost:8080/swagger-ui.html` while the server runs. It is never set on Railway, so the documentation stays off there |
 | `PHONE_HASH_SECRET` | A long random value you generate yourself (see below). The server uses it to hash phone numbers, so they are never stored as they are |
 

@@ -1,6 +1,7 @@
 package com.peephole.server.config;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -24,10 +25,14 @@ public class SecurityConfig {
      * The repository that csrf.spa() uses: the token lives in the XSRF-TOKEN cookie, readable by JavaScript.
      * It is a bean so AgencySessionController can clear the token on sign-in and sign-out, so a new one is issued
      * with the next response.
+     * Behind the client's Caddy proxy every request arrives over plain HTTP, so the cookie takes its Secure flag
+     * from the same property as the session cookie instead of from the request.
      */
     @Bean
-    CsrfTokenRepository csrfTokenRepository() {
-        return CookieCsrfTokenRepository.withHttpOnlyFalse();
+    CsrfTokenRepository csrfTokenRepository(@Value("${server.servlet.session.cookie.secure:false}") boolean secure) {
+        CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        repository.setCookieCustomizer((cookie) -> cookie.secure(secure));
+        return repository;
     }
 
     // No CORS configuration on purpose: the browser always calls /api from the client's own origin (ADR 0004), so
