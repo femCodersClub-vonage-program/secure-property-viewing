@@ -80,7 +80,7 @@ Al guardarla, el servicio se vuelve a desplegar.
 
 El servicio `server` necesita `LOAD_DEMO_DATA=true` para cargar los datos de ejemplo de `db/seed/`.
 
-El servicio `server` también necesita `SESSION_COOKIE_SECURE=true`, para que la cookie de sesión de la agencia solo viaje por HTTPS, como decide el [ADR 0004](../adr/0004-agency-sign-in.md). Si falta, el servidor arranca igual pero envía la cookie sin `Secure`.
+El servicio `server` también necesita `SESSION_COOKIE_SECURE=true`, para que la cookie de sesión de la agencia solo viaje por HTTPS, como decide el [ADR 0004](../adr/0004-agency-sign-in.md). La cookie `XSRF-TOKEN` sigue el mismo valor. Si falta, el servidor arranca igual pero envía las dos cookies sin `Secure`.
 
 El servicio `server` también necesita las variables de la verificación de teléfono, o no arranca: `VONAGE_VERIFY_APPLICATION_ID` y `VONAGE_VERIFY_PRIVATE_KEY`, con la aplicación de Candé, y `PHONE_HASH_SECRET`. El valor de `PHONE_HASH_SECRET` en Railway está en la carpeta compartida del Drive y no se cambia nunca: si cambiara, los teléfonos ya guardados dejarían de coincidir con los nuevos y los límites por teléfono empezarían de cero.
 

@@ -67,7 +67,7 @@ class AgencySessionCookieTest {
     void signsInAndOutWithAnHttpOnlyLaxSessionCookieAndRotatesTheCsrfToken() throws Exception {
         String firstCsrfCookie =
                 findCookie(send(HttpRequest.newBuilder(url("/api/health")).GET().build()), "XSRF-TOKEN");
-        assertThat(firstCsrfCookie).doesNotContainIgnoringCase("HttpOnly");
+        assertThat(firstCsrfCookie).doesNotContainIgnoringCase("HttpOnly").doesNotContainIgnoringCase("Secure");
         String firstCsrfToken = cookieValue(firstCsrfCookie);
 
         HttpResponse<String> signedIn = send(signInRequest()
