@@ -95,7 +95,7 @@ Abre `server/.env` y sustituye los siete valores de ejemplo:
 | `DB_USERNAME` | `peephole` |
 | `DB_PASSWORD` | La contraseña compartida del Drive |
 | `LOAD_DEMO_DATA` | `true` para cargar los datos de ejemplo al arrancar el servidor, `false` para arrancar solo con las tablas |
-| `SESSION_COOKIE_SECURE` | `false`, porque el servidor local funciona sobre `http://localhost`. Solo es `true` en Railway, donde la cookie de sesión de la agencia y la cookie `XSRF-TOKEN` solo deben enviarse por HTTPS, como se decidió en el [ADR 0004](adr/0004-agency-sign-in.md) |
+| `SESSION_COOKIE_SECURE` | `false`, porque el servidor local funciona sobre `http://localhost`. Solo es `true` en Railway, donde la cookie de sesión de la agencia solo debe enviarse por HTTPS, como se decidió en el [ADR 0004](adr/0004-agency-sign-in.md). La cookie `XSRF-TOKEN` sigue el mismo valor |
 | `API_DOCS_ENABLED` | `true` para abrir la documentación de la API en Swagger UI, en `http://localhost:8080/swagger-ui.html`, con el servidor arrancado. En Railway no se pone nunca, así que allí está apagada |
 | `PHONE_HASH_SECRET` | Un valor aleatorio largo que generas tú (ver abajo). El servidor lo usa para hacer un hash de los teléfonos, así nunca se guardan tal cual |
 

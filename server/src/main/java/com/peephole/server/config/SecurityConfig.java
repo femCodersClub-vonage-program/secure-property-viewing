@@ -22,11 +22,9 @@ public class SecurityConfig {
     }
 
     /**
-     * The repository that csrf.spa() uses: the token lives in the XSRF-TOKEN cookie, readable by JavaScript.
-     * It is a bean so AgencySessionController can clear the token on sign-in and sign-out, so a new one is issued
-     * with the next response.
-     * Behind the client's Caddy proxy every request arrives over plain HTTP, so the cookie takes its Secure flag
-     * from the same property as the session cookie instead of from the request.
+     * The repository that csrf.spa() uses: the token lives in the XSRF-TOKEN cookie, readable by JavaScript. It is a
+     * bean so AgencySessionController can clear it on sign-in and sign-out, so the next response issues a new one.
+     * Behind the Caddy proxy requests arrive over HTTP, so Secure follows the session cookie property, not the request.
      */
     @Bean
     CsrfTokenRepository csrfTokenRepository(@Value("${server.servlet.session.cookie.secure:false}") boolean secure) {
