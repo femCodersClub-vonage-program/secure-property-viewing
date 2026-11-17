@@ -73,7 +73,7 @@ Agreed on 2026-11-15 in [#61](https://github.com/femCodersClub-vonage-program/se
 - **The limit is on links, not on people in the call.** One visitor link and up to 4 guest links per visit, so the server never has to ask Vonage who is connected
 - **The room is open from 10 minutes before to 15 minutes after the visit.** Early enough to check the camera, and late enough for a visit that runs over. Each token expires when the room closes, which only stops new connections, so the client leaves the call itself at `closesAt`
 - **Each person's role travels with her connection,** in the token's `data` field, so every browser can label every video
-- **Vonage failures are system errors.** If Vonage fails or times out while creating the session, the answer is `500 INTERNAL_ERROR`, with a message that asks to try again, the same as for the other Vonage APIs
+- **Vonage failures are system errors.** If Vonage fails or times out while creating the session, the answer is `500 INTERNAL_ERROR` with the generic message of the [error format](data-model-and-api-contract.md#errors), the same as for the other Vonage APIs. The room screen asks to try again, and the next entry creates the session, because a failed one is never saved
 - **No room links in SMS.** The [messages spec](messages.md) keeps every SMS free of links, so people can tell them apart from a scam
 
 ## Technical plan
