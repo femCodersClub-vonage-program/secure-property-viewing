@@ -104,4 +104,19 @@ describe('routes', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Page not found' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Go to the home page' })).toHaveAttribute('href', '/')
   })
+
+  it.each([
+    ['/agency', 'Hello, Marta'],
+    ['/agency/properties', 'Properties'],
+    ['/agency/listing-requests', 'Listing requests'],
+    ['/agency/listing-requests/18', 'Request details'],
+    ['/agency/calendar', 'Calendar'],
+    ['/agency/messages', 'Messages'],
+    ['/agency/profile', 'Profile'],
+  ])('shows %s inside the agency layout', (path, heading) => {
+    renderAt(path)
+
+    expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Agency' })).toBeInTheDocument()
+  })
 })
