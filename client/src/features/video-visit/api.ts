@@ -1,5 +1,6 @@
 import { request } from '../../lib/http'
-import type { RoomLink, RoomLinkRole, VideoRole, VideoToken } from './types'
+import { isVideoRole } from './roles'
+import type { RoomLink, RoomLinkRole, VideoToken } from './types'
 
 export function parseRoomLink(data: unknown): RoomLink {
   if (
@@ -22,14 +23,6 @@ export function createRoomLink(visitId: number, role: RoomLinkRole): Promise<Roo
     method: 'POST',
     body: JSON.stringify({ role }),
   })
-}
-
-
-const VIDEO_ROLES: readonly VideoRole[] = ['VISITOR', 'GUEST', 'AGENCY']
-
-// Type guard: tells TypeScript the value is a VideoRole without using `as`
-function isVideoRole(value: unknown): value is VideoRole {
-  return VIDEO_ROLES.some((role) => role === value)
 }
 
 function isFilledString(value: unknown): value is string {

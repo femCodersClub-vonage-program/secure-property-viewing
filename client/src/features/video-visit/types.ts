@@ -18,3 +18,18 @@ export type VideoToken = {
   // Already a Date, so the room can compare it with the clock to leave the call
   closesAt: Date
 }
+
+/**
+ * Where the call is. One union, so the screen can never be in two states at once.
+ * Only the states that carry data have extra fields.
+ */
+export type CallStatus =
+  | { kind: 'connecting' }
+  | { kind: 'waiting' } // in the call, but nobody else is yet
+  | { kind: 'in-call' }
+  | { kind: 'permissions-denied' }
+  | { kind: 'reconnecting' }
+  | { kind: 'hung-up' }
+  | { kind: 'time-over' }
+  | { kind: 'not-open'; opensAt: Date }
+  | { kind: 'error'; message: string }
