@@ -71,3 +71,17 @@ export function getAgencyVideoToken(visitId: number): Promise<VideoToken> {
     method: 'POST',
   })
 }
+
+/** Reads when the room opens from a VIDEO_VISIT_NOT_OPEN error. Undefined if the room has closed. */
+export function readOpensAt(problem: unknown): Date | undefined {
+  if (
+    typeof problem === 'object' &&
+    problem !== null &&
+    'opensAt' in problem &&
+    typeof problem.opensAt === 'string'
+  ) {
+    const opensAt = new Date(problem.opensAt)
+    return Number.isNaN(opensAt.getTime()) ? undefined : opensAt
+  }
+  return undefined
+}
