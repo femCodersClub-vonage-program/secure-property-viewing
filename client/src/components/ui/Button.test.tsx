@@ -60,4 +60,9 @@ describe('Button', () => {
     render(<Button variant="danger">Delete</Button>)
     expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
   })
+
+  it('underlines the link variant, so it does not rely on color alone', () => {
+    render(<Button variant="link">Change the number</Button>)
+    expect(screen.getByRole('button', { name: 'Change the number' })).toHaveClass('underline')
+  })
 })
