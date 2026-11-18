@@ -54,7 +54,6 @@ describe('DashboardOverview', () => {
   })
 })
 
-
 it('renders the summary example from the spec', () => {
   renderOverview({
     agentName: 'Marta',
