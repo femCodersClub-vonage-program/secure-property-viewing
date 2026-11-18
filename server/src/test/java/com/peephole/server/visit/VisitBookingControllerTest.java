@@ -111,7 +111,7 @@ class VisitBookingControllerTest {
         slot(SLOT_START.plusDays(1).plusHours(1), "BOOKED");
         slot(SLOT_START.plusDays(15), "AVAILABLE");
 
-        mockMvc.perform(get("/api/properties/{id}/slots", propertyId)
+        String response = mockMvc.perform(get("/api/properties/{id}/slots", propertyId)
                         .param("from", "2099-01-01")
                         .param("to", "2099-01-02"))
                 .andExpect(status().isOk())
@@ -120,7 +120,13 @@ class VisitBookingControllerTest {
                 .andExpect(jsonPath("$[0].endsAt").value("2099-01-01T15:30:00+01:00"))
                 .andExpect(jsonPath("$[1].id").value(later))
                 .andExpect(jsonPath("$[2].id").value(onLastIncludedDay))
-                .andExpect(jsonPath("$.length()").value(3));
+                .andExpect(jsonPath("$.length()").value(3))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        List<Map<String, Object>> slots = JsonPath.read(response, "$");
+        assertThat(slots)
+                .allSatisfy(slotResponse -> assertThat(slotResponse).containsOnlyKeys("id", "startsAt", "endsAt"));
     }
 
     @Test
