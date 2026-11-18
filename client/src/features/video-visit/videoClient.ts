@@ -30,7 +30,7 @@ export type VideoCallEvents = {
 
 /** What the screen can do with the call. */
 export type VideoCall = {
-  showRemote: (id: string, element: HTMLElement) => void
+  showRemote: (id: string, element: HTMLElement) => () => void
   setMicrophone: (on: boolean) => void
   setCamera: (on: boolean) => void
   leave: () => void
@@ -74,9 +74,10 @@ export async function joinVideoCall(
     showRemote(id, element) {
       const stream = streams.get(id)
       if (stream === undefined) {
-        return // they left before their tile was on screen
+        return () => {}
       }
-      session.subscribe(stream, element, VIDEO_PROPERTIES)
+      const subscriber = session.subscribe(stream, element, VIDEO_PROPERTIES)
+      return () => session.unsubscribe(subscriber)
     },
     setMicrophone(on) {
       publisher.publishAudio(on)

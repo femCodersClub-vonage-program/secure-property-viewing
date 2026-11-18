@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiError, SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
 import { readOpensAt } from '../api'
 import type { CallStatus, VideoToken } from '../types'
@@ -114,9 +114,10 @@ export function useVideoCall(loadAccess: () => Promise<VideoToken>) {
     setStatus({ kind: 'hung-up' })
   }
 
-  function showRemote(id: string, element: HTMLElement) {
-    callRef.current?.showRemote(id, element)
-  }
+  // Stable, because each tile uses it in an effect. It only reads a ref, so it never needs to change
+  const showRemote = useCallback((id: string, element: HTMLElement): (() => void) => {
+    return callRef.current?.showRemote(id, element) ?? (() => {})
+  }, [])
 
   // "Waiting" isn't stored: it's simply being in the call while nobody else is
   const shownStatus: CallStatus =
