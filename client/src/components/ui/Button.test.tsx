@@ -34,8 +34,35 @@ describe('Button', () => {
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
   })
 
+  it('underlines the link variant, so it does not rely on color alone', () => {
+    render(<Button variant="link">Change the number</Button>)
+    expect(screen.getByRole('button', { name: 'Change the number' })).toHaveClass('underline')
+  })
+
+  it('keeps the rounded corners and padding of every button by default', () => {
+    render(<Button>Save</Button>)
+    expect(screen.getByRole('button', { name: 'Save' })).toHaveClass('rounded-md', 'px-5')
+  })
+
+  it('draws a circle without padding, so it fits a calendar day', () => {
+    render(<Button shape="circle">19</Button>)
+    const day = screen.getByRole('button', { name: '19' })
+    expect(day).toHaveClass('rounded-pill', 'aspect-square', 'p-0')
+    expect(day).not.toHaveClass('rounded-md', 'px-5')
+  })
+
+  it('draws a pill that keeps the padding, for a time', () => {
+    render(<Button shape="pill">11:30</Button>)
+    expect(screen.getByRole('button', { name: '11:30' })).toHaveClass('rounded-pill', 'px-5')
+  })
+
   it('renders danger variant', () => {
     render(<Button variant="danger">Delete</Button>)
     expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
+  })
+
+  it('underlines the link variant, so it does not rely on color alone', () => {
+    render(<Button variant="link">Change the number</Button>)
+    expect(screen.getByRole('button', { name: 'Change the number' })).toHaveClass('underline')
   })
 })

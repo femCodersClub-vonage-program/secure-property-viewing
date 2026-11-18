@@ -1,4 +1,5 @@
 import type { SelectHTMLAttributes } from 'react'
+import { fieldBorderClasses, fieldClasses } from './fieldClasses'
 
 type SelectProps = SelectHTMLAttributes<HTMLSelectElement>
 
@@ -7,8 +8,9 @@ function Select({ className, children, ...props }: SelectProps) {
     <select
       {...props}
       className={[
-        'w-full rounded-sm border border-border-input bg-surface-input font-body text-text-default px-3 py-2',
-        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary',
+        fieldClasses,
+        fieldBorderClasses(props['aria-invalid']),
+        'px-3 py-2',
         className ?? '',
       ]
         .join(' ')

@@ -72,3 +72,75 @@ describe('request', () => {
     })
   })
 })
+
+describe('request on a write', () => {
+  const clearCsrfCookie = () => {
+    document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/'
+  }
+
+  beforeEach(clearCsrfCookie)
+  afterEach(clearCsrfCookie)
+
+  const sentHeaders = (call: number): Headers => {
+    const init = fetchMock.mock.calls[call]?.[1]
+    return new Headers(init?.headers)
+  }
+
+  it('sends the CSRF cookie back in the X-XSRF-TOKEN header, with a JSON body', async () => {
+    document.cookie = 'XSRF-TOKEN=token-from-the-server; path=/'
+    fetchMock.mockResolvedValue(jsonResponse({ status: 'PENDING' }, 201))
+
+    await request('/api/phone-verifications', parseStatus, { method: 'POST', body: '{}' })
+
+    expect(sentHeaders(0).get('X-XSRF-TOKEN')).toBe('token-from-the-server')
+    expect(sentHeaders(0).get('Content-Type')).toBe('application/json')
+  })
+
+  it('asks the server for the cookie first when there is none yet', async () => {
+    fetchMock.mockImplementationOnce(() => {
+      document.cookie = 'XSRF-TOKEN=fresh-token; path=/'
+      return Promise.resolve(jsonResponse({ database: 'UP' }, 200))
+    })
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 'PENDING' }, 201))
+
+    await request('/api/phone-verifications', parseStatus, { method: 'POST', body: '{}' })
+
+    expect(fetchMock).toHaveBeenNthCalledWith(1, '/api/health', expect.anything())
+    expect(sentHeaders(1).get('X-XSRF-TOKEN')).toBe('fresh-token')
+  })
+
+  it('never sends the CSRF header on a GET', async () => {
+    document.cookie = 'XSRF-TOKEN=token-from-the-server; path=/'
+    fetchMock.mockResolvedValue(jsonResponse({ status: 'UP' }, 200))
+
+    await request('/api/health', parseStatus)
+
+    expect(sentHeaders(0).has('X-XSRF-TOKEN')).toBe(false)
+  })
+
+  it('keeps the message of each invalid field', async () => {
+    document.cookie = 'XSRF-TOKEN=token-from-the-server; path=/'
+    fetchMock.mockResolvedValue(
+      jsonResponse(
+        {
+          title: 'Validation failed',
+          status: 400,
+          detail: 'One or more fields are invalid.',
+          code: 'VALIDATION_FAILED',
+          errors: { phone: 'must be a phone number in international format, such as +34600000000' },
+        },
+        400,
+        'application/problem+json',
+      ),
+    )
+
+    const result = request('/api/phone-verifications', parseStatus, { method: 'POST', body: '{}' })
+
+    await expect(result).rejects.toMatchObject({
+      code: 'VALIDATION_FAILED',
+      fieldErrors: {
+        phone: 'must be a phone number in international format, such as +34600000000',
+      },
+    })
+  })
+})

@@ -95,7 +95,7 @@ Abre `server/.env` y sustituye los siete valores de ejemplo:
 | `DB_USERNAME` | `peephole` |
 | `DB_PASSWORD` | La contraseña compartida del Drive |
 | `LOAD_DEMO_DATA` | `true` para cargar los datos de ejemplo al arrancar el servidor, `false` para arrancar solo con las tablas |
-| `SESSION_COOKIE_SECURE` | `false`, porque el servidor local funciona sobre `http://localhost`. Solo es `true` en Railway, donde la cookie de sesión de la agencia solo debe enviarse por HTTPS, como se decidió en el [ADR 0004](adr/0004-agency-sign-in.md) |
+| `SESSION_COOKIE_SECURE` | `false`, porque el servidor local funciona sobre `http://localhost`. Solo es `true` en Railway, donde la cookie de sesión de la agencia solo debe enviarse por HTTPS, como se decidió en el [ADR 0004](adr/0004-agency-sign-in.md). La cookie `XSRF-TOKEN` sigue el mismo valor |
 | `API_DOCS_ENABLED` | `true` para abrir la documentación de la API en Swagger UI, en `http://localhost:8080/swagger-ui.html`, con el servidor arrancado. En Railway no se pone nunca, así que allí está apagada |
 | `PHONE_HASH_SECRET` | Un valor aleatorio largo que generas tú (ver abajo). El servidor lo usa para hacer un hash de los teléfonos, así nunca se guardan tal cual |
 
@@ -125,7 +125,12 @@ Cada API de Vonage funciona con la aplicación de Vonage de una persona del equi
 | Video | `VONAGE_VIDEO_APPLICATION_ID`, `VONAGE_VIDEO_PRIVATE_KEY` | Viviana |
 | Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY`, `VONAGE_MESSAGES_SIGNATURE_SECRET` | Damaris |
 
-En local, todas rellenan el grupo de Verify con su propia aplicación de Vonage, porque el servidor no arranca sin él. Verify no necesita ninguna capacidad, así que sirve cualquiera de tus aplicaciones. Rellena los demás grupos solo si son tuyos, y deja el resto con sus valores de ejemplo.
+En local, todas rellenan los grupos de Verify y de Video, porque el servidor no arranca sin ellos:
+
+- **Verify:** tu propia aplicación de Vonage. Verify no necesita ninguna capacidad, así que sirve cualquiera de tus aplicaciones
+- **Video:** la aplicación de Viviana, con los valores de la carpeta compartida del equipo en Drive, como decide la [spec de la videovisita](../specs/video-visit.md)
+
+Rellena el grupo de Messages solo si es tuyo, y si no, déjalo con sus valores de ejemplo.
 
 **La clave privada en base64.** Cada clave privada va en una sola línea, así el mismo valor funciona en `server/.env` y en Railway. Para copiar la tuya:
 
@@ -187,7 +192,7 @@ Abre `http://localhost:5173`. Para pararlo, pulsa `Ctrl+C`.
 | `database "peephole" does not exist` | No se completó el paso 3 | Lanza el comando `createdb` del paso 3 |
 | `npm error code EBADENGINE` en `client/` | Tu versión de Node.js es más antigua que la que necesita el proyecto | Instala una versión más nueva (paso 2) y vuelve a lanzar `npm ci` |
 | `Connection refused` en el puerto `5432` | PostgreSQL no está arrancado | Windows: arranca el servicio `postgresql-x64-17`. macOS: `brew services start postgresql@17` |
-| `PHONE_HASH_SECRET is not set` o `VONAGE_VERIFY_… is not set` | Esa variable está vacía en `server/.env` | Rellénala: el secreto del hash como en el paso 4, y el grupo de Verify con tu propia aplicación de Vonage, como en [Variables de Vonage](#variables-de-vonage) |
-| `VONAGE_VERIFY_PRIVATE_KEY does not match VONAGE_VERIFY_APPLICATION_ID` | La clave y el ID son de aplicaciones distintas, o la clave no se copió entera | Vuelve a copiar las dos de la misma aplicación, con la clave en base64 en una sola línea |
-| `VONAGE_VERIFY_APPLICATION_ID is not a valid application ID` | El valor no es un Application ID, que tiene esta forma: `aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee` | Vuelve a copiarlo de tu aplicación en el dashboard de Vonage |
-| `VONAGE_VERIFY_PRIVATE_KEY is not valid base64` | La clave se pegó tal cual, o con espacios o saltos de línea | Vuelve a convertirla con el comando de [Variables de Vonage](#variables-de-vonage) y pega la línea entera |
+| `PHONE_HASH_SECRET is not set`, `VONAGE_VERIFY_… is not set` o `VONAGE_VIDEO_… is not set` | Esa variable está vacía en `server/.env` | Rellénala: el secreto del hash como en el paso 4, el grupo de Verify con tu propia aplicación de Vonage y el de Video con los valores de Viviana del Drive, como en [Variables de Vonage](#variables-de-vonage) |
+| `VONAGE_VERIFY_PRIVATE_KEY does not match VONAGE_VERIFY_APPLICATION_ID`, o lo mismo con `VONAGE_VIDEO_…` | La clave y el ID son de aplicaciones distintas, o la clave no se copió entera | Vuelve a copiar las dos de la misma aplicación, con la clave en base64 en una sola línea |
+| `VONAGE_VERIFY_APPLICATION_ID is not a valid application ID`, o lo mismo con `VONAGE_VIDEO_…` | El valor no es un Application ID, que tiene esta forma: `aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee` | Vuelve a copiarlo: el de Verify de tu aplicación en el dashboard de Vonage, y el de Video del Drive |
+| `VONAGE_VERIFY_PRIVATE_KEY is not valid base64`, o lo mismo con `VONAGE_VIDEO_…` | La clave se pegó tal cual, o con espacios o saltos de línea | Vuelve a convertirla con el comando de [Variables de Vonage](#variables-de-vonage) y pega la línea entera |

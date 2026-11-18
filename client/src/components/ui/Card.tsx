@@ -1,15 +1,23 @@
 import type { HTMLAttributes } from 'react'
 
-type CardProps = HTMLAttributes<HTMLDivElement>
+export type CardVariant = 'default' | 'dark'
 
-function Card({ className, children, ...props }: CardProps) {
+type CardProps = HTMLAttributes<HTMLDivElement> & {
+  variant?: CardVariant
+}
+
+const variantClasses: Record<CardVariant, string> = {
+  default: 'border border-border bg-surface-card',
+  // White text only and nothing interactive: the purple of links, buttons and the focus ring
+  // has 2.39:1 on this background, below AA
+  dark: 'bg-brand-dark text-text-light',
+}
+
+function Card({ variant = 'default', className, children, ...props }: CardProps) {
   return (
     <div
       {...props}
-      className={[
-        'rounded-md border border-border bg-surface-card shadow-card p-card',
-        className ?? '',
-      ]
+      className={['rounded-md shadow-card p-card', variantClasses[variant], className ?? '']
         .join(' ')
         .trim()}
     >

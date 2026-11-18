@@ -7,6 +7,7 @@ export type ProblemDetail = {
   status: number
   detail: string
   code: string
+  errors?: Record<string, string>
 }
 
 /** Shown for any error that is not a business error. Never expose internal details. */
@@ -19,6 +20,7 @@ type ApiErrorOptions = {
   message: string
   status?: number
   code?: string
+  fieldErrors?: Record<string, string>
   cause?: unknown
 }
 
@@ -31,24 +33,18 @@ export class ApiError extends Error {
   readonly kind: ApiErrorKind
   readonly status: number | undefined
   readonly code: string | undefined
+  /** For VALIDATION_FAILED: the message of each invalid field, keyed by its name. */
+  readonly fieldErrors: Record<string, string>
 
-  constructor({ kind, message, status, code, cause }: ApiErrorOptions) {
+  constructor({ kind, message, status, code, fieldErrors, cause }: ApiErrorOptions) {
     super(message, { cause })
     this.name = 'ApiError'
     this.kind = kind
     this.status = status
     this.code = code
+    this.fieldErrors = fieldErrors ?? {}
   }
 }
-
-// In development VITE_API_URL is empty, so calls stay relative and Vite proxies /api.
-// In production it holds the server origin.
-function readBaseUrl(): string {
-  const value: unknown = import.meta.env.VITE_API_URL
-  return typeof value === 'string' ? value.replace(/\/$/, '') : ''
-}
-
-const BASE_URL = readBaseUrl()
 
 function isProblemDetail(value: unknown): value is ProblemDetail {
   return (
@@ -63,6 +59,37 @@ function isProblemDetail(value: unknown): value is ProblemDetail {
     'code' in value &&
     typeof value.code === 'string'
   )
+}
+
+function readFieldErrors(value: ProblemDetail): Record<string, string> {
+  const errors: unknown = value.errors
+  if (typeof errors !== 'object' || errors === null) {
+    return {}
+  }
+  return Object.fromEntries(
+    Object.entries(errors).filter(
+      (entry): entry is [string, string] => typeof entry[1] === 'string',
+    ),
+  )
+}
+
+// The server sets the XSRF-TOKEN cookie on any response, and expects its value back in the
+// X-XSRF-TOKEN header on every POST, PUT, PATCH and DELETE (ADR 0004)
+const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
+
+function readCsrfToken(): string | undefined {
+  const cookie = document.cookie.split('; ').find((entry) => entry.startsWith('XSRF-TOKEN='))
+  return cookie ? decodeURIComponent(cookie.slice('XSRF-TOKEN='.length)) : undefined
+}
+
+async function csrfToken(): Promise<string | undefined> {
+  const existing = readCsrfToken()
+  if (existing) {
+    return existing
+  }
+  // No call has reached the server yet in this browser: any GET makes it set the cookie
+  await fetch('/api/health', { headers: { Accept: 'application/json' } }).catch(() => undefined)
+  return readCsrfToken()
 }
 
 // response.json() returns any: assign it to unknown, and treat an empty or broken body as null
@@ -81,6 +108,8 @@ function systemError(status?: number, cause?: unknown): ApiError {
 
 /**
  * Calls the server and returns the body checked by `parse`.
+ * `path` is always relative, such as /api/health, so the browser sees one origin (ADR 0004):
+ * in development Vite proxies /api to the local server, and on Railway the client's Caddyfile does.
  * `parse` receives unknown data and must return a T or throw.
  */
 export async function request<T>(
@@ -92,16 +121,25 @@ export async function request<T>(
   if (!headers.has('Accept')) {
     headers.set('Accept', 'application/json')
   }
+  if (typeof init?.body === 'string' && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json')
+  }
+  if (UNSAFE_METHODS.has((init?.method ?? 'GET').toUpperCase())) {
+    const token = await csrfToken()
+    if (token) {
+      headers.set('X-XSRF-TOKEN', token)
+    }
+  }
 
   let response: Response
   try {
-    response = await fetch(`${BASE_URL}${path}`, { ...init, headers })
+    response = await fetch(path, { ...init, headers })
   } catch (cause) {
     // A canceled request is not an error to show: let the caller ignore it
     if (cause instanceof DOMException && cause.name === 'AbortError') {
       throw cause
     }
-    // fetch only rejects when there is no response at all: network down, DNS, CORS
+    // fetch only rejects when there is no response at all: network down, DNS
     throw systemError(undefined, cause)
   }
 
@@ -122,6 +160,7 @@ export async function request<T>(
       message: body.detail,
       status: response.status,
       code: body.code,
+      fieldErrors: readFieldErrors(body),
     })
   }
 

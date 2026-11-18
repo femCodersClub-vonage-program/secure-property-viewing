@@ -25,4 +25,15 @@ describe('Link', () => {
       'https://example.com',
     )
   })
+
+  it('renders a button-variant internal link', () => {
+    render(
+      <MemoryRouter>
+        <Link to="/properties/1/visit" variant="button">
+          Request a video visit
+        </Link>
+      </MemoryRouter>,
+    )
+    expect(screen.getByRole('link', { name: 'Request a video visit' })).toBeInTheDocument()
+  })
 })

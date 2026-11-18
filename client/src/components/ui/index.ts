@@ -8,11 +8,14 @@ export { default as Button } from './Button'
 export type { ButtonVariant } from './Button'
 
 export { default as Card } from './Card'
+export type { CardVariant } from './Card'
 
 export { default as Checkbox } from './Checkbox'
 
 export { default as FormField } from './FormField'
 export type { FormFieldChildProps } from './FormField'
+
+export { default as Input } from './Input'
 
 export { default as Link } from './Link'
 

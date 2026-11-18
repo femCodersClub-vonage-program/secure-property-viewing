@@ -1,10 +1,20 @@
-import type { ButtonHTMLAttributes } from 'react'
+import type { ComponentPropsWithRef } from 'react'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'danger'
+export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'link'
+export type ButtonShape = 'default' | 'pill' | 'circle'
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+// With ref, so a screen can give the focus back to the button, as Input does
+interface ButtonProps extends ComponentPropsWithRef<'button'> {
   variant?: ButtonVariant
+  shape?: ButtonShape
   loading?: boolean
+}
+
+// Each shape sets its own padding: a circle has none, so it can shrink to fit a 7-column calendar
+const shapeClasses: Record<ButtonShape, string> = {
+  default: 'rounded-md px-5 py-2',
+  pill: 'rounded-pill px-5 py-2',
+  circle: 'aspect-square rounded-pill p-0',
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
@@ -14,10 +24,13 @@ const variantClasses: Record<ButtonVariant, string> = {
     'bg-surface-page text-brand-primary border border-brand-primary hover:bg-brand-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary',
   danger:
     'bg-error text-surface-page hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error',
+  // An action that looks like a link, for a secondary step such as changing the number
+  link: 'min-h-11 bg-transparent text-brand-primary underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary',
 }
 
 function Button({
   variant = 'primary',
+  shape = 'default',
   loading = false,
   disabled,
   children,
@@ -32,7 +45,8 @@ function Button({
       disabled={isDisabled}
       aria-busy={loading || undefined}
       className={[
-        'inline-flex items-center justify-center gap-2 rounded-md font-body font-semibold px-5 py-2 transition-all',
+        'inline-flex items-center justify-center gap-2 font-body font-semibold transition-all',
+        shapeClasses[shape],
         variantClasses[variant],
         isDisabled && !loading ? 'cursor-not-allowed opacity-40' : '',
         loading ? 'cursor-wait opacity-80' : '',

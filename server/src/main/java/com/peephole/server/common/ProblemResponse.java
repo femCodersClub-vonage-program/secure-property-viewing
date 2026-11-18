@@ -1,6 +1,7 @@
 package com.peephole.server.common;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.OffsetDateTime;
 import java.util.Map;
 
 /**
@@ -19,4 +20,7 @@ public record ProblemResponse(
         String code,
 
         @Schema(description = "Only with VALIDATION_FAILED: each invalid field and its message")
-        Map<String, String> errors) {}
+        Map<String, String> errors,
+
+        @Schema(description = "Only with VIDEO_VISIT_NOT_OPEN, when the room hasn't opened yet: when it opens")
+        OffsetDateTime opensAt) {}

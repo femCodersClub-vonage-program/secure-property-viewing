@@ -99,6 +99,17 @@ The base unit is `0.25rem` (4px). The scale follows Tailwind's default steps, ex
 
 Dividers and cards use `1px solid var(--color-border)`. Form fields use `1px solid var(--color-border-input)`, so they meet the 3:1 contrast for interface components.
 
+`Card` has a `dark` variant for a card that has to stand out from the page, such as the confirmed visit on A6: `--color-brand-dark` background, no border and white text (17.61:1). Only text in `--color-text-light` and decorative `--color-brand-accent` dots go inside it, and no interactive elements, so the common focus ring is never needed on the dark background.
+
+A field with an error (`aria-invalid`) uses `2px solid var(--color-error)`. The wider border keeps the error visible without relying on color alone, and the message under the field says what went wrong.
+
+## Form fields
+
+- Labels are bold, in `--color-text-default`. Hints go under the label in `--color-text-muted`
+- `Input` has a `code` variant for short codes, such as the 6 digits of an SMS: `text-3xl`, bold, centered, with wide letter spacing and tabular numbers
+- `Button` has a `link` variant for a secondary action that looks like a link, such as "Change the number". It stays a `<button>`, with a minimum height of 44px
+- `Button` has a `shape`, `default` unless set. `pill` rounds it fully and keeps its padding, such as a time in the visit calendar. `circle` makes it round with no padding, so it can shrink to fit a day in a 7-column calendar at 320px. The variant still sets the colors, so a choice uses `primary` when selected and `secondary` otherwise, with `aria-pressed`
+
 ## Shadows
 
 | Token | Value | Use |
