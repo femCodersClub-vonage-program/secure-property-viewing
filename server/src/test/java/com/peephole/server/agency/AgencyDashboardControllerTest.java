@@ -217,11 +217,29 @@ class AgencyDashboardControllerTest {
                 .andExpect(jsonPath("$.length()").value(0));
     }
 
+    @Test
+    void acceptsARangeOfOneDay() throws Exception {
+        long property = insertProperty(agencyId, "Apartment in Gràcia", "ACTIVE");
+        insertVisit(property, NOW.plusDays(1), "CONFIRMED", "Laura Gómez");
+
+        mockMvc.perform(get("/api/agency/visits?from=2099-03-11&to=2099-03-11").session(signIn()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    void acceptsTheLastDaysOfTheYear9999() throws Exception {
+        mockMvc.perform(get("/api/agency/visits?from=9999-12-01&to=9999-12-31").session(signIn()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
     @ParameterizedTest
     @CsvSource({
         "to=2099-03-15, from",
         "from=2099-03-09, to",
         "from=2099-3-9&to=2099-03-15, from",
+        "from=2099-02-30&to=2099-03-15, from",
         "from=2099-03-15&to=2099-03-09, to",
         "from=2099-03-01&to=2099-04-01, to"
     })

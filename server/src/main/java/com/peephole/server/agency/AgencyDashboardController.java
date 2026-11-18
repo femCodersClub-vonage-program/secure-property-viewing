@@ -57,7 +57,8 @@ class AgencyDashboardController {
         return service.summary(user.getAgencyId(), user.getFullName());
     }
 
-    // The dates are read as text, so a missing or wrong one returns the same VALIDATION_FAILED as any other field
+    // The dates are read as text, so a missing or wrong one returns the same VALIDATION_FAILED as any other field.
+    // The API docs still mark them as required, because the endpoint always needs both
     @GetMapping("/visits")
     @Operation(
             summary = "List the visits in a range of days",
@@ -82,8 +83,11 @@ class AgencyDashboardController {
                             schema = @Schema(implementation = ProblemResponse.class)))
     List<AgencyVisitResponse> visits(
             @AuthenticationPrincipal AgencyUserDetails user,
-            @Parameter(description = "First day, such as " + DATE_EXAMPLE) @RequestParam(required = false) String from,
-            @Parameter(description = "Last day, included, such as " + DATE_EXAMPLE) @RequestParam(required = false)
+            @Parameter(description = "First day, such as " + DATE_EXAMPLE, required = true)
+                    @RequestParam(required = false)
+                    String from,
+            @Parameter(description = "Last day, included, such as " + DATE_EXAMPLE, required = true)
+                    @RequestParam(required = false)
                     String to) {
         LocalDate firstDay = parseDate("from", from);
         LocalDate lastDay = parseDate("to", to);
