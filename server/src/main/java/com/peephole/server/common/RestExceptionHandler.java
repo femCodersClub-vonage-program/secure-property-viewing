@@ -88,6 +88,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(exception.getStatus(), exception.getMessage());
         problem.setTitle(exception.getStatus().getReasonPhrase());
         problem.setProperty("code", exception.getCode());
+        exception.getProperties().forEach(problem::setProperty);
         return problem;
     }
 

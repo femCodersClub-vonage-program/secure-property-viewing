@@ -49,7 +49,7 @@ All screens:
 - Asking for an email or any data other than the name and the phone
 - Holding a slot while the visitor verifies her phone
 - "Add to calendar" on the confirmation screen, although the screen map shows it
-- The confirmation SMS, the visitor's room link and the invite links, which belong to the [messages](messages.md) and [video visit](video-visit.md) specs
+- The confirmation SMS, the visitor's room link and the link she shares with her guests, which belong to the [messages](messages.md) and [video visit](video-visit.md) specs
 
 ## Decisions
 
@@ -62,7 +62,7 @@ Agreed on 2026-11-15 in [#60](https://github.com/femCodersClub-vonage-program/se
 - **A slot that has started, or that belongs to a property that is no longer active, answers `409`, not `404`.** The slot exists, but it can no longer be booked, and the client handles it like a slot someone else took: it asks for another time
 - **Booking checks that the verification is less than 30 minutes old.** It measures from the moment the phone was verified. It's long enough to pick another time after a `409`, and short enough that an old verification can't be reused later. Booking applies this rule itself, so it doesn't change the shared verification rules that the owner listing also uses
 - **One error code for every verification rule.** `422 PHONE_VERIFICATION_INVALID`, the same code as the owner listing spec, because the client does the same in every case: it sends the visitor back to verify her phone
-- **The session only bridges the moment right after booking.** The visit id is saved in the session so A6 can ask the video visit feature for the visitor's own room link and her invite links. Entering the room later uses that link, not the session, so it still works the next day, in another browser and after a redeploy, as the [video visit spec](video-visit.md) describes
+- **The session only bridges the moment right after booking.** The visit id is saved in the session so A6 can ask the video visit feature for the visitor's own room link and the link she shares with her guests. Entering the room later uses that link, not the session, so it still works the next day, in another browser and after a redeploy, as the [video visit spec](video-visit.md) describes
 - **Known limit:** a canceled visit keeps its slot, because `visit_slot_id` is unique in `visit`. It doesn't affect the MVP, which has no cancellation
 
 ## Technical plan
@@ -146,5 +146,5 @@ None directly. Phone verification calls Verify, and the confirmation SMS goes th
 - A4 shows the property summary at the top, the days of the next 14 days that have free slots, the free times of the selected day and the name field. The design system has no calendar component, so the days and times are `Button`s with `aria-pressed` inside the feature, with an accessible name that includes the day and the time. No date picker library is added
 - A4 keeps the chosen slot and the name while the visitor goes through A5. When A5 ends with `VERIFIED`, the booking flow sends `POST /api/visits`
 - A `409` takes the visitor back to A4 with a message that says the time has just been taken. When she picks another time, the booking is sent again with the same verification, without going through A5. A `422` takes her back to A5
-- A6 shows the confirmation from the `201` response, plus the visitor's room link and the "Invite someone" button from the [video visit spec](video-visit.md)
+- A6 shows the confirmation from the `201` response, plus the visitor's room link and the "Get a link to share" button from the [video visit spec](video-visit.md)
 - Loading, empty ("no free times in the next 14 days") and error states use the API client and the design system

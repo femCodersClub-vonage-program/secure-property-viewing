@@ -57,6 +57,27 @@ class OpenApiDocsTest {
     }
 
     @Test
+    void documentsTheVideoVisitEndpointsAndTheirErrors() throws Exception {
+        String roomLinks = "$.paths['/api/visits/{id}/room-links'].post";
+        String linkToken = "$.paths['/api/room-links/video-token'].post";
+        String agencyToken = "$.paths['/api/agency/visits/{id}/video-token'].post";
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(jsonPath(roomLinks + ".responses['201']").exists())
+                .andExpect(jsonPath(roomLinks + ".responses['400']").exists())
+                .andExpect(jsonPath(roomLinks + ".responses['404']").exists())
+                .andExpect(jsonPath(roomLinks + ".responses['409']").exists())
+                .andExpect(jsonPath(roomLinks + ".security").doesNotExist())
+                .andExpect(jsonPath(linkToken + ".responses['409']").exists())
+                .andExpect(jsonPath(linkToken + ".responses['500']").exists())
+                .andExpect(jsonPath(linkToken + ".security").doesNotExist())
+                .andExpect(jsonPath(agencyToken + ".responses['401']").exists())
+                .andExpect(jsonPath(agencyToken + ".responses['500']").exists())
+                .andExpect(jsonPath(agencyToken + ".security[0].agencySession").exists())
+                .andExpect(jsonPath("$.components.schemas.Problem.properties.opensAt")
+                        .exists());
+    }
+
+    @Test
     void listsOnlyTheErrorsEachEndpointCanReturn() throws Exception {
         // With springdoc.override-with-generic-response=false, the handlers in RestExceptionHandler are not added to
         // every endpoint: /api/health takes no input, so it must not list a 400
