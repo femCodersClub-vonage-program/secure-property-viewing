@@ -321,6 +321,48 @@ class VisitBookingControllerTest {
     }
 
     @Test
+    void onlyOneConcurrentBookingCanUseTheSamePhoneVerification() throws Exception {
+        long firstSlot = slot(SLOT_START, "AVAILABLE");
+        long secondSlot = slot(SLOT_START.plusHours(1), "AVAILABLE");
+        MockHttpSession session = new MockHttpSession();
+        long verificationId = verifiedPhone(session, "VISIT", PHONE);
+        CountDownLatch startTogether = new CountDownLatch(1);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        List<Future<MvcResult>> results = new ArrayList<>();
+
+        for (long slotId : List.of(firstSlot, secondSlot)) {
+            results.add(executor.submit(() -> {
+                startTogether.await();
+                return book(session, bookingBody(slotId, "Laura", PHONE, verificationId))
+                        .andReturn();
+            }));
+        }
+        startTogether.countDown();
+        List<MvcResult> responses = new ArrayList<>();
+        try {
+            for (Future<MvcResult> result : results) {
+                responses.add(result.get(30, TimeUnit.SECONDS));
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+
+        assertThat(responses)
+                .extracting(result -> result.getResponse().getStatus())
+                .containsExactlyInAnyOrder(201, 422);
+        assertThat(responses.stream()
+                        .filter(result -> result.getResponse().getStatus() == 422)
+                        .findFirst()
+                        .orElseThrow()
+                        .getResponse()
+                        .getContentAsString())
+                .contains("\"code\":\"PHONE_VERIFICATION_INVALID\"");
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT count(*) FROM visit WHERE phone_verification_id = ?", Integer.class, verificationId))
+                .isEqualTo(1);
+    }
+
+    @Test
     void rejectsMissingFieldsInvalidValuesAndRequestsWithoutCsrf() throws Exception {
         mockMvc.perform(post("/api/visits")
                         .with(csrf())
