@@ -99,6 +99,22 @@ describe('fake visit booking API', () => {
     expect(await answer('/api/visits', 'POST', body)).toMatchObject({ status: 409 })
   })
 
+  it('answers room links with the shape of the video visit spec, up to 4 guest links', async () => {
+    const visitor = await answer('/api/visits/18/room-links', 'POST', '{"role":"VISITOR"}')
+    expect(visitor.status).toBe(201)
+    expect(keysOf(visitor.data)).toEqual(['role', 'token'])
+
+    for (let link = 0; link < 4; link++) {
+      expect((await answer('/api/visits/18/room-links', 'POST', '{"role":"GUEST"}')).status).toBe(
+        201,
+      )
+    }
+    expect(await answer('/api/visits/18/room-links', 'POST', '{"role":"GUEST"}')).toMatchObject({
+      status: 409,
+      data: { code: 'VIDEO_INVITE_LIMIT_REACHED' },
+    })
+  })
+
   it('leaves every other call to the real server', () => {
     expect(fakeVisitBookingAnswer('/api/health', 'GET', undefined, NOW)).toBeUndefined()
     expect(fakeVisitBookingAnswer('/api/phone-verifications', 'POST', '{}', NOW)).toBeUndefined()

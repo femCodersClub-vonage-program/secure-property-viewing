@@ -42,6 +42,8 @@ sequenceDiagram
   S-->>C: Visit confirmed
   C->>S: Asks for the visitor's room link
   S-->>C: Room link, shown once on the confirmation screen
+  C->>S: Asks for a link to share, when the visitor presses the button
+  S-->>C: Guest link, which she shares with everyone she invites
   Note over V,VV: On the day of the visit
   C->>S: Enters the room with the room link
   S->>VV: Creates the visit session, the first time someone enters

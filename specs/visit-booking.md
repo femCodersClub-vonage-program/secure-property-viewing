@@ -147,4 +147,6 @@ None directly. Phone verification calls Verify, and the confirmation SMS goes th
 - A4 keeps the chosen slot and the name while the visitor goes through A5. When A5 ends with `VERIFIED`, the booking flow sends `POST /api/visits`
 - A `409` takes the visitor back to A4 with a message that says the time has just been taken. When she picks another time, the booking is sent again with the same verification, without going through A5. A `422` takes her back to A5
 - A6 shows the confirmation from the `201` response, plus the visitor's room link and the "Get a link to share" button from the [video visit spec](video-visit.md)
+- A6 is a page at `/visits/:id/confirmation`. The calendar passes the `201` visit to it through the router's history state, so the confirmation survives a reload. The room links never go in that state: the history only records that the visitor link was created, so a reload offers "Get a new link" instead of replacing the one the visitor saved
+- Opened with no visit in the history, such as from a copied address, A6 says the confirmation is no longer available and links to the catalog
 - Loading, empty ("no free times in the next 14 days") and error states use the API client and the design system

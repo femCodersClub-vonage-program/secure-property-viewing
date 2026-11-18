@@ -89,6 +89,15 @@ export function parseBookedVisit(data: unknown): BookedVisit {
   throw new Error('Unexpected POST /api/visits response')
 }
 
+/** The booked visit kept in the browser history, or undefined when it is missing or broken. */
+export function readBookedVisit(data: unknown): BookedVisit | undefined {
+  try {
+    return parseBookedVisit(data)
+  } catch {
+    return undefined
+  }
+}
+
 export function getProperty(id: number, signal?: AbortSignal): Promise<PropertySummary> {
   return request(`/api/properties/${id}`, parseProperty, { signal })
 }

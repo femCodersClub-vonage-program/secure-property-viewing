@@ -1,6 +1,6 @@
-// TEMPORARY, development only: answers GET /api/properties/{id}, GET /api/properties/{id}/slots
-// and POST /api/visits until #52 and #73 are in dev. Then delete this file, its test, its export
-// in index.ts and its two lines in main.tsx. Every other call still reaches the real server.
+// TEMPORARY, development only: answers the property, its slots, POST /api/visits and the room links
+// until #52 and #73 are in dev. Then delete this file, its test, its export in index.ts and its two
+// lines in main.tsx. Every other call still reaches the real server.
 import { addDays, BOOKING_WINDOW_DAYS, madridDay, TIME_ZONE } from './calendar'
 
 const TIMES = ['10:00', '10:30', '11:00', '11:30', '12:30', '16:00', '16:30', '17:00']
@@ -9,6 +9,9 @@ const TAKEN_BY_SOMEONE_ELSE = '11:30'
 const EXISTING_PROPERTY_IDS = { from: 1, to: 20 }
 
 const bookedSlotIds = new Set<number>()
+// The real server keeps up to 4 guest links per visit
+const GUEST_LINK_LIMIT = 4
+const guestLinksByVisit = new Map<number, number>()
 
 const json = (body: unknown, status: number) =>
   new Response(JSON.stringify(body), {
@@ -117,6 +120,36 @@ function bookVisit(body: unknown, now: Date): Response {
   )
 }
 
+function randomToken(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(32))
+  return btoa(String.fromCharCode(...bytes))
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replaceAll('=', '')
+}
+
+// Unlike the real server, it answers for any visit id, so A6 can be reloaded by hand
+function createRoomLink(visitId: number, body: unknown): Response {
+  const data: unknown = typeof body === 'string' ? JSON.parse(body) : undefined
+  const role = typeof data === 'object' && data !== null && 'role' in data ? data.role : undefined
+  if (role !== 'VISITOR' && role !== 'GUEST') {
+    return problem(400, 'Bad Request', 'VALIDATION_FAILED', 'One or more fields are invalid.')
+  }
+  if (role === 'GUEST') {
+    const guestLinks = guestLinksByVisit.get(visitId) ?? 0
+    if (guestLinks >= GUEST_LINK_LIMIT) {
+      return problem(
+        409,
+        'Conflict',
+        'VIDEO_INVITE_LIMIT_REACHED',
+        `This visit already has ${GUEST_LINK_LIMIT} guest links, the most it can have.`,
+      )
+    }
+    guestLinksByVisit.set(visitId, guestLinks + 1)
+  }
+  return json({ role, token: randomToken() }, 201)
+}
+
 /** The fake answer for a call, or undefined when the real server should answer it. */
 export function fakeVisitBookingAnswer(
   path: string,
@@ -134,6 +167,10 @@ export function fakeVisitBookingAnswer(
   }
   if (path === '/api/visits' && method === 'POST') {
     return bookVisit(body, now)
+  }
+  const roomLinksMatch = /^\/api\/visits\/(\d+)\/room-links$/.exec(path)
+  if (roomLinksMatch && method === 'POST') {
+    return createRoomLink(Number(roomLinksMatch[1]), body)
   }
   return undefined
 }

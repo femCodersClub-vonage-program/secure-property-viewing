@@ -99,6 +99,8 @@ The base unit is `0.25rem` (4px). The scale follows Tailwind's default steps, ex
 
 Dividers and cards use `1px solid var(--color-border)`. Form fields use `1px solid var(--color-border-input)`, so they meet the 3:1 contrast for interface components.
 
+`Card` has a `dark` variant for a card that has to stand out from the page, such as the confirmed visit on A6: `--color-brand-dark` background, no border and white text (17.61:1). Only text in `--color-text-light` and decorative `--color-brand-accent` dots go inside it, and no interactive elements, so the common focus ring is never needed on the dark background.
+
 A field with an error (`aria-invalid`) uses `2px solid var(--color-error)`. The wider border keeps the error visible without relying on color alone, and the message under the field says what went wrong.
 
 ## Form fields
