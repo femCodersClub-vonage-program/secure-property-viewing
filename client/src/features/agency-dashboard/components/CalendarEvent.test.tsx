@@ -38,4 +38,17 @@ describe('CalendarEvent', () => {
       screen.getByRole('link', { name: 'Join visit with Laura Gómez at 11:00' }),
     ).toHaveAttribute('href', '/agency/visits/31/room')
   })
+
+  it('shows a disabled button and says why when the visit is canceled', () => {
+    render(
+      <MemoryRouter>
+        <CalendarEvent visit={{ ...visit, status: 'CANCELED' }} />
+      </MemoryRouter>,
+    )
+
+    expect(screen.queryByRole('link', { name: /Join visit/ })).not.toBeInTheDocument()
+    const button = screen.getByRole('button', { name: 'Join visit with Laura Gómez at 11:00' })
+    expect(button).toBeDisabled()
+    expect(button).toHaveAccessibleDescription('This visit was canceled')
+  })
 })
