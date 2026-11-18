@@ -136,6 +136,8 @@ class PropertyControllerTest {
         assertThat(json).contains("\"area\"");
         assertThat(json).contains("\"bedrooms\"");
         assertThat(json).contains("\"sizeM2\"");
+        assertThat(json).contains("\"latitude\"");
+        assertThat(json).contains("\"longitude\"");
         assertThat(json).contains("\"coverImage\"");
         assertThat(json).contains("\"agency\"");
         assertThat(json).contains("\"verified\"");

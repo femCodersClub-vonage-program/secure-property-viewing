@@ -31,6 +31,11 @@ class SecurityConfigTest {
     }
 
     @Test
+    void doesNotRequireASessionForPropertyDetails() throws Exception {
+        mockMvc.perform(get("/api/properties/999999")).andExpect(status().isNotFound());
+    }
+
+    @Test
     void doesNotRequireACsrfTokenForWebhooks() throws Exception {
         mockMvc.perform(post("/api/webhooks/messages/status")
                         .contentType(MediaType.APPLICATION_JSON)
