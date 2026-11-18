@@ -20,7 +20,7 @@ Phone verification by SMS asks the person to type a code, and a code can be inte
 - [ ] A completed silent check marks the verification `VERIFIED`, as a correct SMS code does, and the visit or listing request continues with everything the person had already filled in
 - [ ] The silent check is tried from a phone's browser, and for a `+990` number from any browser while the Virtual Operator is allowed. Otherwise the verification goes straight to the SMS code
 - [ ] A `+990` number is rejected with `400 VALIDATION_FAILED` on `phone` while the Virtual Operator is not allowed
-- [ ] When the operator's network is not supported, when the check fails or is rejected, or when no answer comes back within 15 seconds, the person gets the SMS code screen of the phone verification spec without starting over
+- [ ] When the operator's network is not supported, when the check fails or is rejected, or when the person comes back to Peephole without a result, such as with the back button, the person gets the SMS code screen of the phone verification spec without starting over
 - [ ] With the Virtual Operator, a `+990` number ending in `99` fails, any other ending in an odd digit is rejected, and one ending in an even digit is verified. Both failures fall back to the SMS step
 - [ ] The limits, the binding to the browser and the single use from the phone verification spec still apply, with the changes in the decisions below
 - [ ] The status webhook from Vonage is only accepted with a valid signature, and neither phone numbers nor codes appear in logs
@@ -52,7 +52,7 @@ Checked in the Vonage Documentation MCP Server on 2026-11-17:
 ## Open questions
 
 - **How long the SMS step lasts.** When Silent Authentication is in the workflow, Verify fixes `channel_timeout` at 60 seconds instead of the 300 the server uses today. To test with the Virtual Operator: whether the SMS step after it also gets only 60 seconds. Proposal: the expiry of a two-step verification is the one Verify applies, and a `410` on it before 3 wrong codes maps to `EXPIRED`, not `FAILED`
-- **Which application sends an SMS-only verification.** Proposal: when Silent Authentication is on, every verification uses the Silent Authentication application, so the server keeps a single Verify client. Candé's Verify group keeps working until the checkpoint on November 23–24 decides whether Silent Authentication goes into the demo. If it does not, `SILENT_AUTH_ENABLED=false` keeps today's SMS-only flow
+- **Which application sends an SMS-only verification.** Proposal: when Silent Authentication is on, every verification uses the Silent Authentication application, so the server keeps a single Verify client. The current Verify group keeps working until the checkpoint on November 23–24 decides whether Silent Authentication goes into the demo. If it does not, `SILENT_AUTH_ENABLED=false` keeps today's SMS-only flow
 - **How the client tells a phone's browser.** Proposal: `navigator.userAgentData.mobile` when the browser has it, and the `(pointer: coarse)` media query otherwise
 - **Keeping the form across the redirect.** Opening the check URL reloads the page, so the slot and name of a visit, or the owner's details of a listing request, would be lost. Proposal: before leaving, the page that hosts the verification saves its form in `sessionStorage` together with the verification id and the purpose, restores it when the person comes back, and deletes it once used
 - **Where the silent code is checked.** The silent code is checked once and is not 6 digits, and wrong SMS codes have their own limit of 3. Proposal: a separate endpoint, `POST /api/phone-verifications/{id}/silent-check`, as described below
@@ -106,7 +106,7 @@ Response `200`, as in the existing check:
 
 A rejected silent code does not count toward the 3 wrong SMS codes.
 
-`POST /api/phone-verifications/{id}/sms-fallback` moves the request on to the SMS step when the redirect brings an `error_description` or the 15 seconds pass. It answers `200` with the verification, and the same `404` and `409` as above.
+`POST /api/phone-verifications/{id}/sms-fallback` moves the request on to the SMS step when the redirect brings an `error_description`, or when the page loads with a saved form and nothing in the fragment. It answers `200` with the verification, and the same `404` and `409` as above.
 
 `POST /api/webhooks/verify/status` receives Vonage's event and summary callbacks. It is under `/api/webhooks/**`, so it needs no CSRF token and is checked with the signed JWT instead, as the [data model spec](data-model-and-api-contract.md#endpoints) describes for every webhook. An invalid signature answers `401 WEBHOOK_SIGNATURE_INVALID`.
 
@@ -125,4 +125,4 @@ The credentials come from a new group of variables: `VONAGE_SILENT_AUTH_APPLICAT
 
 - The verification screen from [#55](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/55) sends `silentAuth: true` when the silent check applies and, when the response has a `checkUrl`, saves the form as the open questions describe, shows a "checking with your mobile operator" state and opens the check URL in the same tab
 - A route that the `redirect_url` points to reads the URL fragment, restores the form, and sends the code to `silent-check`, or asks for the SMS fallback on an `error_description`
-- After 15 seconds without an answer, or on any failure, the screen moves to the SMS code entry with its countdown, and the focus goes to the code field
+- When the page loads with a saved form and nothing in the fragment, because the person came back without a result, such as with the back button, it calls `sms-fallback`. On that or any other failure, the screen moves to the SMS code entry with its countdown, and the focus goes to the code field. If the operator never answers, the status webhook and Verify's own move to SMS after 60 seconds cover the server side
