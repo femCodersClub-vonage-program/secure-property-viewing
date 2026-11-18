@@ -12,13 +12,17 @@ import com.peephole.server.vonage.PhoneVerifierException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-class PhoneVerificationService {
+public class PhoneVerificationService {
+
+    public static final String SESSION_ATTRIBUTE = "phoneVerificationId";
 
     // The screen map asks for 30 seconds before a new code, plus 2 seconds of margin. The Verify API reference
     // says a cancel is only allowed after 30 seconds. A real test on 2026-11-16 accepted one at about 10 seconds,
@@ -106,6 +110,26 @@ class PhoneVerificationService {
             throw new VerificationTooManyAttemptsException();
         }
         throw new VerificationCodeInvalidException();
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void validateForVisit(long id, String phone, Long sessionVerificationId) {
+        if (!Objects.equals(id, sessionVerificationId)) {
+            throw new PhoneVerificationInvalidException();
+        }
+
+        PhoneVerification verification =
+                repository.findWithLockById(id).orElseThrow(PhoneVerificationInvalidException::new);
+        OffsetDateTime now = OffsetDateTime.now(clock);
+        OffsetDateTime verifiedAt = verification.getVerifiedAt();
+
+        if (verification.getStatus() != PhoneVerificationStatus.VERIFIED
+                || verification.getPurpose() != PhoneVerificationPurpose.VISIT
+                || verifiedAt == null
+                || !now.isBefore(verifiedAt.plusMinutes(30))
+                || !phoneHasher.hash(phone).equals(verification.getPhoneHash())) {
+            throw new PhoneVerificationInvalidException();
+        }
     }
 
     private void checkLimits(String phoneHash, OffsetDateTime now) {
