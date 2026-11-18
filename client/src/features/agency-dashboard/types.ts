@@ -1,3 +1,5 @@
+import type { Operation } from '../property-browsing'
+
 export type ListingRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 
 export type VisitStatus = 'CONFIRMED' | 'CANCELED' | 'COMPLETED'
@@ -10,4 +12,15 @@ export type AgencyVisit = {
   visitorName: string
   propertyTitle: string
   status: VisitStatus
+}
+
+/** One item of GET /api/agency/listing-requests */
+export type ListingRequestSummary = {
+  id: number
+  ownerName: string
+  title: string
+  operation: Operation
+  priceEuros: number
+  createdAt: string
+  status: ListingRequestStatus
 }
