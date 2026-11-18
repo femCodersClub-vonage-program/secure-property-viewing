@@ -59,13 +59,13 @@ class AgencyDashboardController {
     @Operation(
             summary = "List the visits in a range of days",
             description = "Every visit of the agency from `from` to `to`, both included, in Europe/Madrid time,"
-                    + " ordered by start time. The range is at most 31 days")
+                    + " ordered by start time. The range is at most " + MAX_DAYS + " days")
     @SecurityRequirement(name = OpenApiConfig.AGENCY_SESSION)
     @ApiResponse(responseCode = "200", description = "The visits")
     @ApiResponse(
             responseCode = "400",
             description = "VALIDATION_FAILED: `from` or `to` is missing or is not a date, `to` is before `from`, or"
-                    + " the range is longer than 31 days",
+                    + " the range is longer than " + MAX_DAYS + " days",
             content =
                     @Content(
                             mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,

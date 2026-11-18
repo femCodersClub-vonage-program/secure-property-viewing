@@ -95,7 +95,9 @@ class AgencyDashboardControllerTest {
 
         mockMvc.perform(get("/api/agency/summary").session(signIn()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.newRequests").value(pendingBefore + 2));
+                .andExpect(jsonPath("$.newRequests").value(pendingBefore + 2))
+                .andExpect(jsonPath("$.nextVisits").isArray())
+                .andExpect(jsonPath("$.nextVisits.length()").value(0));
     }
 
     @Test
@@ -208,9 +210,11 @@ class AgencyDashboardControllerTest {
     }
 
     @Test
-    void acceptsARangeOfThirtyOneDays() throws Exception {
+    void acceptsARangeOfThirtyOneDaysAndReturnsAnEmptyList() throws Exception {
         mockMvc.perform(get("/api/agency/visits?from=2099-03-01&to=2099-03-31").session(signIn()))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(0));
     }
 
     @ParameterizedTest

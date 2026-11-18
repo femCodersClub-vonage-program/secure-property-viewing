@@ -1,8 +1,9 @@
-package com.peephole.server.agency;
+package com.peephole.server.visit;
 
 import java.time.OffsetDateTime;
 
-record DashboardVisit(
+/** What the agency dashboard may know about a visit: its time, its visitor, its property and its status. */
+public record AgencyVisit(
         long id,
         OffsetDateTime startsAt,
         OffsetDateTime endsAt,
@@ -13,6 +14,6 @@ record DashboardVisit(
     // The visitor's name is personal data, so it never reaches a log
     @Override
     public String toString() {
-        return "DashboardVisit[id=" + id + ", startsAt=" + startsAt + ", status=" + status + "]";
+        return "AgencyVisit[id=" + id + ", startsAt=" + startsAt + ", status=" + status + "]";
     }
 }

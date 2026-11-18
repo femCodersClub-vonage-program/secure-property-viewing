@@ -3,6 +3,8 @@ package com.peephole.server.agency;
 import com.peephole.server.agency.dto.AgencySummaryResponse;
 import com.peephole.server.agency.dto.AgencyVisitResponse;
 import com.peephole.server.agency.dto.UpcomingVisitResponse;
+import com.peephole.server.visit.AgencyVisit;
+import com.peephole.server.visit.VisitService;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -21,10 +23,12 @@ class AgencyDashboardService {
     private static final int NEXT_VISITS = 5;
 
     private final AgencyDashboardQueries queries;
+    private final VisitService visitService;
     private final Clock clock;
 
-    AgencyDashboardService(AgencyDashboardQueries queries, Clock clock) {
+    AgencyDashboardService(AgencyDashboardQueries queries, VisitService visitService, Clock clock) {
         this.queries = queries;
+        this.visitService = visitService;
         this.clock = clock;
     }
 
@@ -34,9 +38,9 @@ class AgencyDashboardService {
         return new AgencySummaryResponse(
                 agentName,
                 queries.countPendingListingRequests(),
-                queries.countConfirmedVisits(agencyId, now, now.plus(UPCOMING_PERIOD)),
+                visitService.countConfirmedVisits(agencyId, now, now.plus(UPCOMING_PERIOD)),
                 queries.countActiveProperties(agencyId),
-                queries.findConfirmedVisitsFrom(agencyId, now, NEXT_VISITS).stream()
+                visitService.nextConfirmedVisits(agencyId, now, NEXT_VISITS).stream()
                         .map(AgencyDashboardService::toUpcomingVisit)
                         .toList());
     }
@@ -45,8 +49,8 @@ class AgencyDashboardService {
     // included and a week with a clock change still covers every visit
     @Transactional(readOnly = true)
     List<AgencyVisitResponse> visits(long agencyId, LocalDate from, LocalDate to) {
-        return queries
-                .findVisitsBetween(
+        return visitService
+                .visitsBetween(
                         agencyId,
                         from.atStartOfDay(AGENCY_ZONE).toOffsetDateTime(),
                         to.plusDays(1).atStartOfDay(AGENCY_ZONE).toOffsetDateTime())
@@ -55,12 +59,12 @@ class AgencyDashboardService {
                 .toList();
     }
 
-    private static UpcomingVisitResponse toUpcomingVisit(DashboardVisit visit) {
+    private static UpcomingVisitResponse toUpcomingVisit(AgencyVisit visit) {
         return new UpcomingVisitResponse(
                 visit.id(), inAgencyZone(visit.startsAt()), visit.visitorName(), visit.propertyTitle());
     }
 
-    private static AgencyVisitResponse toAgencyVisit(DashboardVisit visit) {
+    private static AgencyVisitResponse toAgencyVisit(AgencyVisit visit) {
         return new AgencyVisitResponse(
                 visit.id(),
                 inAgencyZone(visit.startsAt()),
