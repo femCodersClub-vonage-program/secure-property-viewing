@@ -104,4 +104,35 @@ describe('routes', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Page not found' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Go to the home page' })).toHaveAttribute('href', '/')
   })
+
+  it('reads the room token from the link and removes it from the address', async () => {
+    const fetchMock = vi.fn<typeof fetch>(() => new Promise(() => {}))
+    vi.stubGlobal('fetch', fetchMock)
+    document.cookie = 'XSRF-TOKEN=test-token; path=/'
+    const router = createMemoryRouter(routes, { initialEntries: ['/visits/room#room-token-1'] })
+    render(<RouterProvider router={router} />)
+
+    // The bug found by hand: the token stayed in the address bar
+    await waitFor(() => expect(router.state.location.hash).toBe(''))
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/room-links/video-token',
+        expect.objectContaining({ body: JSON.stringify({ token: 'room-token-1' }) }),
+      ),
+    )
+  })
+
+  it('says the room link does not work when it has no token', () => {
+    renderAt('/visits/room')
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: "This room link doesn't work" }),
+    ).toBeInTheDocument()
+  })
+
+  it('shows the not found page for an agency room without a valid visit id', () => {
+    renderAt('/agency/visits/abc/room')
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Page not found' })).toBeInTheDocument()
+  })
 })

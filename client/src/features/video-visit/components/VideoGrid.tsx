@@ -1,4 +1,4 @@
-import { useEffect, useRef, type Ref } from 'react'
+import { useEffect, useId, useRef, type Ref } from 'react'
 import { ROLE_LABELS } from '../roles'
 import type { VideoRole } from '../types'
 import type { RemoteVideo } from '../videoClient'
@@ -9,10 +9,16 @@ type TileProps = { label: string; videoRef: Ref<HTMLDivElement> }
 
 // Vonage puts the <video> inside the div. The label is real text, so everyone can read who is who
 function VideoTile({ label, videoRef }: TileProps) {
+  // A unique id per tile, so each figure is named by its own caption
+  const captionId = useId()
+
   return (
-    <figure className="flex flex-col gap-2">
+    // aria-labelledby makes the name explicit: not every screen reader takes it from figcaption
+    <figure aria-labelledby={captionId} className="flex flex-col gap-2">
       <div ref={videoRef} className={tileClasses} />
-      <figcaption className="font-body font-semibold text-brand-dark">{label}</figcaption>
+      <figcaption id={captionId} className="font-body font-semibold text-brand-dark">
+        {label}
+      </figcaption>
     </figure>
   )
 }

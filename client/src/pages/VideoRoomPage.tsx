@@ -1,13 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
-import {
-  getRoomVideoToken,
-  readRoomToken,
-  VideoRoom,
-} from '../features/video-visit'
+import { getRoomVideoToken, readRoomToken, VideoRoom } from '../features/video-visit'
 
 function VideoRoomPage() {
-   const location = useLocation()
+  const location = useLocation()
   const navigate = useNavigate()
   // Read on the first render only: the effect below removes the token from the address bar
   const [roomToken] = useState(() => readRoomToken(location.hash))
