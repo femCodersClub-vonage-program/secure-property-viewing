@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import javax.sql.DataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,6 +55,9 @@ class VisitBookingControllerTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private DataSource dataSource;
 
     @MockitoBean
     private PhoneVerifier phoneVerifier;
@@ -101,8 +105,10 @@ class VisitBookingControllerTest {
     void listsOnlyAvailableSlotsInTheInclusiveMadridDateRange() throws Exception {
         long later = slot(SLOT_START.plusHours(1), "AVAILABLE");
         long earlier = slot(SLOT_START, "AVAILABLE");
+        long onLastIncludedDay = slot(SLOT_START.plusDays(1), "AVAILABLE");
+        slot(NOW, "AVAILABLE");
         slot(NOW.minusMinutes(1), "AVAILABLE");
-        slot(SLOT_START.plusDays(1), "BOOKED");
+        slot(SLOT_START.plusDays(1).plusHours(1), "BOOKED");
         slot(SLOT_START.plusDays(15), "AVAILABLE");
 
         mockMvc.perform(get("/api/properties/{id}/slots", propertyId)
@@ -113,7 +119,8 @@ class VisitBookingControllerTest {
                 .andExpect(jsonPath("$[0].startsAt").value("2099-01-01T15:00:00+01:00"))
                 .andExpect(jsonPath("$[0].endsAt").value("2099-01-01T15:30:00+01:00"))
                 .andExpect(jsonPath("$[1].id").value(later))
-                .andExpect(jsonPath("$.length()").value(2));
+                .andExpect(jsonPath("$[2].id").value(onLastIncludedDay))
+                .andExpect(jsonPath("$.length()").value(3));
     }
 
     @Test
@@ -125,6 +132,12 @@ class VisitBookingControllerTest {
         mockMvc.perform(get("/api/properties/{id}/slots", propertyId)
                         .param("from", "2098-12-01")
                         .param("to", "2099-02-01"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(today))
+                .andExpect(jsonPath("$[1].id").value(lastAllowed))
+                .andExpect(jsonPath("$.length()").value(2));
+
+        mockMvc.perform(get("/api/properties/{id}/slots", propertyId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(today))
                 .andExpect(jsonPath("$[1].id").value(lastAllowed))
@@ -286,38 +299,74 @@ class VisitBookingControllerTest {
         CountDownLatch startTogether = new CountDownLatch(1);
         ExecutorService executor = Executors.newFixedThreadPool(2);
         List<Future<Integer>> results = new ArrayList<>();
-
-        List<MockHttpSession> sessions = List.of(firstSession, secondSession);
-        List<Long> bookingVerificationIds = List.of(firstVerificationId, secondVerificationId);
-        List<String> phones = List.of("+34611222337", "+34611222338");
-        for (int i = 0; i < sessions.size(); i++) {
-            MockHttpSession session = sessions.get(i);
-            long verificationId = bookingVerificationIds.get(i);
-            String phone = phones.get(i);
-            results.add(executor.submit(() -> {
-                startTogether.await();
-                return book(session, bookingBody(slotId, "Laura", phone, verificationId))
-                        .andReturn()
-                        .getResponse()
-                        .getStatus();
-            }));
-        }
-        startTogether.countDown();
-        List<Integer> statuses = new ArrayList<>();
-        try {
-            for (Future<Integer> result : results) {
-                statuses.add(result.get(30, TimeUnit.SECONDS));
+        try (var lockConnection = dataSource.getConnection()) {
+            lockConnection.setAutoCommit(false);
+            try (var statement = lockConnection.prepareStatement("SELECT id FROM visit_slot WHERE id = ? FOR UPDATE")) {
+                statement.setLong(1, slotId);
+                try (var resultSet = statement.executeQuery()) {
+                    assertThat(resultSet.next()).isTrue();
+                }
             }
-        } finally {
-            executor.shutdownNow();
+
+            try {
+                results.add(executor.submit(() -> {
+                    startTogether.await();
+                    return book(firstSession, bookingBody(slotId, "Laura", "+34611222337", firstVerificationId))
+                            .andReturn()
+                            .getResponse()
+                            .getStatus();
+                }));
+                results.add(executor.submit(() -> {
+                    startTogether.await();
+                    return book(secondSession, bookingBody(slotId, "Laura", "+34611222338", secondVerificationId))
+                            .andReturn()
+                            .getResponse()
+                            .getStatus();
+                }));
+                startTogether.countDown();
+                awaitBlockedSlotUpdates(2);
+                lockConnection.commit();
+
+                List<Integer> statuses = new ArrayList<>();
+                for (Future<Integer> result : results) {
+                    statuses.add(result.get(30, TimeUnit.SECONDS));
+                }
+
+                assertThat(statuses).containsExactlyInAnyOrder(201, 409);
+            } finally {
+                lockConnection.rollback();
+                executor.shutdownNow();
+            }
         }
 
-        assertThat(statuses).containsExactlyInAnyOrder(201, 409);
         assertThat(jdbcTemplate.queryForObject(
                         "SELECT count(*) FROM visit WHERE visit_slot_id = ?", Integer.class, slotId))
                 .isEqualTo(1);
         assertThat(jdbcTemplate.queryForObject("SELECT status FROM visit_slot WHERE id = ?", String.class, slotId))
                 .isEqualTo("BOOKED");
+    }
+
+    private void awaitBlockedSlotUpdates(int expectedCount) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        int blockedRequests = 0;
+        while (System.nanoTime() < deadline) {
+            blockedRequests = jdbcTemplate.queryForObject("""
+                    SELECT count(*)
+                    FROM pg_stat_activity
+                    WHERE datname = current_database()
+                      AND pid <> pg_backend_pid()
+                      AND state = 'active'
+                      AND wait_event_type = 'Lock'
+                      AND query ILIKE '%UPDATE visit_slot%'
+                    """, Integer.class);
+            if (blockedRequests >= expectedCount) {
+                break;
+            }
+            Thread.sleep(25);
+        }
+        assertThat(blockedRequests)
+                .as("both booking requests should be waiting to update the same slot")
+                .isGreaterThanOrEqualTo(expectedCount);
     }
 
     @Test
@@ -390,6 +439,18 @@ class VisitBookingControllerTest {
                         .content(bookingBody(slot(SLOT_START, "AVAILABLE"), "  ", "600000000", verificationId)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
+    }
+
+    @Test
+    void rejectsAVisitorNameLongerThanOneHundredCharacters() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        long verificationId = verifiedPhone(session, "VISIT", PHONE);
+        String visitorName = "a".repeat(101);
+
+        book(session, bookingBody(slot(SLOT_START, "AVAILABLE"), visitorName, PHONE, verificationId))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors.visitorName").exists());
     }
 
     private long slot(OffsetDateTime startsAt, String status) {
