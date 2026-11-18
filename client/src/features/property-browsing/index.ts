@@ -1,6 +1,5 @@
 export { default as PropertyCard } from './components/PropertyCard'
 export { default as VerificationBadge } from './components/VerificationBadge'
-export { SAMPLE_PROPERTIES } from './sampleProperties'
 export type {
   PropertySummary,
   PropertyDetail,
