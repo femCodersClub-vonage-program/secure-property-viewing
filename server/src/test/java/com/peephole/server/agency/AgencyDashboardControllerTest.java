@@ -233,6 +233,17 @@ class AgencyDashboardControllerTest {
     }
 
     @Test
+    void rejectsADateWithAYearOfMoreThanFourDigits() throws Exception {
+        mockMvc.perform(get("/api/agency/visits")
+                        .param("from", "+300000-01-01")
+                        .param("to", "+300000-01-07")
+                        .session(signIn()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors.from").exists());
+    }
+
+    @Test
     void requiresASignedInUserForTheVisits() throws Exception {
         mockMvc.perform(get("/api/agency/visits?from=2099-03-09&to=2099-03-15"))
                 .andExpect(status().isUnauthorized())

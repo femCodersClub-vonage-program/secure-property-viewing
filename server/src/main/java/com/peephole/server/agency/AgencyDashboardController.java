@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.regex.Pattern;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +29,8 @@ import org.springframework.web.bind.annotation.RestController;
 class AgencyDashboardController {
 
     private static final String DATE_EXAMPLE = "2026-11-23";
+    // LocalDate.parse also accepts years with a sign and more than four digits, which fail later in the database
+    private static final Pattern DATE_FORMAT = Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
     private static final int MAX_DAYS = 31;
 
     private final AgencyDashboardService service;
@@ -88,7 +91,8 @@ class AgencyDashboardController {
             throw new FieldValidationException("to", "must be the same day as from or a later one");
         }
         if (lastDay.isAfter(firstDay.plusDays(MAX_DAYS - 1))) {
-            throw new FieldValidationException("to", "must be at most " + MAX_DAYS + " days from from, both included");
+            throw new FieldValidationException(
+                    "to", "must be at most " + MAX_DAYS + " days after the first day, both included");
         }
         return service.visits(user.getAgencyId(), firstDay, lastDay);
     }
@@ -96,6 +100,9 @@ class AgencyDashboardController {
     private static LocalDate parseDate(String field, String value) {
         if (value == null || value.isBlank()) {
             throw new FieldValidationException(field, "is required, as a date such as " + DATE_EXAMPLE);
+        }
+        if (!DATE_FORMAT.matcher(value).matches()) {
+            throw new FieldValidationException(field, "must be a date such as " + DATE_EXAMPLE);
         }
         try {
             return LocalDate.parse(value);

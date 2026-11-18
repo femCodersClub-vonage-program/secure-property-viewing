@@ -8,7 +8,8 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Component;
 
 // Read-only queries for the agency dashboard. They join property for its agency and its title, as VisitRepository
-// does for the agency of a property, until the catalog (#52) exposes them in its service
+// does for the agency of a property, until the catalog (#52) exposes them in its service. They use JdbcClient
+// instead of VisitRepository because they return rows from three tables, not Visit entities
 @Component
 class VisitQueries {
 
@@ -63,7 +64,6 @@ class VisitQueries {
                 .list();
     }
 
-    // The status goes through VisitStatus, so a value the enum does not know fails here instead of reaching the API
     private static AgencyVisit toAgencyVisit(ResultSet row, int rowNumber) throws SQLException {
         return new AgencyVisit(
                 row.getLong("id"),
@@ -71,6 +71,6 @@ class VisitQueries {
                 row.getObject("ends_at", OffsetDateTime.class),
                 row.getString("visitor_name"),
                 row.getString("title"),
-                VisitStatus.valueOf(row.getString("status")).name());
+                row.getString("status"));
     }
 }

@@ -1,158 +1,192 @@
-# Data model and API contract
+# Agency dashboard
 
 - **Status:** Approved
-- **Issue:** [#11](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/11)
-- **Journey:** all three journeys in [`docs/user-journeys.md`](../docs/user-journeys.md)
+- **Issue:** [#14](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/14)
+- **Journey:** agency dashboard, screens 1 to 5 in [`docs/user-journeys.md`](../docs/user-journeys.md)
 
 ## Problem
 
-The client and the server are built at the same time by different people. If each side imagines its own data, we only find out when they connect. This spec defines one model and one contract for the whole MVP, taken from the screen map, plus the sample data that the server, the client and the tests share. Feature specs build on it and extend it when they need to.
+The agency is the other half of Peephole: it reviews who wants to list a property, approves what gets published, runs the video visits and keeps track of what has been sent to each person. The dashboard brings all of that into five screens, so an agent can see at a glance what needs attention and act on it.
 
 ## User stories
 
-- As a developer working on a screen, I want to know exactly what each endpoint returns, so that I can build with sample data that matches the real API
-- As a developer working on the server, I want to know which tables and endpoints the screens need, so that I build what the client will actually use
-- As anyone on the team, I want realistic sample data, so that every screen can be tried and demoed without creating data by hand
+- As an agent, I want to see today's pending work as soon as I sign in, so that nothing slips through
+- As an agent, I want to review a listing request and approve or reject it, so that only verified properties are published
+- As an agent, I want to see my visits in a calendar and join them from there, so that I arrive on time
+- As an agent, I want to see which confirmations and reminders were sent and whether they arrived, so that I can follow up when something fails
 
 ## Acceptance criteria
 
-- [ ] The entities, their fields and their relationships are the ones listed in this spec, and any change updates this spec in the same pull request
-- [ ] Every endpoint follows the conventions below: paths, JSON naming, dates, money and errors
-- [ ] Errors are returned as `ProblemDetail` with a stable `code`, as described below
-- [ ] The sample data loads with the server, locally and on Railway, and can be reloaded without duplicating rows
-- [ ] The sample data is fictional and contains no real person's data
-- [ ] The client keeps its sample data for unfinished endpoints in the shape defined here, so switching to the real endpoint needs no change in the components
+Sign-in:
+
+- [ ] Agents sign in with the email and password of a preloaded user. Every other agency page sends a signed-out visitor to the sign-in page
+- [ ] "Sign out" ends the session
+
+Layout:
+
+- [ ] Every screen shares one layout with side navigation: Dashboard, Properties, Listing requests, Calendar, Messages, Profile and Sign out
+- [ ] On mobile the navigation collapses into a menu, and the active page is marked with `aria-current="page"`
+
+Dashboard (D1):
+
+- [ ] It greets the agent by name and shows three indicators: new requests (listing requests in `PENDING`), upcoming visits (confirmed visits in the next 7 days) and active properties (properties in `ACTIVE`)
+- [ ] It lists the next five visits with time, visitor, property and a "Join visit" button that leads to the video visit once that feature exists
+
+Listing requests (D2):
+
+- [ ] It lists the requests with tabs by status (pending, approved, rejected), each with owner, property summary, date and a status badge
+- [ ] Each request opens its details
+
+Request details (D3):
+
+- [ ] It shows the owner information, the property information and when the request was received and reviewed
+- [ ] "Approve and publish" turns the request into an active property in the catalog, using the title, description and neighborhood from the request and a generic image
+- [ ] "Reject" asks for a reason before rejecting
+- [ ] Only pending requests can be approved or rejected, and the buttons say so when they are not available
+- [ ] In the MVP, both roles (`ADMIN` and `AGENT`) can approve and reject
+
+Visits calendar (D4):
+
+- [ ] It shows the visits of the week on desktop and as a list on mobile, with the option to move to the previous and next weeks
+- [ ] Each visit shows time, visitor and property, and has the same "Join visit" link as the dashboard
+- [ ] The calendar controls have accessible names and support keyboard use with visible focus
+
+Messages and notifications (D5):
+
+- [ ] It lists the messages sent and scheduled, with recipient, type, related visit or request, time and status
+- [ ] Failed messages stand out with text, not only with color
+
+All screens:
+
+- [ ] Loading, empty and error states, using the API client
+- [ ] Design system components and tokens only, and the accessibility rules in the root `AGENTS.md`
+- [ ] Sample data in one file per screen while its endpoint is not in `dev`
 
 ## Out of scope
 
-- Video sessions, room links and tokens: defined in the [video visit spec](video-visit.md)
-- Message sending rules: defined in the [messages spec](messages.md)
-- Pagination: the MVP has about twenty properties, so lists return everything that matches the filters
-- Several agencies: the MVP has one demo agency, although the model keeps `agency_id` so it can grow
-- Cities other than Barcelona: every property is in Barcelona, so there is no municipality field
-- Sign-up and password reset: agency users are preloaded with the sample data
-- Uploading photos: only the sample properties have photos, and a property approved from a listing request shows a generic image
+- Editing or deleting published properties, and the Properties and Profile screens beyond a placeholder
+- Several agencies, user management and roles beyond the demo users
+- Sign-up and password reset: the users are preloaded with the sample data
+- Sending messages by hand from the dashboard
 
 ## Technical plan
 
-### Conventions
+### Data
 
-- Every endpoint lives under `/api`. Agency endpoints live under `/api/agency` and require a signed-in agency user, with email and password and a server session
-- The full address is only shown in the visit confirmation. The catalog and the details show the neighborhood
-- JSON fields in `camelCase`. Identifiers are numbers
-- Dates and times in ISO 8601 with offset, such as `2026-11-10T11:00:00+01:00`. The client shows them in the `Europe/Madrid` time zone
-- Prices are whole euros (`priceEuros`). Rent is per month
-- Enumerations travel as uppercase strings, such as `RENT` or `PENDING`
+No new tables: `listing_request`, `property`, `visit` and `message` from the [data model](data-model-and-api-contract.md). Approving a request creates a `property` with `listing_request_id` set and status `ACTIVE`, in the same transaction.
 
-### Entities
+### API
 
-```mermaid
-erDiagram
-    AGENCY ||--o{ AGENCY_USER : has
-    AGENCY ||--o{ PROPERTY : lists
-    PROPERTY ||--o{ PROPERTY_IMAGE : has
-    PROPERTY ||--o{ VISIT_SLOT : offers
-    VISIT_SLOT ||--o| VISIT : "is booked by"
-    PHONE_VERIFICATION ||--o| VISIT : verifies
-    PHONE_VERIFICATION ||--o| LISTING_REQUEST : verifies
-    AGENCY_USER ||--o{ LISTING_REQUEST : reviews
-    LISTING_REQUEST ||--o| PROPERTY : "becomes"
-    VISIT ||--o{ MESSAGE : triggers
-    VISIT ||--o{ VIDEO_ACCESS : grants
-    LISTING_REQUEST ||--o{ MESSAGE : triggers
-```
+`POST /api/agency/session` receives `{ "email": "...", "password": "..." }` and returns `200` with `{ "name": "Marta", "role": "AGENT" }`, or `401 INVALID_CREDENTIALS`. `GET /api/agency/session` returns the same user, and `DELETE /api/agency/session` signs out and returns `204`.
 
-| Entity | Fields | Notes |
-| :---- | :---- | :---- |
-| `agency` | id, name, email, phone, verified, created_at | One demo agency in the MVP, verified |
-| `agency_user` | id, agency_id, full_name, email (unique), password_hash, role (`ADMIN`, `AGENT`), created_at | Preloaded with the sample data. Only the hash is stored, and the demo password is in the team's shared Drive folder |
-| `property` | id, agency_id, listing_request_id (nullable), title, operation (`RENT`, `SALE`), property_type (`APARTMENT`, `HOUSE`, `STUDIO`), price_euros, area, address, latitude (nullable), longitude (nullable), bedrooms, size_m2, floor (nullable), description, video_visit_available, status (`ACTIVE`, `INACTIVE`), created_at | Only `ACTIVE` properties appear in the catalog. `area` is the neighborhood, such as Gràcia. Coordinates are approximate, at neighborhood level, and place the pin on the map |
-| `property_image` | id, property_id, url, alt_text, position | `alt_text` is required: it describes what the photo shows |
-| `visit_slot` | id, property_id, starts_at, ends_at, status (`AVAILABLE`, `BOOKED`) | Slots of 30 minutes in the screen map |
-| `visit` | id, property_id, visit_slot_id, phone_verification_id, visitor_name, visitor_phone, status (`CONFIRMED`, `CANCELED`, `COMPLETED`), video_session_id (nullable), created_at | A visit exists only once the phone is verified. `video_session_id` is filled the first time someone enters its [video visit](video-visit.md) |
-| `video_access` | id, visit_id, role (`VISITOR`, `GUEST`), token_hash (unique), created_at | The room links of a visit: one for the visitor and up to 4 to share with guests. Only the hash of each token is stored. Detailed in the [video visit spec](video-visit.md) |
-| `listing_request` | id, phone_verification_id, owner_full_name, owner_phone, title, description, property_type, operation, area, address, price_euros, bedrooms, size_m2, floor (nullable), status (`PENDING`, `APPROVED`, `REJECTED`), reviewed_by (nullable), rejection_reason (nullable), created_at, reviewed_at (nullable) | Approving it creates an `ACTIVE` property with its data, no coordinates and a generic image |
-| `phone_verification` | id, purpose (`VISIT`, `LISTING_REQUEST`), phone_hash, vonage_request_id, status (`PENDING`, `VERIFIED`, `FAILED`, `EXPIRED`), check_attempts, created_at, verified_at (nullable) | Detailed in the [phone verification spec](phone-verification.md). The code is never stored, and the phone is kept only as a hash |
-| `message` | id, visit_id (nullable), listing_request_id (nullable), type (`CONFIRMATION`, `REMINDER`, `STATUS_UPDATE`), channel (`SMS`), vonage_message_id (nullable), status (`SCHEDULED`, `SUBMITTED`, `DELIVERED`, `FAILED`), scheduled_at, updated_at | Filled in by the messages feature in weeks 3 and 4 |
-
-Phone numbers are personal data: they are stored in E.164 format, used only to contact the person, and never written to logs.
-
-### Endpoints
-
-Public:
-
-| Method and path | Purpose | Spec |
-| :---- | :---- | :---- |
-| `GET /api/properties?operation=` | Catalog, with an optional filter | [Property browsing](property-browsing.md) |
-| `GET /api/properties/{id}` | Property details | [Property browsing](property-browsing.md) |
-| `GET /api/properties/{id}/slots?from=&to=` | Available visit slots | [Visit booking](visit-booking.md) |
-| `POST /api/phone-verifications` | Start a phone verification | [Phone verification](phone-verification.md) |
-| `POST /api/phone-verifications/{id}/check` | Check the code | [Phone verification](phone-verification.md) |
-| `POST /api/visits` | Book a visit with a verified phone | [Visit booking](visit-booking.md) |
-| `POST /api/visits/{id}/room-links` | Create the visitor's room link or a guest link, right after booking | [Video visit](video-visit.md) |
-| `POST /api/room-links/video-token` | Enter the video visit with a room link | [Video visit](video-visit.md) |
-| `POST /api/listing-requests` | Send a listing request with a verified phone | Owner listing (week 2) |
-
-Agency:
-
-| Method and path | Purpose | Spec |
-| :---- | :---- | :---- |
-| `POST`, `GET` and `DELETE /api/agency/session` | Sign in, get the signed-in user and sign out | [Agency dashboard](agency-dashboard.md) |
-| `GET /api/agency/summary` | Indicators and upcoming visits for the dashboard | [Agency dashboard](agency-dashboard.md) |
-| `GET /api/agency/listing-requests?status=` | Listing requests, optionally by status | [Agency dashboard](agency-dashboard.md) |
-| `GET /api/agency/listing-requests/{id}` | Request details | [Agency dashboard](agency-dashboard.md) |
-| `POST /api/agency/listing-requests/{id}/approve` | Approve and publish | [Agency dashboard](agency-dashboard.md) |
-| `POST /api/agency/listing-requests/{id}/reject` | Reject with a reason | [Agency dashboard](agency-dashboard.md) |
-| `GET /api/agency/visits?from=&to=` | Visits for the calendar, in a required range of at most 31 days | [Agency dashboard](agency-dashboard.md) |
-| `GET /api/agency/messages` | Sent and scheduled messages | [Agency dashboard](agency-dashboard.md) |
-| `POST /api/agency/visits/{id}/video-token` | Enter the video visit as the agency | [Video visit](video-visit.md) |
-
-Vonage webhooks, called by Vonage with a signed JWT that the server verifies, so they need no agency session:
-
-| Method and path | Purpose | Spec |
-| :---- | :---- | :---- |
-| `POST /api/webhooks/messages/inbound` | Messages sent to our number. The MVP does not process replies, so it only answers `200` | [Messages](messages.md) |
-| `POST /api/webhooks/messages/status` | Delivery status of each message, which updates `message.status` | [Messages](messages.md) |
-
-Each feature spec defines the exact request and response of its endpoints.
-
-### Errors
-
-Every error is a `ProblemDetail`, as required in `server/AGENTS.md`, with an extra `code` field the client can rely on:
+`GET /api/agency/summary`
 
 ```json
 {
-  "type": "about:blank",
-  "title": "Invalid verification code",
-  "status": 422,
-  "detail": "The code does not match. Check the SMS and try again.",
-  "code": "VERIFICATION_CODE_INVALID"
+  "agentName": "Marta",
+  "newRequests": 12,
+  "upcomingVisits": 8,
+  "activeProperties": 5,
+  "nextVisits": [
+    { "visitId": 31, "startsAt": "2026-11-10T11:00:00+01:00", "visitorName": "...", "propertyTitle": "Apartment in Gràcia" }
+  ]
 }
 ```
 
-| Status | When | `code` |
-| :---- | :---- | :---- |
-| 400 | The request body or a parameter is not valid | `VALIDATION_FAILED`, with the invalid fields in `errors` |
-| 401 | An agency endpoint is called without a signed-in user, the email or password is wrong, or a Vonage webhook has no valid signature | `AUTHENTICATION_REQUIRED`, `INVALID_CREDENTIALS`, `WEBHOOK_SIGNATURE_INVALID` |
-| 403 | A `POST`, `PUT`, `PATCH` or `DELETE` request has no valid CSRF token | `CSRF_TOKEN_INVALID` |
-| 404 | The resource does not exist | `NOT_FOUND` |
-| 409 | The action conflicts with the current state, such as booking a slot that is already taken | Defined by each feature |
-| 422 | A business rule rejects the action, such as a wrong code | Defined by each feature |
-| 429 | Too many attempts | Defined by each feature |
-| 500 | Unexpected error, with a generic message and no internal details | `INTERNAL_ERROR` |
+`GET /api/agency/listing-requests?status=PENDING`, with an optional status of `PENDING`, `APPROVED` or `REJECTED`:
 
-The `detail` of a business error is written so the client can show it as it is: it says what went wrong and how to fix it.
+```json
+[
+  {
+    "id": 18,
+    "ownerName": "Ana Torres",
+    "title": "Apartment in Gràcia",
+    "operation": "RENT",
+    "priceEuros": 1200,
+    "createdAt": "2026-11-10T11:00:00+01:00",
+    "status": "PENDING"
+  }
+]
+```
 
-### Sample data
+`GET /api/agency/listing-requests/{id}`, where `floor`, `reviewedAt` and `rejectionReason` can be `null`:
 
-- One demo agency with two users, and 20 active properties in different neighborhoods of Barcelona (10 for rent and 10 for sale, with different types and sizes), with coordinates
-- Two edge cases: one inactive property, and one approved from a listing request with no photos or coordinates
-- Two to four AI-generated photos per property, from a shared set of about 30 in `client/public/properties/`, each with alternative text
-- Visit slots until December 31, 2026 for every property, some of them already booked, and visits in every status for the calendar
-- Listing requests in every status, including two rejected scam examples, with their phone verifications
-- Messages in every status. They are only rows for the dashboard, and a scheduled sample message is never sent
-- Everything fictional: names, addresses and phone numbers are invented and do not belong to anyone
+```json
+{
+  "id": 18,
+  "status": "REJECTED",
+  "ownerName": "Ana Torres",
+  "ownerPhone": "+34600000000",
+  "title": "Apartment in Gràcia",
+  "description": "...",
+  "propertyType": "APARTMENT",
+  "operation": "RENT",
+  "area": "Gràcia",
+  "address": "...",
+  "priceEuros": 1200,
+  "bedrooms": 3,
+  "sizeM2": 85,
+  "floor": 2,
+  "createdAt": "2026-11-10T11:00:00+01:00",
+  "reviewedAt": "2026-11-11T09:30:00+01:00",
+  "rejectionReason": "..."
+}
+```
 
-Loading: the schema stays in `db/migration`, as the migration rules require, and the sample data lives in a separate Flyway location, `db/seed`, as two repeatable migrations: `R__seed_01_catalog.sql` and `R__seed_02_activity.sql`. Repeatable migrations run again when their content changes, in the order of their names, so the sample data can evolve without new versions. The seed location is enabled with an environment variable locally and on Railway, and stays off where it is not wanted.
+`POST /api/agency/listing-requests/{id}/approve` returns `200` with `{ "propertyId": 13 }`. `POST /api/agency/listing-requests/{id}/reject` receives `{ "reason": "..." }` and returns `200` with `{ "id": 18, "status": "REJECTED" }`. Both return `409 LISTING_REQUEST_ALREADY_REVIEWED` if the request was already approved or rejected.
 
-The client mirrors the same data in each feature's sample file while an endpoint is not ready yet.
+`GET /api/agency/visits?from=2026-11-23&to=2026-11-29`, ordered by start time:
+
+```json
+[
+  {
+    "visitId": 31,
+    "startsAt": "2026-11-10T11:00:00+01:00",
+    "endsAt": "2026-11-10T11:30:00+01:00",
+    "visitorName": "...",
+    "propertyTitle": "Apartment in Gràcia",
+    "status": "CONFIRMED"
+  }
+]
+```
+
+`from` and `to` are required dates in `YYYY-MM-DD` format, the same format as `GET /api/properties/{id}/slots`, in `Europe/Madrid`, and both days are included. They are required because the calendar always asks for a week, and the range is at most 31 days. A missing date, a date in another format, a `to` before `from` or a longer range returns `400 VALIDATION_FAILED`.
+
+`GET /api/agency/messages`, newest first, with the status stored by the messages feature. Each message has either `visitId` or `listingRequestId`, and the other one is `null`:
+
+```json
+[
+  {
+    "id": 7,
+    "type": "CONFIRMATION",
+    "channel": "SMS",
+    "recipientName": "...",
+    "visitId": 31,
+    "listingRequestId": null,
+    "scheduledAt": "2026-11-10T10:00:00+01:00",
+    "updatedAt": "2026-11-10T10:00:05+01:00",
+    "status": "DELIVERED"
+  }
+]
+```
+
+Every agency endpoint except `POST /api/agency/session` returns `401 AUTHENTICATION_REQUIRED` without a signed-in user.
+
+### Security
+
+The agency signs in with a server session managed by Spring Security, as decided in [ADR 0004](../docs/adr/0004-agency-sign-in.md):
+
+- The session cookie is `HttpOnly` and `SameSite=Lax`, and `Secure` on Railway. On Railway, the client proxies `/api` to the server, so the browser sees one origin, as with the Vite proxy locally
+- Every `POST`, `PUT`, `PATCH` and `DELETE` under `/api`, including signing in and out, sends the `X-XSRF-TOKEN` header with the value of the `XSRF-TOKEN` cookie, except the Vonage webhooks under `/api/webhooks`. Without a valid token, the server returns `403 CSRF_TOKEN_INVALID`
+- A wrong password and an unknown email return the same `401 INVALID_CREDENTIALS`
+- Passwords are checked against the BCrypt hash in `agency_user`, and neither the email nor the password is ever written to the logs
+
+### Vonage
+
+None directly. The dashboard shows what Messages and Video produce: message statuses from the messages feature and the "Join visit" link from the video feature.
+
+### Client
+
+- Pages under `/agency` in `routes.tsx`, composed from an `agency-dashboard` feature with its `api.ts`, types and components, following the folder rules in `client/AGENTS.md`
+- The dashboard components are built in issue #27. The layout and D1 are built first, in issue #16, and D2 to D5 follow in the next weeks
+- The shared API client uses relative `/api` paths in every environment and sends the `X-XSRF-TOKEN` header with every `POST`, `PUT`, `PATCH` and `DELETE`, as decided in [ADR 0004](../docs/adr/0004-agency-sign-in.md). On the first load and after signing in or out, it makes a `GET` before the next of those requests, because the server clears the `XSRF-TOKEN` cookie on sign-in and sign-out and issues a new one with the next response

@@ -103,7 +103,7 @@ Agency:
 | `GET /api/agency/listing-requests/{id}` | Request details | [Agency dashboard](agency-dashboard.md) |
 | `POST /api/agency/listing-requests/{id}/approve` | Approve and publish | [Agency dashboard](agency-dashboard.md) |
 | `POST /api/agency/listing-requests/{id}/reject` | Reject with a reason | [Agency dashboard](agency-dashboard.md) |
-| `GET /api/agency/visits?from=&to=` | Visits for the calendar | [Agency dashboard](agency-dashboard.md) |
+| `GET /api/agency/visits?from=&to=` | Visits for the calendar, in a required range of at most 31 days | [Agency dashboard](agency-dashboard.md) |
 | `GET /api/agency/messages` | Sent and scheduled messages | [Agency dashboard](agency-dashboard.md) |
 | `POST /api/agency/visits/{id}/video-token` | Enter the video visit as the agency | [Video visit](video-visit.md) |
 
