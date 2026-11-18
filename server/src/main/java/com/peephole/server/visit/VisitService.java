@@ -46,15 +46,19 @@ public class VisitService {
     public List<VisitSlotResponse> availableSlots(long propertyId, LocalDate from, LocalDate to) {
         OffsetDateTime now = OffsetDateTime.now(clock);
         LocalDate today = LocalDate.now(clock.withZone(MADRID));
+        if (from != null && to != null && from.isAfter(to)) {
+            throw new FieldValidationException("from", "must be on or before to");
+        }
+
         LocalDate firstDay = from == null || from.isBefore(today) ? today : from;
         LocalDate lastAllowedDay = today.plusDays(14);
         LocalDate lastDay = to == null || to.isAfter(lastAllowedDay) ? lastAllowedDay : to;
 
-        if (firstDay.isAfter(lastDay)) {
-            throw new FieldValidationException("from", "must be on or before to");
-        }
         if (!repository.existsActiveProperty(propertyId)) {
             throw new VisitNotFoundException();
+        }
+        if (firstDay.isAfter(lastDay)) {
+            return List.of();
         }
 
         OffsetDateTime fromInclusive = firstDay.atStartOfDay(MADRID).toOffsetDateTime();
@@ -68,8 +72,11 @@ public class VisitService {
     @Transactional
     public VisitBookingResponse book(VisitBookingRequest request, Long sessionVerificationId) {
         OffsetDateTime now = OffsetDateTime.now(clock);
-        phoneVerificationService.validateForVisit(
+        OffsetDateTime verifiedAt = phoneVerificationService.validateForVisit(
                 request.phoneVerificationId(), request.phone(), sessionVerificationId);
+        if (!now.isBefore(verifiedAt.plusMinutes(30))) {
+            throw new PhoneVerificationInvalidException();
+        }
         if (repository.existsByPhoneVerificationId(request.phoneVerificationId())) {
             throw new PhoneVerificationInvalidException();
         }

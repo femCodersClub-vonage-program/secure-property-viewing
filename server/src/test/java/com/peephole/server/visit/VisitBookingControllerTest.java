@@ -150,6 +150,12 @@ class VisitBookingControllerTest {
                 .andExpect(jsonPath("$.length()").value(2));
 
         mockMvc.perform(get("/api/properties/{id}/slots", propertyId)
+                        .param("from", "2098-12-01")
+                        .param("to", "2098-12-05"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+
+        mockMvc.perform(get("/api/properties/{id}/slots", propertyId)
                         .param("from", "2099-01-03")
                         .param("to", "2099-01-02"))
                 .andExpect(status().isBadRequest())
@@ -236,6 +242,32 @@ class VisitBookingControllerTest {
         long availableSlot = slot(SLOT_START.plusHours(1), "AVAILABLE");
         book(session, bookingBody(availableSlot, "Laura", PHONE, verificationId))
                 .andExpect(status().isCreated());
+    }
+
+    @Test
+    void mapsTheVisitSlotUniqueConstraintToConflictWithoutUpdatingTheSession() throws Exception {
+        long slotId = slot(SLOT_START, "AVAILABLE");
+        MockHttpSession session = new MockHttpSession();
+        long bookingVerificationId = verifiedPhone(session, "VISIT", "+34611222330");
+        long existingVisitVerificationId = verifiedPhone(new MockHttpSession(), "VISIT", "+34611222331");
+        jdbcTemplate.update("""
+                INSERT INTO visit (
+                    property_id, visit_slot_id, phone_verification_id, visitor_name, visitor_phone, status, created_at
+                )
+                VALUES (?, ?, ?, 'Existing visitor', '+34611222331', 'CONFIRMED', ?)
+                """, propertyId, slotId, existingVisitVerificationId, NOW);
+
+        expectProblem(
+                book(session, bookingBody(slotId, "Laura", "+34611222330", bookingVerificationId)),
+                409,
+                "SLOT_UNAVAILABLE");
+
+        assertThat(session.getAttribute(SessionVisits.ATTRIBUTE)).isNull();
+        assertThat(jdbcTemplate.queryForObject("SELECT status FROM visit_slot WHERE id = ?", String.class, slotId))
+                .isEqualTo("AVAILABLE");
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT count(*) FROM visit WHERE visit_slot_id = ?", Integer.class, slotId))
+                .isEqualTo(1);
     }
 
     @Test

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 interface VisitSlotRepository extends JpaRepository<VisitSlot, Long> {
@@ -26,7 +27,7 @@ interface VisitSlotRepository extends JpaRepository<VisitSlot, Long> {
             long propertyId, OffsetDateTime now, OffsetDateTime fromInclusive, OffsetDateTime toExclusive);
 
     @Modifying
-    @Transactional
+    @Transactional(propagation = Propagation.MANDATORY)
     @Query(value = """
                     UPDATE visit_slot s
                     SET status = 'BOOKED'

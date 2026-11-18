@@ -113,23 +113,22 @@ public class PhoneVerificationService {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void validateForVisit(long id, String phone, Long sessionVerificationId) {
+    public OffsetDateTime validateForVisit(long id, String phone, Long sessionVerificationId) {
         if (!Objects.equals(id, sessionVerificationId)) {
             throw new PhoneVerificationInvalidException();
         }
 
         PhoneVerification verification =
                 repository.findWithLockById(id).orElseThrow(PhoneVerificationInvalidException::new);
-        OffsetDateTime now = OffsetDateTime.now(clock);
         OffsetDateTime verifiedAt = verification.getVerifiedAt();
 
         if (verification.getStatus() != PhoneVerificationStatus.VERIFIED
                 || verification.getPurpose() != PhoneVerificationPurpose.VISIT
                 || verifiedAt == null
-                || !now.isBefore(verifiedAt.plusMinutes(30))
                 || !phoneHasher.hash(phone).equals(verification.getPhoneHash())) {
             throw new PhoneVerificationInvalidException();
         }
+        return verifiedAt;
     }
 
     private void checkLimits(String phoneHash, OffsetDateTime now) {

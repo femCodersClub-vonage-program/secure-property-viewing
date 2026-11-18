@@ -20,6 +20,7 @@ interface VisitRepository extends JpaRepository<Visit, Long> {
     @Query(
             value = "SELECT EXISTS(SELECT 1 FROM property WHERE id = :propertyId AND status = 'ACTIVE')",
             nativeQuery = true)
+    // Reads the property table directly until the catalog (#52) exposes it in its service
     boolean existsActiveProperty(long propertyId);
 
     @Query(value = """
@@ -28,6 +29,7 @@ interface VisitRepository extends JpaRepository<Visit, Long> {
                     JOIN visit_slot s ON s.property_id = p.id
                     WHERE s.id = :slotId
                     """, nativeQuery = true)
+    // Reads the property table directly until the catalog (#52) exposes it in its service
     VisitPropertySummary findPropertySummaryBySlotId(long slotId);
 
     @Query(
