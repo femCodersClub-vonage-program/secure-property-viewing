@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiError, SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
 import { readOpensAt } from '../api'
-import type { CallStatus, VideoToken } from '../types'
+import type { CallStatus, VideoRole, VideoToken } from '../types'
 import { joinVideoCall, type RemoteVideo, type VideoCall } from '../videoClient'
 
 const CONNECTION_LOST = 'The connection was lost. Reload the page to join again.'
@@ -15,7 +15,10 @@ function statusFromError(error: unknown): CallStatus {
     }
   }
   // A business error has a message for people; anything else gets the generic one
-  return { kind: 'error', message: error instanceof ApiError ? error.message : SYSTEM_ERROR_MESSAGE }
+  return {
+    kind: 'error',
+    message: error instanceof ApiError ? error.message : SYSTEM_ERROR_MESSAGE,
+  }
 }
 
 // Once the call has ended on purpose, nothing else may change the status line
@@ -33,6 +36,7 @@ export function useVideoCall(loadAccess: () => Promise<VideoToken>) {
   const [remotes, setRemotes] = useState<RemoteVideo[]>([])
   const [microphoneOn, setMicrophoneOn] = useState(true)
   const [cameraOn, setCameraOn] = useState(true)
+  const [ownRole, setOwnRole] = useState<VideoRole | undefined>(undefined)
 
   useEffect(() => {
     // StrictMode mounts twice in development, and the person may leave the page while joining:
@@ -50,6 +54,7 @@ export function useVideoCall(loadAccess: () => Promise<VideoToken>) {
         if (left) {
           return
         }
+        setOwnRole(access.role)
         const call = await joinVideoCall(access, element, {
           onRemoteJoined: (video) => {
             // After a reconnection the same video can arrive again: keep it only once
@@ -63,7 +68,9 @@ export function useVideoCall(loadAccess: () => Promise<VideoToken>) {
           onReconnected: () => setStatus({ kind: 'in-call' }),
           onDisconnected: () => {
             // It also fires when we hang up ourselves: then the status is already right
-            setStatus((current) => (hasEnded(current) ? current : { kind: 'error', message: CONNECTION_LOST }))
+            setStatus((current) =>
+              hasEnded(current) ? current : { kind: 'error', message: CONNECTION_LOST },
+            )
           },
         })
         if (left) {
@@ -125,6 +132,7 @@ export function useVideoCall(loadAccess: () => Promise<VideoToken>) {
 
   return {
     ownVideoRef,
+    ownRole,
     status: shownStatus,
     remotes,
     microphoneOn,

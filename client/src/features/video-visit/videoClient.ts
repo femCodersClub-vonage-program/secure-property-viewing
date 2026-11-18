@@ -1,6 +1,6 @@
 // The only file that talks to Vonage. The rest of the feature uses joinVideoCall(),
 // so tests mock this file instead of the whole SDK
-import OT from '@vonage/client-sdk-video'
+import type OT from '@vonage/client-sdk-video'
 import { roleFromConnectionData } from './roles'
 import type { VideoRole, VideoToken } from './types'
 
@@ -42,7 +42,9 @@ export async function joinVideoCall(
   ownVideo: HTMLElement,
   events: VideoCallEvents,
 ): Promise<VideoCall> {
-  const session = OT.initSession(access.applicationId, access.sessionId)
+  // Dynamic import: Vite puts the SDK in its own file, downloaded only by the room page
+  const { default: Video } = await import('@vonage/client-sdk-video')
+  const session = Video.initSession(access.applicationId, access.sessionId)
   // Videos that arrived and wait for their tile, by id
   const streams = new Map<string, OT.Stream>()
 
@@ -65,8 +67,8 @@ export async function joinVideoCall(
   // Throws if the token is not valid, and the hook shows the error
   await session.connect.promise(access.token)
 
-  const publisher = OT.initPublisher(ownVideo, VIDEO_PROPERTIES)
   // The browser asks for camera and microphone here. If they're denied, the screen explains how to allow them
+  const publisher = Video.initPublisher(ownVideo, VIDEO_PROPERTIES)
   publisher.on('accessDenied', events.onPermissionsDenied)
   session.publish(publisher)
 

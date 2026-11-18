@@ -19,10 +19,3 @@ export function readRoomToken(hash: string): string | undefined {
   // Anything else isn't a room link, so the page shows an error instead of calling the server
   return ROOM_TOKEN_PATTERN.test(token) ? token : undefined
 }
-
-/** Removes the token from the address bar without reloading, so it doesn't stay in the history. */
-export function removeRoomTokenFromAddressBar(): void {
-  const { pathname, search } = window.location
-  // Keeps React Router's history state, only the `#...` part goes away
-  window.history.replaceState(window.history.state, '', pathname + search)
-}

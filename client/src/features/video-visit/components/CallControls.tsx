@@ -9,11 +9,22 @@ type Props = {
   onHangUp: () => void
 }
 
-function CallControls({ microphoneOn, cameraOn, onToggleMicrophone, onToggleCamera, onHangUp }: Props) {
+function CallControls({
+  microphoneOn,
+  cameraOn,
+  onToggleMicrophone,
+  onToggleCamera,
+  onHangUp,
+}: Props) {
   return (
     // flex-wrap keeps the three buttons usable at 320 px and at 200% zoom
     <div className="flex flex-wrap justify-center gap-3">
-      <Button variant="secondary" shape="pill" aria-pressed={!microphoneOn} onClick={onToggleMicrophone}>
+      <Button
+        variant="secondary"
+        shape="pill"
+        aria-pressed={!microphoneOn}
+        onClick={onToggleMicrophone}
+      >
         {microphoneOn ? <Mic aria-hidden="true" /> : <MicOff aria-hidden="true" />}
         Mute
       </Button>
