@@ -21,6 +21,8 @@ class TestCredentialsConfig {
             registry.add("app.phone-hash-secret", () -> "test-phone-hash-secret");
             registry.add("app.vonage.verify.application-id", () -> "00000000-0000-4000-8000-000000000000");
             registry.add("app.vonage.verify.private-key", () -> PRIVATE_KEY);
+            registry.add("app.vonage.video.application-id", () -> "00000000-0000-4000-8000-000000000001");
+            registry.add("app.vonage.video.private-key", () -> PRIVATE_KEY);
         };
     }
 

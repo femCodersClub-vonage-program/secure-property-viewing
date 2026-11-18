@@ -1,6 +1,6 @@
 # Messages
 
-- **Status:** Draft
+- **Status:** Approved
 - **Issue:** [#62](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/62)
 - **Journey:** journey A step 6, journey B step 5 and screen 5 of the agency dashboard in [`docs/user-journeys.md`](../docs/user-journeys.md)
 
@@ -41,21 +41,24 @@ Visitors and owners need to hear from Peephole after they leave the page: the co
 - The link to the video room: it is never sent by SMS, as the [video visit spec](video-visit.md) describes
 - Messages to the agency, and messages in more than one language
 
-## Open questions
+## Decisions
 
-- **The texts.** Proposal, in English like the interface, short enough for one SMS segment with a usual title, and without links:
+The open questions were approved as proposed by the tech lead on 2026-11-15. The build priority comes from the tech lead's comment in [#62](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/62).
+
+- **The texts.** In English like the interface, short enough for one SMS segment with a usual title, and without links:
   - Visit confirmation: "Peephole: your video visit for {title} is confirmed for {day} at {time}. We will text you 1 hour before."
   - Reminder: "Peephole: your video visit for {title} starts in 1 hour, at {time}."
   - Request received: "Peephole: we have received your request for {title}. The agency will review it and text you with its decision."
   - Request approved: "Peephole: your property {title} has been approved and is now published."
   - Request rejected: "Peephole: your request for {title} has not been approved." The reason is not sent: the agency writes it for the dashboard, and the owner can ask for it
   - Times in `Europe/Madrid`. A character outside the GSM alphabet in the title, such as `ï`, turns the SMS into Unicode, with 70 characters per segment, so it may cost two
-- **Five messages and three types, with no schema change.** Proposal: `CONFIRMATION` for the visit confirmation and for "request received", `REMINDER` for the reminder and `STATUS_UPDATE` for approved or rejected. A request is reviewed only once, so its `STATUS_UPDATE` means whatever its final status is
-- **The sender and the demo account.** Spain requires every alphanumeric sender, such as `Peephole`, to be registered with the CNMC since September 15, 2026, and blocks messages from senders that are not registered. Only companies with a legal presence in Spain can register themselves, Vonage can register it on our behalf, and the documentation gives no time frame. A trial account can only send to its own number and up to 4 verified test numbers, adds "[FREE SMS DEMO, TEST MESSAGE]" to every SMS, which may take a message over one segment, and cannot buy virtual numbers. Proposal: the MVP demo sends only to the team's verified test numbers, and the sender is registered only if the project moves to a paid account. The sender goes in a new variable, `VONAGE_MESSAGES_FROM`
-- **A reminder that will not be sent.** Proposal: if its visit is no longer `CONFIRMED` or has already started, the scheduled task deletes the row instead of marking it `FAILED`, so D5 never shows a failure that nobody needs to act on
-- **No retries after `FAILED`.** Proposal: once a message is `FAILED`, the server does not try again. The agency sees it in D5 and calls the person
-- **Sample data that must never be sent.** The sample data includes `SCHEDULED` messages with fictional phone numbers, and it is also loaded on Railway, where sending is on. A trial account rejects them because they are not verified test numbers, but they would turn `FAILED` in D5, and a paid account would send them to whoever owns those numbers. Proposal: their `scheduled_at` is in 2027, after the demo, and `MESSAGES_SENDING_ENABLED` is only `true` on Railway
-- **`undeliverable`.** Vonage sends it when the Messages API could not reach the provider, such as during an outage, so the message never left Vonage. Proposal: the message goes back to `SCHEDULED` and is sent again within its retry window, and becomes `FAILED` after that
+- **Five messages and three types, with no schema change.** `CONFIRMATION` for the visit confirmation and for "request received", `REMINDER` for the reminder and `STATUS_UPDATE` for approved or rejected. A request is reviewed only once, so its `STATUS_UPDATE` means whatever its final status is
+- **The sender and the demo account.** Spain requires every alphanumeric sender, such as `Peephole`, to be registered with the CNMC since September 15, 2026, and blocks messages from senders that are not registered. Only companies with a legal presence in Spain can register themselves, Vonage can register it on our behalf, and the documentation gives no time frame. A trial account can only send to its own number and up to 4 verified test numbers, adds "[FREE SMS DEMO, TEST MESSAGE]" to every SMS, which may take a message over one segment, and cannot buy virtual numbers. So the MVP demo sends only to the team's verified test numbers, and the sender is registered only if the project moves to a paid account. The sender goes in a new variable, `VONAGE_MESSAGES_FROM`
+- **A reminder that will not be sent.** If its visit is no longer `CONFIRMED` or has already started, the scheduled task deletes the row instead of marking it `FAILED`, so D5 never shows a failure that nobody needs to act on
+- **No retries after `FAILED`.** Once a message is `FAILED`, the server does not try again. The agency sees it in D5 and calls the person
+- **Sample data that must never be sent.** The sample data includes `SCHEDULED` messages with fictional phone numbers, and it is also loaded on Railway, where sending is on. A trial account rejects them because they are not verified test numbers, but they would turn `FAILED` in D5, and a paid account would send them to whoever owns those numbers. So their `scheduled_at` is in 2027, after the demo, and `MESSAGES_SENDING_ENABLED` is only `true` on Railway
+- **`undeliverable`.** Vonage sends it when the Messages API could not reach the provider, such as during an outage, so the message never left Vonage. The message goes back to `SCHEDULED` and is sent again within its retry window, and becomes `FAILED` after that
+- **Build priority for the demo on December 4.** First the visit confirmation and the signed status webhook that moves it to `DELIVERED` or `FAILED`. The reminder, the listing request messages and D5 follow if there is time
 
 ## Technical plan
 
@@ -107,7 +110,7 @@ The Messages API, called from the server only, with the Messages group of variab
 - **Signed webhooks:** Vonage sends a JWT in `Authorization: Bearer`, signed with our signature secret. The Vonage documentation says Messages always signs with SHA-256, and the first end-to-end test confirms it. The server checks the signature
 - **Webhook URLs:** the Messages application already points to the server on Railway, as set up in #19
 
-In code, the feature talks to a `MessageSender` interface in `vonage/` and to a `WebhookSignatureVerifier` for the JWT. Both use the Java Server SDK, added to `pom.xml` by whichever of phone verification and messages is built first, at version 7.11.0 or later. From that version, `MessagesClient.verifySignature(jwt, secret)` checks the signature of a webhook, so `WebhookSignatureVerifier` wraps it and the feature needs no new dependency.
+In code, the feature talks to a `MessageSender` interface in `vonage/` and to a `WebhookSignatureVerifier` for the JWT. Both use the Java Server SDK, already in `pom.xml` since phone verification. `MessagesClient.verifySignature(jwt, secret)` checks the signature of a webhook, so `WebhookSignatureVerifier` wraps it and the feature needs no new dependency.
 
 The scheduled task uses Spring's `@Scheduled`, which needs no new dependency, and runs in the `message` package. Its logic is a service method that receives the current time, so tests control the clock. Railway runs a single server instance. The accepted trade-off: if the server stops right after Vonage accepts a message and before it is saved as `SUBMITTED`, that message may be sent twice.
 

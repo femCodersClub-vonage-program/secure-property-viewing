@@ -10,16 +10,22 @@ import org.springframework.security.core.userdetails.UserDetails;
 /** The signed-in agency user, kept in the session. The password hash is erased after a successful sign-in. */
 final class AgencyUserDetails implements UserDetails, CredentialsContainer {
 
+    private final long agencyId;
     private final String email;
     private final String fullName;
     private final AgencyUserRole role;
     private String passwordHash;
 
     AgencyUserDetails(AgencyUser user) {
+        this.agencyId = user.getAgencyId();
         this.email = user.getEmail();
         this.fullName = user.getFullName();
         this.role = user.getRole();
         this.passwordHash = user.getPasswordHash();
+    }
+
+    long getAgencyId() {
+        return agencyId;
     }
 
     String getFullName() {

@@ -99,6 +99,8 @@ The base unit is `0.25rem` (4px). The scale follows Tailwind's default steps, ex
 
 Dividers and cards use `1px solid var(--color-border)`. Form fields use `1px solid var(--color-border-input)`, so they meet the 3:1 contrast for interface components.
 
+`Card` has a `dark` variant for a card that has to stand out from the page, such as the confirmed visit on A6: `--color-brand-dark` background, no border and white text (17.61:1). Only text in `--color-text-light` and decorative `--color-brand-accent` dots go inside it, and no interactive elements, so the common focus ring is never needed on the dark background.
+
 A field with an error (`aria-invalid`) uses `2px solid var(--color-error)`. The wider border keeps the error visible without relying on color alone, and the message under the field says what went wrong.
 
 ## Form fields
@@ -106,6 +108,7 @@ A field with an error (`aria-invalid`) uses `2px solid var(--color-error)`. The 
 - Labels are bold, in `--color-text-default`. Hints go under the label in `--color-text-muted`
 - `Input` has a `code` variant for short codes, such as the 6 digits of an SMS: `text-3xl`, bold, centered, with wide letter spacing and tabular numbers
 - `Button` has a `link` variant for a secondary action that looks like a link, such as "Change the number". It stays a `<button>`, with a minimum height of 44px
+- `Button` has a `shape`, `default` unless set. `pill` rounds it fully and keeps its padding, such as a time in the visit calendar. `circle` makes it round with no padding, so it can shrink to fit a day in a 7-column calendar at 320px. The variant still sets the colors, so a choice uses `primary` when selected and `secondary` otherwise, with `aria-pressed`
 
 ## Shadows
 
@@ -123,6 +126,15 @@ Every interactive element shows a focus ring using `outline-2 outline-offset-2`.
 | All elements except danger button | `outline-brand-primary` | 7.38:1 on white — passes AA |
 | Danger button | `outline-error` | 6.31:1 on white — passes AA |
 | Elements on dark navigation (`bg-brand-dark`) | `outline-white` | 17.61:1 on `#23122B` — passes AA |
+
+## Map
+
+The catalog map (`PropertyMap` in the `property-browsing` feature) uses Leaflet with OpenStreetMap tiles.
+
+- **Pin:** a map pin of 28×36 px whose tip marks the place, filled with `--color-brand-primary`, with a `--color-surface-page` border and dot. The purple has about 6:1 on the light background of the tiles, above the 3:1 for interface components, and the white border keeps it visible on darker areas
+- **Focus:** pins and the map use the common `outline-brand-primary` focus ring
+- **Popup:** the title in `font-display text-lg` and `--color-brand-dark`, the price in `--color-brand-primary`, and a `Link` to the details, whose accessible name includes the title
+- **Leaflet's stylesheet** is imported in `src/index.css` inside `layer(components)`, so the design system's utilities win over Leaflet's own colors and sizes. Leaflet's controls (zoom buttons, the popup's close button and the attribution) keep its own look, which is not made of our tokens: it is the one exception to the design system, because restyling them would mean overriding a third-party stylesheet
 
 ## Agency dashboard
 
