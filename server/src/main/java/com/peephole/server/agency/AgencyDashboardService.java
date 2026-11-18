@@ -1,11 +1,14 @@
 package com.peephole.server.agency;
 
 import com.peephole.server.agency.dto.AgencySummaryResponse;
+import com.peephole.server.agency.dto.AgencyVisitResponse;
 import com.peephole.server.agency.dto.UpcomingVisitResponse;
 import java.time.Clock;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,9 +41,33 @@ class AgencyDashboardService {
                         .toList());
     }
 
+    // From the start of `from` to the start of the day after `to` in the agency's time zone, so both days are
+    // included and a week with a clock change still covers every visit
+    @Transactional(readOnly = true)
+    List<AgencyVisitResponse> visits(long agencyId, LocalDate from, LocalDate to) {
+        return queries
+                .findVisitsBetween(
+                        agencyId,
+                        from.atStartOfDay(AGENCY_ZONE).toOffsetDateTime(),
+                        to.plusDays(1).atStartOfDay(AGENCY_ZONE).toOffsetDateTime())
+                .stream()
+                .map(AgencyDashboardService::toAgencyVisit)
+                .toList();
+    }
+
     private static UpcomingVisitResponse toUpcomingVisit(DashboardVisit visit) {
         return new UpcomingVisitResponse(
                 visit.id(), inAgencyZone(visit.startsAt()), visit.visitorName(), visit.propertyTitle());
+    }
+
+    private static AgencyVisitResponse toAgencyVisit(DashboardVisit visit) {
+        return new AgencyVisitResponse(
+                visit.id(),
+                inAgencyZone(visit.startsAt()),
+                inAgencyZone(visit.endsAt()),
+                visit.visitorName(),
+                visit.propertyTitle(),
+                visit.status());
     }
 
     private static OffsetDateTime inAgencyZone(OffsetDateTime time) {

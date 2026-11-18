@@ -135,7 +135,7 @@ No new tables: `listing_request`, `property`, `visit` and `message` from the [da
 
 `POST /api/agency/listing-requests/{id}/approve` returns `200` with `{ "propertyId": 13 }`. `POST /api/agency/listing-requests/{id}/reject` receives `{ "reason": "..." }` and returns `200` with `{ "id": 18, "status": "REJECTED" }`. Both return `409 LISTING_REQUEST_ALREADY_REVIEWED` if the request was already approved or rejected.
 
-`GET /api/agency/visits?from=&to=`:
+`GET /api/agency/visits?from=2026-11-23&to=2026-11-29`, ordered by start time:
 
 ```json
 [
@@ -149,6 +149,8 @@ No new tables: `listing_request`, `property`, `visit` and `message` from the [da
   }
 ]
 ```
+
+`from` and `to` are required dates in `YYYY-MM-DD` format, in `Europe/Madrid`, and both days are included, as in `GET /api/properties/{id}/slots`. They are required because the calendar always asks for a week, and the range is at most 31 days. A missing date, a date in another format, a `to` before `from` or a longer range returns `400 VALIDATION_FAILED`.
 
 `GET /api/agency/messages`, newest first, with the status stored by the messages feature. Each message has either `visitId` or `listingRequestId`, and the other one is `null`:
 

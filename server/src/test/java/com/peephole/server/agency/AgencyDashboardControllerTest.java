@@ -12,6 +12,8 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -147,8 +149,88 @@ class AgencyDashboardControllerTest {
     }
 
     @Test
-    void requiresASignedInUser() throws Exception {
+    void requiresASignedInUserForTheSummary() throws Exception {
         mockMvc.perform(get("/api/agency/summary"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"));
+    }
+
+    @Test
+    void returnsTheVisitsInTheShapeOfTheSpec() throws Exception {
+        long property = insertProperty(agencyId, "Apartment in Gràcia", "ACTIVE");
+        long visit = insertVisit(property, NOW.plusDays(1), "CONFIRMED", "Laura Gómez");
+
+        mockMvc.perform(get("/api/agency/visits?from=2099-03-09&to=2099-03-15").session(signIn()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].visitId").value(visit))
+                .andExpect(jsonPath("$[0].startsAt").value("2099-03-11T10:00:00+01:00"))
+                .andExpect(jsonPath("$[0].endsAt").value("2099-03-11T10:30:00+01:00"))
+                .andExpect(jsonPath("$[0].visitorName").value("Laura Gómez"))
+                .andExpect(jsonPath("$[0].propertyTitle").value("Apartment in Gràcia"))
+                .andExpect(jsonPath("$[0].status").value("CONFIRMED"));
+    }
+
+    @Test
+    void includesBothDaysOfTheRangeInMadridTimeInAWeekWithAClockChange() throws Exception {
+        // On 2099-03-29 the clocks in Madrid go forward, so the last day starts at +01:00 and ends at +02:00
+        long property = insertProperty(agencyId, "Apartment in Gràcia", "ACTIVE");
+        insertVisit(property, OffsetDateTime.parse("2099-03-22T23:30:00+01:00"), "CONFIRMED", "Day before");
+        insertVisit(property, OffsetDateTime.parse("2099-03-23T00:00:00+01:00"), "CONFIRMED", "First day");
+        insertVisit(property, OffsetDateTime.parse("2099-03-29T23:30:00+02:00"), "CONFIRMED", "Last day");
+        insertVisit(property, OffsetDateTime.parse("2099-03-30T00:00:00+02:00"), "CONFIRMED", "Day after");
+
+        mockMvc.perform(get("/api/agency/visits?from=2099-03-23&to=2099-03-29").session(signIn()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].visitorName").value("First day"))
+                .andExpect(jsonPath("$[1].visitorName").value("Last day"))
+                .andExpect(jsonPath("$[1].startsAt").value("2099-03-29T23:30:00+02:00"));
+    }
+
+    @Test
+    void listsEveryStatusOfTheAgencyOrderedByStartTime() throws Exception {
+        long property = insertProperty(agencyId, "Apartment in Gràcia", "ACTIVE");
+        insertVisit(property, NOW.plusDays(2), "COMPLETED", "Third");
+        insertVisit(property, NOW.plusHours(1), "CONFIRMED", "First");
+        insertVisit(property, NOW.plusDays(1), "CANCELED", "Second");
+        long otherProperty = insertProperty(insertAgency("Other Agency"), "Elsewhere", "ACTIVE");
+        insertVisit(otherProperty, NOW.plusDays(1), "CONFIRMED", "Other agency");
+
+        mockMvc.perform(get("/api/agency/visits?from=2099-03-09&to=2099-03-15").session(signIn()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$[0].visitorName").value("First"))
+                .andExpect(jsonPath("$[1].visitorName").value("Second"))
+                .andExpect(jsonPath("$[1].status").value("CANCELED"))
+                .andExpect(jsonPath("$[2].visitorName").value("Third"))
+                .andExpect(jsonPath("$[2].status").value("COMPLETED"));
+    }
+
+    @Test
+    void acceptsARangeOfThirtyOneDays() throws Exception {
+        mockMvc.perform(get("/api/agency/visits?from=2099-03-01&to=2099-03-31").session(signIn()))
+                .andExpect(status().isOk());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "to=2099-03-15, from",
+        "from=2099-03-09, to",
+        "from=2099-3-9&to=2099-03-15, from",
+        "from=2099-03-15&to=2099-03-09, to",
+        "from=2099-03-01&to=2099-04-01, to"
+    })
+    void rejectsAWrongRange(String query, String field) throws Exception {
+        mockMvc.perform(get("/api/agency/visits?" + query).session(signIn()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors." + field).exists());
+    }
+
+    @Test
+    void requiresASignedInUserForTheVisits() throws Exception {
+        mockMvc.perform(get("/api/agency/visits?from=2099-03-09&to=2099-03-15"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"));
     }

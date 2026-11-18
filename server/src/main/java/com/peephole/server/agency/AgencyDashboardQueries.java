@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 @Component
 class AgencyDashboardQueries {
 
+    private static final String VISIT_COLUMNS =
+            "SELECT v.id, s.starts_at, s.ends_at, v.visitor_name, p.title, v.status ";
+
     private static final String VISITS_OF_AGENCY = """
             FROM visit v
             JOIN visit_slot s ON s.id = v.visit_slot_id
@@ -55,11 +58,23 @@ class AgencyDashboardQueries {
     List<DashboardVisit> findConfirmedVisitsFrom(long agencyId, OffsetDateTime from, int limit) {
         return jdbcClient
                 .sql(
-                        "SELECT v.id, s.starts_at, s.ends_at, v.visitor_name, p.title, v.status " + VISITS_OF_AGENCY
+                        VISIT_COLUMNS + VISITS_OF_AGENCY
                                 + " AND v.status = 'CONFIRMED' AND s.starts_at >= :from ORDER BY s.starts_at, v.id LIMIT :limit")
                 .param("agencyId", agencyId)
                 .param("from", from)
                 .param("limit", limit)
+                .query(AgencyDashboardQueries::toVisit)
+                .list();
+    }
+
+    // Every status, so the calendar can also show canceled and completed visits
+    List<DashboardVisit> findVisitsBetween(long agencyId, OffsetDateTime from, OffsetDateTime to) {
+        return jdbcClient
+                .sql(VISIT_COLUMNS + VISITS_OF_AGENCY
+                        + " AND s.starts_at >= :from AND s.starts_at < :to ORDER BY s.starts_at, v.id")
+                .param("agencyId", agencyId)
+                .param("from", from)
+                .param("to", to)
                 .query(AgencyDashboardQueries::toVisit)
                 .list();
     }
