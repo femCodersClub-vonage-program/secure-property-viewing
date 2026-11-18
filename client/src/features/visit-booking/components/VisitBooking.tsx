@@ -20,8 +20,8 @@ import TimeList from './TimeList'
 
 type Props = {
   propertyId: number
-  /** Called with the confirmed visit. #75 uses it to open the confirmation screen (A6). */
-  onBooked?: (visit: BookedVisit) => void
+  /** Called with the confirmed visit, so the page can open the confirmation screen (A6). */
+  onBooked: (visit: BookedVisit) => void
 }
 
 type Load =
@@ -31,7 +31,7 @@ type Load =
   // `today` is the Madrid day when the slots arrived, which is what they were computed for
   | { status: 'ready'; property: Property; slots: Slot[]; today: string }
 
-type Step = 'calendar' | 'verify' | 'booking' | 'booked'
+type Step = 'calendar' | 'verify' | 'booking'
 
 type Notice = { variant: 'warning' | 'error'; text: string }
 
@@ -138,15 +138,6 @@ function VisitBooking({ propertyId, onBooked }: Props) {
   const { property, slots, today } = load
   const summary = <PropertySummary property={property} />
 
-  if (step === 'booked') {
-    // TEMPORARY: #75 replaces this message with the confirmation screen (A6)
-    return (
-      <h1 ref={headingRef} tabIndex={-1} className={pageHeading}>
-        Your visit is booked
-      </h1>
-    )
-  }
-
   if (slots.length === 0) {
     return (
       <div className="flex flex-col gap-6">
@@ -191,8 +182,7 @@ function VisitBooking({ propertyId, onBooked }: Props) {
         phone: verifiedPhone.phone,
         phoneVerificationId: verifiedPhone.verificationId,
       })
-      goTo('booked')
-      onBooked?.(visit)
+      onBooked(visit)
     } catch (error) {
       const code = error instanceof ApiError ? error.code : undefined
       if (code === 'PHONE_VERIFICATION_INVALID') {

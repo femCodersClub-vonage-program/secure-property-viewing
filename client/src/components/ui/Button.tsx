@@ -1,9 +1,10 @@
-import type { ButtonHTMLAttributes } from 'react'
+import type { ComponentPropsWithRef } from 'react'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'link'
 export type ButtonShape = 'default' | 'pill' | 'circle'
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+// With ref, so a screen can give the focus back to the button, as Input does
+interface ButtonProps extends ComponentPropsWithRef<'button'> {
   variant?: ButtonVariant
   shape?: ButtonShape
   loading?: boolean

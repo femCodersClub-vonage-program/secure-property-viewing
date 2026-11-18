@@ -1,7 +1,8 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router'
+import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
+import { routes } from '../../../routes'
 import VisitBooking from './VisitBooking'
 
 // A Tuesday morning in Madrid: the next 14 days end on Tuesday 1 December
@@ -239,8 +240,9 @@ describe('VisitBooking', () => {
     await verifyPhone()
 
     await waitFor(() => expect(onBooked).toHaveBeenCalledWith(bookedFromSpec))
+    // The page opens the confirmation (A6): until then, the screen still says it is booking
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Your visit is booked' }),
+      screen.getByRole('heading', { level: 1, name: 'Booking your visit…' }),
     ).toBeInTheDocument()
     expect(bodyOf(callsTo('POST /api/visits')[0])).toEqual({
       slotId: 302,
@@ -468,5 +470,27 @@ describe('VisitBooking', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Choose a time for your video visit' }),
     ).toBeInTheDocument()
+  })
+})
+
+// The calendar page hands the 201 to the confirmation page (A6), which is the only way it shows
+describe('from the calendar to the confirmation', () => {
+  it('opens A6 with the booked visit once the booking is confirmed', async () => {
+    serveCalendar()
+    servePhoneVerification()
+    serve('POST /api/visits', () => json(bookedFromSpec, 201))
+    serve('POST /api/visits/18/room-links', () => json({ role: 'VISITOR', token: 'abc' }, 201))
+    const router = createMemoryRouter(routes, { initialEntries: ['/properties/7/visit'] })
+    render(<RouterProvider router={router} />)
+
+    await chooseTimeAndName('Wednesday 18 November, 10:30')
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    await verifyPhone()
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Your video visit is booked' }),
+    ).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/visits/18/confirmation')
+    expect(screen.getByText('Fictional demo address 01, Barcelona')).toBeInTheDocument()
   })
 })
