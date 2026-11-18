@@ -21,7 +21,7 @@ function FormField({ id, label, hint, error, children }: FormFieldProps) {
 
   return (
     <div>
-      <label htmlFor={id} className="font-body text-text-default">
+      <label htmlFor={id} className="font-body font-bold text-text-default">
         {label}
       </label>
       {hint ? (

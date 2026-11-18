@@ -1,8 +1,7 @@
 package com.peephole.server.config;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -23,21 +22,25 @@ public class SecurityConfig {
     }
 
     /**
-     * The repository that csrf.spa() uses: the token lives in the XSRF-TOKEN cookie, readable by JavaScript.
-     * It is a bean so AgencySessionController can clear the token on sign-in and sign-out, so a new one is issued
-     * with the next response.
+     * The repository that csrf.spa() uses: the token lives in the XSRF-TOKEN cookie, readable by JavaScript. It is a
+     * bean so AgencySessionController can clear it on sign-in and sign-out, so the next response issues a new one.
+     * Behind the Caddy proxy requests arrive over HTTP, so Secure follows the session cookie property, not the request.
      */
     @Bean
-    CsrfTokenRepository csrfTokenRepository() {
-        return CookieCsrfTokenRepository.withHttpOnlyFalse();
+    CsrfTokenRepository csrfTokenRepository(@Value("${server.servlet.session.cookie.secure:false}") boolean secure) {
+        CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        repository.setCookieCustomizer((cookie) -> cookie.secure(secure));
+        return repository;
     }
 
+    // No CORS configuration on purpose: the browser always calls /api from the client's own origin (ADR 0004), so
+    // the server sends no CORS headers and other sites cannot read its responses. They can still send requests, so
+    // CSRF protects every write, except the Vonage webhooks, which are checked with the JWT that Vonage signs
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, CsrfTokenRepository csrfTokenRepository)
             throws Exception {
         http.csrf((csrf) ->
                         csrf.spa().csrfTokenRepository(csrfTokenRepository).ignoringRequestMatchers("/api/webhooks/**"))
-                .cors(withDefaults())
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers(HttpMethod.POST, "/api/agency/session")
                         .permitAll()

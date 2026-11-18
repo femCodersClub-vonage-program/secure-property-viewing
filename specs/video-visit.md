@@ -11,7 +11,7 @@ The video visit is what gives Peephole its name: the visitor sees the property l
 ## User stories
 
 - As a visitor, I want to enter my video visit from a link, so that I can join from any browser when the time comes
-- As a visitor, I want to invite the person who will live with me, so that we can see the property together
+- As a visitor, I want to invite the people who will live with me, so that we can see the property together
 - As an agent, I want to join the visit from the dashboard, so that I can show the property live
 - As anyone in the call, I want to mute myself, turn off my camera and hang up, and to know what is happening when something goes wrong
 
@@ -20,7 +20,8 @@ The video visit is what gives Peephole its name: the visitor sees the property l
 Room links (on A6):
 
 - [ ] Right after booking, the confirmation screen shows the visitor's own room link, ready to copy, and says it is her only way into the room
-- [ ] "Invite someone" creates a guest link, ready to copy, up to 4 per visit. A fifth one is refused with a message that says the limit has been reached
+- [ ] "Get a link to share" creates one guest link, ready to copy, that the visitor shares with everyone she wants in the call. Everyone who uses it enters as a guest
+- [ ] The server refuses a fifth guest link for the same visit, and the screen says the limit has been reached
 - [ ] Room links can only be created from the browser that booked the visit, and only while the visit is `CONFIRMED` and its room has not closed
 - [ ] Asking again for the visitor link gives a new one, and the previous one stops working
 - [ ] Two requests at the same moment never create two visitor links or more than 4 guest links
@@ -70,10 +71,12 @@ Agreed on 2026-11-15 in [#61](https://github.com/femCodersClub-vonage-program/se
 - **Routed session.** Vonage recommends routed sessions for three or more participants, and with Adaptive Media Routing a routed session still behaves like a direct one when only two people are in the call
 - **Room links instead of the HTTP session.** The visitor's session expires after 30 minutes of inactivity and is lost on every redeploy, so a visitor who books for tomorrow would lose her access. Instead, the visitor and her guests each get a room link with a random token. The session is only used for a few seconds, right after booking, so the confirmation screen can create those links, as the [visit booking spec](visit-booking.md) describes
 - **Accepted trade-off: a lost visitor link can't be recovered.** The server keeps only the hash, SMS never carries links, and once the session has ended nothing proves she is the visitor. A6 tells her clearly to keep the link. For the MVP and the demo, this is acceptable
-- **The limit is on links, not on people in the call.** One visitor link and up to 4 guest links per visit, so the server never has to ask Vonage who is connected
+- **One link to share for all the guests.** A room link can be used by more than one person and can't be revoked in the MVP, so one link per guest would not limit who enters. The visitor gets a single guest link and shares it with everyone she wants in the call. Peephole doesn't limit the number of people in the call, so the server never has to ask Vonage who is connected. The demo call has six people: the visitor, an agent and four guests
+- **Up to 4 guest links per visit.** The server still keeps this limit, so a visitor who reloads A6 can get a new link to share a few times, but links can't be created without end. A new guest link never stops the previous ones from working
+- *Decided on 2026-11-18, replacing one link per guest:* the first version of this spec gave each guest her own link, up to 4. The server built in [#76](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/76) doesn't change: the client simply asks for one guest link
 - **The room is open from 10 minutes before to 15 minutes after the visit.** Early enough to check the camera, and late enough for a visit that runs over. Each token expires when the room closes, which only stops new connections, so the client leaves the call itself at `closesAt`
 - **Each person's role travels with her connection,** in the token's `data` field, so every browser can label every video
-- **Vonage failures are system errors.** If Vonage fails or times out while creating the session, the answer is `500 INTERNAL_ERROR`, with a message that asks to try again, the same as for the other Vonage APIs
+- **Vonage failures are system errors.** If Vonage fails or times out while creating the session, the answer is `500 INTERNAL_ERROR` with the generic message of the [error format](data-model-and-api-contract.md#errors), the same as for the other Vonage APIs. The room screen asks to try again, and the next entry creates the session, because a failed one is never saved
 - **No room links in SMS.** The [messages spec](messages.md) keeps every SMS free of links, so people can tell them apart from a scam
 
 ## Technical plan
@@ -152,5 +155,5 @@ In code, the feature lives in a `videovisit/` package. It talks to Vonage throug
 - The page asks for its video token, then joins the session with `@vonage/client-sdk-video`: `OT.initSession(applicationId, sessionId)`, connects with the token and publishes the camera and microphone
 - A grid of videos, each labeled from the role in its `stream.connection.data`, and a control bar with mute, camera and hang up as `<button>`s with accessible names. The state of each control is announced with `aria-pressed`
 - A status line for waiting, permissions denied, reconnecting, hung up and time over, in a live region so the change is announced
-- On A6, the visitor link is created once, right after the booking response, and kept in memory. If the page is reloaded, it shows a "Get a new link" button that warns the previous link will stop working. "Invite someone" creates a guest link on each click. Each link has a copy button that falls back to selecting the text when the clipboard is not available
+- On A6, the visitor link is created once, right after the booking response, and kept in memory. If the page is reloaded, it shows a "Get a new link" button that warns the previous link will stop working. "Get a link to share" creates the guest link when it is pressed, not when the page loads, so a page nobody uses creates no links. After a reload, the same button gets a new one, and the one already shared keeps working. Each link has a copy button that falls back to selecting the text when the clipboard is not available
 - The agency's "Join visit" controls in D1 and D4 are links (`<a>`) to `/agency/visits/:id/room`

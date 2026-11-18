@@ -1,5 +1,6 @@
 package com.peephole.server.common;
 
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 
 public abstract class BusinessException extends RuntimeException {
@@ -19,5 +20,10 @@ public abstract class BusinessException extends RuntimeException {
 
     public String getCode() {
         return code;
+    }
+
+    /** Extra fields for the ProblemDetail that the spec of the error asks for, such as opensAt. */
+    public Map<String, Object> getProperties() {
+        return Map.of();
     }
 }
