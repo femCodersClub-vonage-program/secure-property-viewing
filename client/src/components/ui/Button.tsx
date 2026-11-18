@@ -1,10 +1,19 @@
 import type { ButtonHTMLAttributes } from 'react'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'link'
+export type ButtonShape = 'default' | 'pill' | 'circle'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant
+  shape?: ButtonShape
   loading?: boolean
+}
+
+// Each shape sets its own padding: a circle has none, so it can shrink to fit a 7-column calendar
+const shapeClasses: Record<ButtonShape, string> = {
+  default: 'rounded-md px-5 py-2',
+  pill: 'rounded-pill px-5 py-2',
+  circle: 'aspect-square rounded-pill p-0',
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
@@ -20,6 +29,7 @@ const variantClasses: Record<ButtonVariant, string> = {
 
 function Button({
   variant = 'primary',
+  shape = 'default',
   loading = false,
   disabled,
   children,
@@ -34,7 +44,8 @@ function Button({
       disabled={isDisabled}
       aria-busy={loading || undefined}
       className={[
-        'inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] font-body font-semibold px-5 py-2 transition-all',
+        'inline-flex items-center justify-center gap-2 font-body font-semibold transition-all',
+        shapeClasses[shape],
         variantClasses[variant],
         isDisabled && !loading ? 'cursor-not-allowed opacity-40' : '',
         loading ? 'cursor-wait opacity-80' : '',

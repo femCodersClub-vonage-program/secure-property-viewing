@@ -42,12 +42,12 @@ describe('PropertyCard', () => {
 
   it('formats a rent price', () => {
     renderCard()
-    expect(screen.getByText(/950.*\u20ac\/month/)).toBeInTheDocument()
+    expect(screen.getByText('950 \u20ac/month')).toBeInTheDocument()
   })
 
   it('formats a sale price', () => {
     renderCard({ ...baseProperty, operation: 'SALE', priceEuros: 250000 })
-    expect(screen.getByText(/250.*\u20ac/)).toBeInTheDocument()
+    expect(screen.getByText('250.000 \u20ac')).toBeInTheDocument()
   })
 
   it('shows bedrooms', () => {
