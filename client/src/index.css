@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+/* In a layer, so the design system's utilities still win over Leaflet's own colors inside the map */
+@import 'leaflet/dist/leaflet.css' layer(components);
 
 @theme {
   /* ── Colors ───────────────────────────────────────────────────────────── */

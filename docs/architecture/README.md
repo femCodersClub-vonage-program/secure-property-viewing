@@ -11,6 +11,7 @@ flowchart LR
   A[Agency] --> C
   C["client<br/>Web application"] -->|REST API| S["server<br/>API and business logic"]
   C <-->|Video Client SDK| VV[Vonage Video]
+  C -->|map tiles| OSM[OpenStreetMap tiles]
   S --> DB[(Database)]
   S -->|Server SDK| VY[Vonage Verify]
   S -->|Server SDK| VV
