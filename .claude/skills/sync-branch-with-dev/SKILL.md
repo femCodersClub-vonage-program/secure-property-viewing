@@ -14,7 +14,7 @@ The everyday commands are in [`docs/guides/daily-commands.md`](../../../docs/gui
    git merge origin/dev --no-edit
    ```
 
-   `--no-edit` keeps the default merge message, so no editor opens. If Vim opens anyway, type `:wq` and press Enter.
+   `--no-edit` keeps the default merge message, so no editor opens. If Vim opens anyway, press Esc, type `:wq` and press Enter.
 
 3. **If git reports `CONFLICT`**, list the files with `git status` and, for each one, read both sides before choosing:
   - Most of the time both changes are wanted, such as two paragraphs added at the same place in a doc. Keep both
@@ -29,21 +29,23 @@ The everyday commands are in [`docs/guides/daily-commands.md`](../../../docs/gui
    ```
 
   - **New variables in `server/.env.example`:** add them to your own `server/.env` as [`docs/setup.md`](../../../docs/setup.md) explains, or the server will not start. Never paste their values into an AI assistant
-  - **A new migration in `dev`:** if your branch also adds one and it is now older than the newest in `dev`, rename it with the current date and time, as [`CONTRIBUTING.md`](../../../CONTRIBUTING.md#database-migrations) says
+  - **A new migration in `dev`:** if your branch also adds one and it is now older than the newest in `dev`, rename it with the current date and time in UTC, as [`CONTRIBUTING.md`](../../../CONTRIBUTING.md#database-migrations) says
   - **`client/package-lock.json` changed:** run `npm ci` in `client/`
 
-5. **Build from scratch.** The `clean` matters: `target/` may still hold classes compiled on another branch, and a `NoClassDefFoundError` that names a class you never touched usually means exactly that.
+5. **Build from scratch, with the same checks as the CI.** The server tests need your local PostgreSQL running and `server/.env` filled in, as [`docs/setup.md`](../../../docs/setup.md) explains. The `clean` matters: `target/` may still hold classes compiled on another branch, and a `NoClassDefFoundError` that names a class you never touched usually means exactly that.
 
    ```bash
    cd server
-   ./mvnw spotless:apply
+   ./mvnw spotless:check
    ./mvnw clean verify
    cd ../client
    npm run lint
+   npm run format:check
+   npm run images:check
    npm test
    npm run build
    ```
 
-   Run the `client/` checks only if `client/` changed on either side.
+   Run the `client/` checks only if `client/` changed on either side. If a format check fails on a file you fixed during a conflict, run `./mvnw spotless:apply` in `server/` or `npm run format` in `client/`, and commit the result before pushing.
 
 6. **Push** with `git push`. If the pull request was already approved, the new commits dismiss that approval, as [`CONTRIBUTING.md`](../../../CONTRIBUTING.md#pull-requests-and-review) says. Leave a comment saying that you merged `dev` and how you resolved each conflict, and request the review again.
