@@ -13,7 +13,9 @@ interface VisitSlotRepository extends JpaRepository<VisitSlot, Long> {
     @Query(value = """
                     SELECT s.id AS "id", s.starts_at AS "startsAt", s.ends_at AS "endsAt"
                     FROM visit_slot s
+                    JOIN property p ON p.id = s.property_id
                     WHERE s.property_id = :propertyId
+                      AND p.status = 'ACTIVE'
                       AND s.status = 'AVAILABLE'
                       AND s.starts_at > :now
                       AND s.starts_at >= :fromInclusive
