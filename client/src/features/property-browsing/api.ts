@@ -28,9 +28,7 @@ export function parsePropertySummary(data: unknown): PropertySummary {
     typeof data.priceEuros === 'number' &&
     typeof data.area === 'string' &&
     typeof data.bedrooms === 'number' &&
-    typeof data.sizeM2 === 'number' &&
-    (data.latitude === null || typeof data.latitude === 'number') &&
-    (data.longitude === null || typeof data.longitude === 'number')
+    typeof data.sizeM2 === 'number'
   ) {
     return {
       id: data.id,
