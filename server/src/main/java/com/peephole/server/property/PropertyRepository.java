@@ -8,7 +8,8 @@ import org.springframework.data.repository.query.Param;
 
 interface PropertyRepository extends JpaRepository<Property, Long> {
 
-    @Query("SELECT p FROM Property p JOIN FETCH p.agency LEFT JOIN FETCH p.images WHERE p.status = 'ACTIVE' ORDER BY p.id")
+    @Query(
+            "SELECT p FROM Property p JOIN FETCH p.agency LEFT JOIN FETCH p.images WHERE p.status = 'ACTIVE' ORDER BY p.id")
     List<Property> findAllActive();
 
     @Query(
