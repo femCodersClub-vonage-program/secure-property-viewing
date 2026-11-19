@@ -7,7 +7,7 @@ interface PropertyCardProps {
   property: PropertySummary
 }
 
-const GENERIC_IMAGE_SRC = '/images/property-placeholder.webp'
+const GENERIC_IMAGE_SRC = '/images/property-placeholder.svg'
 const GENERIC_IMAGE_ALT = 'Property image not available'
 
 function PropertyCard({ property }: PropertyCardProps) {
@@ -52,8 +52,8 @@ function PropertyCard({ property }: PropertyCardProps) {
           </div>
         )}
 
-        <Link to={`/properties/${id}/visit`} variant="button" className="w-full mt-auto">
-          Request a video visit
+        <Link to={`/properties/${id}`} variant="button" className="w-full mt-auto">
+          See the details
         </Link>
       </div>
     </Card>

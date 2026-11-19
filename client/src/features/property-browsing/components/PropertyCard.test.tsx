@@ -69,7 +69,7 @@ describe('PropertyCard', () => {
   it('shows a generic image when coverImage is null', () => {
     renderCard({ ...baseProperty, coverImage: null })
     const img = screen.getByRole('img', { name: 'Property image not available' })
-    expect(img).toHaveAttribute('src', '/images/property-placeholder.webp')
+    expect(img).toHaveAttribute('src', '/images/property-placeholder.svg')
   })
 
   it('uses singular bed for one bedroom', () => {
@@ -87,9 +87,9 @@ describe('PropertyCard', () => {
     expect(screen.queryByText(/Verified agency/)).not.toBeInTheDocument()
   })
 
-  it('links to the visit request page', () => {
+  it('links to the property details page', () => {
     renderCard()
-    const link = screen.getByRole('link', { name: /request a video visit/i })
-    expect(link).toHaveAttribute('href', '/properties/7/visit')
+    const link = screen.getByRole('link', { name: /see the details/i })
+    expect(link).toHaveAttribute('href', '/properties/7')
   })
 })
