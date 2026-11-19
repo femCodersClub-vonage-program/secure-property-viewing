@@ -230,3 +230,25 @@ it('shows the generic message when joining fails for a reason people cannot fix'
 
   expect(await screen.findByText(SYSTEM_ERROR_MESSAGE)).toBeInTheDocument()
 })
+
+it('says the camera or microphone could not start, and keeps the call', async () => {
+  renderRoom()
+  await joined()
+
+  act(() => callEvents().onMediaFailed())
+
+  expect(screen.getByRole('status')).toHaveTextContent(/couldn't start/i)
+  expect(screen.getByRole('button', { name: 'Hang up' })).toBeInTheDocument()
+})
+
+it('keeps the permissions message when the same denial also fails to publish', async () => {
+  renderRoom()
+  await joined()
+
+  act(() => {
+    callEvents().onPermissionsDenied()
+    callEvents().onMediaFailed()
+  })
+
+  expect(screen.getByRole('status')).toHaveTextContent(/allow them/i)
+})

@@ -28,6 +28,7 @@ export type CallStatus =
   | { kind: 'waiting' } // in the call, but nobody else is yet
   | { kind: 'in-call' }
   | { kind: 'permissions-denied' }
+  | { kind: 'media-failed' }
   | { kind: 'reconnecting' }
   | { kind: 'hung-up' }
   | { kind: 'time-over' }

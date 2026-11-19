@@ -28,5 +28,7 @@ export function statusMessage(status: CallStatus): string {
       return `The room opens on ${opensAtFormat.format(status.opensAt)}. Come back then.`
     case 'error':
       return status.message
+    case 'media-failed':
+      return "Your camera or microphone couldn't start. Check that they're connected and not in use by another app, then reload the page."
   }
 }

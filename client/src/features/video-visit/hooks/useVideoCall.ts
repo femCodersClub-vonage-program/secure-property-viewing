@@ -72,6 +72,12 @@ export function useVideoCall(loadAccess: () => Promise<VideoToken>) {
               hasEnded(current) ? current : { kind: 'error', message: CONNECTION_LOST },
             )
           },
+          onMediaFailed: () => {
+            // A denied permission also fails here: its message, which says how to allow them, wins
+            setStatus((current) =>
+              current.kind === 'permissions-denied' ? current : { kind: 'media-failed' },
+            )
+          },
         })
         if (left) {
           call.leave()

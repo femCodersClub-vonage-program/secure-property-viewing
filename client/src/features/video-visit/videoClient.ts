@@ -26,6 +26,7 @@ export type VideoCallEvents = {
   onReconnecting: () => void
   onReconnected: () => void
   onDisconnected: () => void
+  onMediaFailed: () => void
 }
 
 /** What the screen can do with the call. */
@@ -67,10 +68,18 @@ export async function joinVideoCall(
   // Throws if the token is not valid, and the hook shows the error
   await session.connect.promise(access.token)
 
+  // Any failure to start or send the camera and microphone, such as no camera found.
+  // A denied permission also comes through accessDenied, and the hook lets that one win
+  const reportMediaFailure = (error?: OT.OTError) => {
+    if (error !== undefined) {
+      events.onMediaFailed()
+    }
+  }
+
   // The browser asks for camera and microphone here. If they're denied, the screen explains how to allow them
-  const publisher = Video.initPublisher(ownVideo, VIDEO_PROPERTIES)
+  const publisher = Video.initPublisher(ownVideo, VIDEO_PROPERTIES, reportMediaFailure)
   publisher.on('accessDenied', events.onPermissionsDenied)
-  session.publish(publisher)
+  session.publish(publisher, reportMediaFailure)
 
   return {
     showRemote(id, element) {

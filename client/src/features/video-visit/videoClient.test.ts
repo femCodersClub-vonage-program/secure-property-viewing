@@ -34,7 +34,13 @@ const sdk = vi.hoisted(() => {
     publisher,
     subscriber,
     initSession: vi.fn(() => session),
-    initPublisher: vi.fn(() => publisher),
+    initPublisher: vi.fn(
+      (
+        _element: HTMLElement,
+        _properties: object,
+        _callback: (error?: { name: string; message: string }) => void,
+      ) => publisher,
+    ),
   }
 })
 
@@ -71,6 +77,7 @@ function fakeEvents() {
     onReconnecting: vi.fn(),
     onReconnected: vi.fn(),
     onDisconnected: vi.fn(),
+    onMediaFailed: vi.fn(),
   } satisfies VideoCallEvents
 }
 
@@ -91,8 +98,9 @@ describe('joinVideoCall', () => {
     expect(sdk.initPublisher).toHaveBeenCalledWith(
       ownVideo,
       expect.objectContaining({ showControls: false }),
+      expect.any(Function),
     )
-    expect(sdk.session.publish).toHaveBeenCalledWith(sdk.publisher)
+    expect(sdk.session.publish).toHaveBeenCalledWith(sdk.publisher, expect.any(Function))
   })
 
   it('listens before connecting, so no event is missed', async () => {
@@ -159,4 +167,15 @@ describe('joinVideoCall', () => {
     expect(sdk.publisher.publishVideo).toHaveBeenCalledWith(false)
     expect(sdk.session.disconnect).toHaveBeenCalled()
   })
+})
+
+it('reports when the camera or microphone fails to start or to publish', async () => {
+  const events = fakeEvents()
+  await joinVideoCall(access, document.createElement('div'), events)
+
+  // The SDK calls the callback with an error, as it does when no camera is found
+  const [, , initCallback] = sdk.initPublisher.mock.calls[0]
+  initCallback({ name: 'OT_HARDWARE_UNAVAILABLE', message: 'No camera' })
+
+  expect(events.onMediaFailed).toHaveBeenCalledOnce()
 })
