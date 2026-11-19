@@ -14,7 +14,7 @@ Phone verification for visitors and owners using a one-time passcode (OTP) sent 
 - The Verify application needs no capability, so locally each person uses her own
 - The server reaches Verify only through the `PhoneVerifier` interface in `vonage/`, and the tests use a test double
 
-Silent Authentication is planned for later. In Spain it is available in the sandbox environment with Orange, Telefónica and Vodafone and requires mobile data, so SMS OTP would remain as a fallback even once it is added.
+Silent Authentication, with the SMS code as the fallback, is specified in [`specs/silent-authentication.md`](../specs/silent-authentication.md). It is tested with Vonage's Virtual Operator, which answers for `+990` numbers. Live checks need mobile data, a supported operator, such as Orange, Telefónica or Vodafone in Spain, and either a registration in the Network Registry or one of up to 5 numbers allowlisted in the Playground.
 
 ### Video API
 

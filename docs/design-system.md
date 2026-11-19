@@ -180,7 +180,7 @@ D2 and D5 are tables, and the next visits in D1 follow the same rules.
 
 #### Status badges
 
-A badge always shows the status as text, with a `lucide-react` icon when it carries meaning. It uses `text-xs`, `--radius-sm`, a 1px border and text in the same color, on a white background.
+A badge always shows the status as text, with a `lucide-react` icon when it carries meaning. It uses `text-xs`, `--radius-sm`, a 1px border and text in the same color, on a 10% tint of that color, which helps when scanning a table row quickly.
 
 | Status | Color | Icon |
 | :---- | :---- | :---- |
@@ -201,3 +201,13 @@ Every section that calls the API shows its own state, so one failing call does n
 - **Empty:** one short sentence in the place of the table or list, in `--color-text-muted`, such as "No pending requests". No illustrations
 - **Error:** the message in `--color-error` and a "Try again" button. A business error (a ProblemDetail returned by the server) shows its message.
 - **Unavailable actions:** in D3, when a request is not pending, the approve and reject buttons are disabled and a sentence next to them says why, such as "This request was already approved"
+- **Join visit:** in D1 and D4, only `CONFIRMED` visits get the "Join visit" link. Any other visit shows a disabled "Join visit" button at 40% opacity, like other unavailable buttons, with a sentence saying why, such as "This visit was canceled"
+
+### Tabs
+
+D2 filters its requests by status with tabs, and other screens can reuse them.
+
+- The tab list has a bottom border in `--color-border`
+- The selected tab has bold text in `--color-text-default` and a 4px `--color-brand-primary` bar under it. The other tabs use `--color-text-muted`, so the selection does not rely on color alone
+- Only the selected tab is in the Tab order. The left and right arrow keys move between tabs and wrap around, and Home and End go to the first and last tab
+- Focus uses the common focus ring

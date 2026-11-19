@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Phone verification", description = "Send a code by SMS and check it")
 class PhoneVerificationController {
 
-    static final String SESSION_ATTRIBUTE = "phoneVerificationId";
+    static final String SESSION_ATTRIBUTE = PhoneVerificationService.SESSION_ATTRIBUTE;
 
     private final PhoneVerificationService service;
 

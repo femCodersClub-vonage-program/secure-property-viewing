@@ -27,9 +27,12 @@ class SecurityConfigTest {
 
     @Test
     void doesNotRequireASessionOutsideTheAgencyPaths() throws Exception {
-        mockMvc.perform(get("/api/properties"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+        mockMvc.perform(get("/api/properties")).andExpect(status().isOk());
+    }
+
+    @Test
+    void doesNotRequireASessionForPropertyDetails() throws Exception {
+        mockMvc.perform(get("/api/properties/999999")).andExpect(status().isNotFound());
     }
 
     @Test
