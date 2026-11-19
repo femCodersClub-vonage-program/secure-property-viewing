@@ -7,6 +7,7 @@ import com.peephole.server.property.dto.PropertyDetailsResponse;
 import com.peephole.server.property.dto.PropertySummaryResponse;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 class PropertyService {
@@ -17,12 +18,14 @@ class PropertyService {
         this.repository = repository;
     }
 
+    @Transactional(readOnly = true)
     List<PropertySummaryResponse> findAll(PropertyOperation operation) {
         List<Property> properties =
                 operation != null ? repository.findAllActiveByOperation(operation) : repository.findAllActive();
         return properties.stream().map(PropertyService::toSummary).toList();
     }
 
+    @Transactional(readOnly = true)
     PropertyDetailsResponse findById(long id) {
         Property property = repository.findActiveById(id).orElseThrow(PropertyNotFoundException::new);
         return toDetails(property);
