@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ApiError } from '../../../lib/http'
+import { ApiError, SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
 import type { VideoToken } from '../types'
 import { joinVideoCall, type VideoCall, type VideoCallEvents } from '../videoClient'
 import VideoRoom from './VideoRoom'
@@ -53,6 +53,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.clearAllMocks()
+  vi.useRealTimers()
   events = undefined
 })
 
@@ -155,11 +156,19 @@ describe('VideoRoom', () => {
     expect(screen.getByRole('status')).toHaveTextContent(/connection was lost/i)
   })
 
-  it('leaves the call at closesAt and says the time is over', async () => {
-    // Already closed: the timer fires right after joining
-    renderRoom(() => Promise.resolve({ ...access, closesAt: new Date(Date.now() - 1000) }))
+  it('leaves the call at closesAt, not before, and says the time is over', async () => {
+    // Fake clock: it still ticks, so findBy works, and the test can jump ahead
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const FIVE_MINUTES = 5 * 60_000
+    renderRoom(() => Promise.resolve({ ...access, closesAt: new Date(Date.now() + FIVE_MINUTES) }))
+    await joined()
 
-    expect(await screen.findByText(/visit time is over/i)).toBeInTheDocument()
+    expect(call.leave).not.toHaveBeenCalled()
+    act(() => {
+      vi.advanceTimersByTime(FIVE_MINUTES)
+    })
+
+    expect(screen.getByRole('status')).toHaveTextContent(/visit time is over/i)
     expect(call.leave).toHaveBeenCalled()
   })
 
@@ -194,4 +203,29 @@ describe('VideoRoom', () => {
     ).toBeInTheDocument()
     expect(joinVideoCall).not.toHaveBeenCalled()
   })
+})
+
+it('keeps saying you left after hanging up, when the call then reports the disconnection', async () => {
+  renderRoom()
+  await joined()
+
+  fireEvent.click(screen.getByRole('button', { name: 'Hang up' }))
+  act(() => callEvents().onDisconnected())
+
+  expect(screen.getByRole('status')).toHaveTextContent('You left the visit.')
+})
+
+it('labels a video without a known role as Participant', async () => {
+  renderRoom()
+  await joined()
+
+  act(() => callEvents().onRemoteJoined({ id: 'stream-1', role: undefined }))
+
+  expect(screen.getByRole('figure', { name: 'Participant' })).toBeInTheDocument()
+})
+
+it('shows the generic message when joining fails for a reason people cannot fix', async () => {
+  renderRoom(() => Promise.reject(new Error('Network down')))
+
+  expect(await screen.findByText(SYSTEM_ERROR_MESSAGE)).toBeInTheDocument()
 })
