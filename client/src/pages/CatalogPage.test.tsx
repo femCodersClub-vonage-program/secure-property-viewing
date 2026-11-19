@@ -107,7 +107,9 @@ describe('CatalogPage', () => {
   it('calls GET /api/properties with the operation filter in the URL', async () => {
     fetchMock.mockReturnValue(Promise.resolve(json([propertiesFromSpec[0]])))
     renderCatalog('?operation=RENT')
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/api/properties?operation=RENT', expect.anything()))
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith('/api/properties?operation=RENT', expect.anything()),
+    )
   })
 
   it('shows Rent as the active filter when the URL has operation=RENT', () => {

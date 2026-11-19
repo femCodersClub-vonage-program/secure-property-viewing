@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { Alert, Button } from '../components/ui'
-import { PropertyCard, getProperties, type Operation, type PropertySummary } from '../features/property-browsing'
+import {
+  PropertyCard,
+  getProperties,
+  type Operation,
+  type PropertySummary,
+} from '../features/property-browsing'
 import { ApiError } from '../lib/http'
 
 type State =
