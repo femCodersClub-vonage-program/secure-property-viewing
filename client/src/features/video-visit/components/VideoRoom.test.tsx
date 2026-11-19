@@ -177,4 +177,21 @@ describe('VideoRoom', () => {
     expect(joinVideoCall).not.toHaveBeenCalled()
     expect(screen.queryByRole('button', { name: 'Hang up' })).not.toBeInTheDocument()
   })
+
+  it('shows the message of the server when the room has closed', async () => {
+    // The server sends no opensAt once the room has closed
+    const closed = new ApiError({
+      kind: 'business',
+      message: 'This visit has ended or was canceled, so its room is closed.',
+      status: 409,
+      code: 'VIDEO_VISIT_NOT_OPEN',
+      problem: {},
+    })
+    renderRoom(() => Promise.reject(closed))
+
+    expect(
+      await screen.findByText('This visit has ended or was canceled, so its room is closed.'),
+    ).toBeInTheDocument()
+    expect(joinVideoCall).not.toHaveBeenCalled()
+  })
 })

@@ -135,4 +135,19 @@ describe('routes', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Page not found' })).toBeInTheDocument()
   })
+
+  it('asks for the agency video token of the visit in the link', async () => {
+    const fetchMock = vi.fn<typeof fetch>(() => new Promise(() => {}))
+    vi.stubGlobal('fetch', fetchMock)
+    document.cookie = 'XSRF-TOKEN=test-token; path=/'
+    renderAt('/agency/visits/5/room')
+
+    // Protects the conversion of the id in the URL to a number
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/agency/visits/5/video-token',
+        expect.objectContaining({ method: 'POST' }),
+      ),
+    )
+  })
 })
