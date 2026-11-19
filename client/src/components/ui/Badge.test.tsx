@@ -17,4 +17,9 @@ describe('Badge', () => {
     render(<Badge variant="rejected">Rejected</Badge>)
     expect(screen.getByText('Rejected')).toBeInTheDocument()
   })
+
+  it('renders with warning variant', () => {
+    render(<Badge variant="warning">Pending</Badge>)
+    expect(screen.getByText('Pending')).toBeInTheDocument()
+  })
 })
