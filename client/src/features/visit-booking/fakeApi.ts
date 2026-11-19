@@ -1,12 +1,11 @@
-// TEMPORARY, development only: answers the property, its slots, POST /api/visits and the room links
-// until #52 and #73 are in dev. Then delete this file, its test, its export in index.ts and its two
-// lines in main.tsx. Every other call still reaches the real server.
+// TEMPORARY, development only: answers GET /api/properties/{id}/slots, POST /api/visits and the
+// room links until #73 is in dev. Then delete this file, its test, its export in index.ts and its
+// two lines in main.tsx. Every other call still reaches the real server.
 import { addDays, BOOKING_WINDOW_DAYS, madridDay, TIME_ZONE } from './calendar'
 
 const TIMES = ['10:00', '10:30', '11:00', '11:30', '12:30', '16:00', '16:30', '17:00']
 // Booking a slot at this time always answers 409, so the "just taken" path can be tried by hand
 const TAKEN_BY_SOMEONE_ELSE = '11:30'
-const EXISTING_PROPERTY_IDS = { from: 1, to: 20 }
 
 const bookedSlotIds = new Set<number>()
 // The real server keeps up to 4 guest links per visit
@@ -57,24 +56,6 @@ function freeSlots(now: Date) {
     })
   }
   return slots
-}
-
-function property(id: number) {
-  return {
-    id,
-    title: 'Bright apartment in Gràcia',
-    operation: 'RENT',
-    propertyType: 'APARTMENT',
-    priceEuros: 950,
-    area: 'Gràcia',
-    bedrooms: 2,
-    sizeM2: 70,
-    floor: 2,
-    description: 'Demo property from the fake API.',
-    videoVisitAvailable: true,
-    agency: { name: 'Demo agency', verified: true },
-    images: [],
-  }
 }
 
 function readVisitRequest(body: unknown): { slotId: number; visitorName: string } | undefined {
@@ -157,13 +138,9 @@ export function fakeVisitBookingAnswer(
   body: unknown,
   now = new Date(),
 ): Response | undefined {
-  const propertyMatch = /^\/api\/properties\/(\d+)(\/slots)?$/.exec(path)
-  if (propertyMatch && method === 'GET') {
-    const id = Number(propertyMatch[1])
-    if (id < EXISTING_PROPERTY_IDS.from || id > EXISTING_PROPERTY_IDS.to) {
-      return problem(404, 'Not Found', 'NOT_FOUND', 'This property was not found.')
-    }
-    return propertyMatch[2] ? json(freeSlots(now), 200) : json(property(id), 200)
+  const slotsMatch = /^\/api\/properties\/(\d+)\/slots$/.exec(path)
+  if (slotsMatch && method === 'GET') {
+    return json(freeSlots(now), 200)
   }
   if (path === '/api/visits' && method === 'POST') {
     return bookVisit(body, now)

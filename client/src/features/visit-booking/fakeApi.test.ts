@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseBookedVisit, parseProperty, parseSlots } from './api'
+import { parseBookedVisit, parseSlots } from './api'
 import { addDays, madridDay, madridTime } from './calendar'
 import { fakeVisitBookingAnswer } from './fakeApi'
 
@@ -20,11 +20,7 @@ async function answer(path: string, method = 'GET', body?: unknown) {
 
 // The fake has to keep the shapes of the visit booking spec, or the screen would break on the real API
 describe('fake visit booking API', () => {
-  it('answers the property and its slots with the shapes of the spec', async () => {
-    const property = await answer('/api/properties/7')
-    expect(property.status).toBe(200)
-    expect(parseProperty(property.data).title).toBe('Bright apartment in Gràcia')
-
+  it('answers the slots with the shape of the spec', async () => {
     const slots = await answer('/api/properties/7/slots')
     const parsed = parseSlots(slots.data)
     expect(parsed.length).toBeGreaterThan(0)
@@ -34,36 +30,12 @@ describe('fake visit booking API', () => {
     }
   })
 
-  it('answers with exactly the fields of the spec examples, not only the ones the screen reads', async () => {
-    // Keys of the examples in specs/property-browsing.md and specs/visit-booking.md
-    const propertyKeys = [
-      'agency',
-      'area',
-      'bedrooms',
-      'description',
-      'floor',
-      'id',
-      'images',
-      'operation',
-      'priceEuros',
-      'propertyType',
-      'sizeM2',
-      'title',
-      'videoVisitAvailable',
-    ]
-    const property = await answer('/api/properties/7')
-    expect(keysOf(property.data)).toEqual(propertyKeys)
-
+  it('answers with exactly the fields of the spec example for slots', async () => {
     const slots = await answer('/api/properties/7/slots')
     if (!Array.isArray(slots.data)) throw new Error('The slots are not a list')
     for (const slot of slots.data) {
       expect(keysOf(slot)).toEqual(['endsAt', 'id', 'startsAt'])
     }
-  })
-
-  it('answers 404 for a property that does not exist', async () => {
-    const missing = await answer('/api/properties/999')
-    expect(missing).toMatchObject({ status: 404, data: { code: 'NOT_FOUND' } })
   })
 
   it('books a free slot once, and answers 409 the second time', async () => {
@@ -118,5 +90,6 @@ describe('fake visit booking API', () => {
   it('leaves every other call to the real server', () => {
     expect(fakeVisitBookingAnswer('/api/health', 'GET', undefined, NOW)).toBeUndefined()
     expect(fakeVisitBookingAnswer('/api/phone-verifications', 'POST', '{}', NOW)).toBeUndefined()
+    expect(fakeVisitBookingAnswer('/api/properties/7', 'GET', undefined, NOW)).toBeUndefined()
   })
 })
