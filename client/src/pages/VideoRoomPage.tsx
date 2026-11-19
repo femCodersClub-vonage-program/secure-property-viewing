@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
-import { getRoomVideoToken, readRoomToken, VideoRoom } from '../features/video-visit'
+import {
+  getRoomVideoToken,
+  readRoomToken,
+  VideoRoom,
+  RoomLinkInvalid,
+} from '../features/video-visit'
 
 function VideoRoomPage() {
   const location = useLocation()
@@ -24,13 +29,7 @@ function VideoRoomPage() {
     return (
       <main className="mx-auto flex max-w-lg flex-col gap-4 px-4 py-8">
         <title>Room link not valid · Peephole</title>
-        <h1 className="font-display text-3xl font-bold text-balance text-brand-dark">
-          This room link doesn't work
-        </h1>
-        <p className="font-body text-text-default">
-          Open the full link you got after booking, or ask the person who booked the visit to share
-          it again.
-        </p>
+        <RoomLinkInvalid />
       </main>
     )
   }

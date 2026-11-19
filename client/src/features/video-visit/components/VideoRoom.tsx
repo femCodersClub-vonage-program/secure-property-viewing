@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useVideoCall } from '../hooks/useVideoCall'
 import type { CallStatus, VideoToken } from '../types'
 import CallControls from './CallControls'
@@ -20,11 +21,19 @@ type Props = {
 function VideoRoom({ loadAccess }: Props) {
   const call = useVideoCall(loadAccess)
   const inCall = !NO_CALL.has(call.status.kind)
+  const statusRef = useRef<HTMLParagraphElement>(null)
+
+  useEffect(() => {
+    // When the controls go away, the focus would fall to <body>: move it to the message instead
+    if (!inCall) {
+      statusRef.current?.focus()
+    }
+  }, [inCall])
 
   return (
     <section className="flex flex-col gap-6">
       <h1 className="font-display text-3xl font-bold text-balance text-brand-dark">Video visit</h1>
-      <CallStatusLine status={call.status} />
+      <CallStatusLine status={call.status} ref={statusRef} />
       {/* Hidden, never removed: Vonage needs the element for our own camera from the start */}
       <div hidden={!inCall}>
         <VideoGrid

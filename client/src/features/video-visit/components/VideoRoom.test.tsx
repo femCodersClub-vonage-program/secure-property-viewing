@@ -125,6 +125,7 @@ describe('VideoRoom', () => {
     expect(call.leave).toHaveBeenCalled()
     expect(screen.getByRole('status')).toHaveTextContent('You left the visit.')
     expect(screen.queryByRole('button', { name: 'Mute' })).not.toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveFocus()
   })
 
   it('explains how to allow the camera and microphone when they are denied', async () => {
