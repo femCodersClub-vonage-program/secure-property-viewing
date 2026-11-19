@@ -6,7 +6,7 @@
 
 ## Problem
 
-Before Peephole accepts a visit or a listing request, the person confirms access to the phone number with a one-time code sent by SMS. This helps reduce anonymous requests and gives the agency a verified contact number. The same flow serves visitors and owners; it does not establish their identity or ownership of a property. Silent Authentication, with SMS as the fallback, is a stretch goal for later.
+Before Peephole accepts a visit or a listing request, the person confirms access to the phone number with a one-time code sent by SMS. This helps reduce anonymous requests and gives the agency a verified contact number. The same flow serves visitors and owners; it does not establish their identity or ownership of a property. Silent Authentication, with SMS as the fallback, is specified in [its own spec](silent-authentication.md).
 
 ## User stories
 
@@ -32,7 +32,7 @@ Before Peephole accepts a visit or a listing request, the person confirms access
 
 ## Out of scope
 
-- Silent Authentication: a stretch goal, only if there is time once journey A works end to end, with its own spec and feature
+- Silent Authentication, which has [its own spec](silent-authentication.md)
 - Voice, WhatsApp or email as channels
 - Remembering a verified phone between visits
 
@@ -113,17 +113,6 @@ The Verify API, called from the server only:
 In code, the feature talks to a `PhoneVerifier` interface in `vonage/`. Its implementation uses the Java Server SDK, which is added to `pom.xml` with this feature, with its exact version recorded in [ADR 0001](../docs/adr/0001-tech-stack.md). Tests use a test double of `PhoneVerifier`.
 
 Credentials come from the Verify group of variables in `server/.env`, together with `PHONE_HASH_SECRET` for the hash, as `docs/setup.md` and `docs/setup.es.md` explain.
-
-### Adding Silent Authentication later
-
-Silent Authentication is a stretch goal, only if there is time once journey A works end to end. The following integration outline is a proposal to validate through the Vonage Documentation MCP Server before its own spec is approved:
-
-- **Server:** the Verify workflow gets `silent_auth` as its first step and keeps `sms` as the fallback. Verify then returns a `check_url` along with the `request_id`, and our start endpoint passes it to the client
-- **Client:** the browser opens the `check_url` over mobile data, shows a "verifying with your carrier" state and, if Verify falls back to SMS, moves to the code screen described here
-- **Data:** a `channel` field in `phone_verification` records which step verified the phone
-- **Tests:** Vonage test numbers make it possible to try it without a real mobile network
-
-The details belong in their own spec, written only if the stretch goal goes ahead.
 
 ### Client
 

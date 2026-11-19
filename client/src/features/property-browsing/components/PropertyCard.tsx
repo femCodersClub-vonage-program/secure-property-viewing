@@ -1,14 +1,10 @@
 import { Bed, MapPin, Maximize2, ShieldCheck } from 'lucide-react'
 import { Badge, Card, Link } from '../../../components/ui'
+import { formatPrice } from '../price'
 import type { PropertySummary } from '../types'
 
 interface PropertyCardProps {
   property: PropertySummary
-}
-
-function formatPrice(priceEuros: number, operation: PropertySummary['operation']): string {
-  const formatted = new Intl.NumberFormat('es-ES').format(priceEuros)
-  return operation === 'RENT' ? `${formatted} €/month` : `${formatted} €`
 }
 
 const GENERIC_IMAGE_SRC = '/images/property-placeholder.webp'

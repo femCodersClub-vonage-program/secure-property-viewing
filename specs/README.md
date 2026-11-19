@@ -25,6 +25,7 @@ One file per feature, named in English and in kebab-case, such as `phone-verific
 | :---- | :---- |
 | [Data model and API contract](data-model-and-api-contract.md) | The entities, the endpoints every screen uses, the error format and the sample data |
 | [Phone verification](phone-verification.md) | Phone verification with a one-time code by SMS, for visitors and owners |
+| [Silent Authentication](silent-authentication.md) | Phone verification through the mobile operator, with the SMS code as the fallback |
 | [Property browsing](property-browsing.md) | Home page, property catalog and property details (journey A, steps 1 to 3) |
 | [Visit booking](visit-booking.md) | Free visit slots, booking a visit with a verified phone, and its confirmation (journey A, steps 4 and 6) |
 | [Video visit](video-visit.md) | The video room for the visitor, her guests and the agency, and the room links (journey A, step 7) |

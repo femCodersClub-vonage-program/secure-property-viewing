@@ -11,6 +11,7 @@ flowchart LR
   A[Agency] --> C
   C["client<br/>Web application"] -->|REST API| S["server<br/>API and business logic"]
   C <-->|Video Client SDK| VV[Vonage Video]
+  C -->|map tiles| OSM[OpenStreetMap tiles]
   S --> DB[(Database)]
   S -->|Server SDK| VY[Vonage Verify]
   S -->|Server SDK| VV
@@ -36,10 +37,21 @@ sequenceDiagram
   C->>S: Sends the code
   S->>VY: Checks the code
   VY-->>S: Phone verified
+  C->>S: Requests available slots for the property
+  S-->>C: Available slots in the next 14 days
+  V->>C: Chooses a time and enters her name
   C->>S: Books the visit with the verified phone
-  S->>VM: Schedules confirmation and reminder
-  VM-->>V: Confirmation SMS
-  S-->>C: Visit confirmed
+  alt Slot is still available
+    S-->>C: Visit confirmed with property details
+  else Slot was taken or is no longer bookable
+    S-->>C: 409 SLOT_UNAVAILABLE
+    V->>C: Chooses another available time
+    C->>S: Retries booking with the same verification
+  else Phone verification is invalid
+    S-->>C: 422 PHONE_VERIFICATION_INVALID
+    V->>C: Verifies her phone again
+  end
+  Note over S,VM: Confirmation and reminder messages are sent when the Messages feature is available
   C->>S: Asks for the visitor's room link
   S-->>C: Room link, shown once on the confirmation screen
   C->>S: Asks for a link to share, when the visitor presses the button

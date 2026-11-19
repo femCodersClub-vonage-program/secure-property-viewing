@@ -25,6 +25,7 @@ Three constraints shaped the decision:
 | Routing | React Router | 8.x |
 | Icons | lucide-react | 1.x |
 | Video in the browser | Vonage Video Client SDK (`@vonage/client-sdk-video`) | 2.35.2, pinned exactly in `package.json` |
+| Map of the catalog | Leaflet (`leaflet`, BSD-2-Clause) with OpenStreetMap tiles, and `@types/leaflet` | 1.9.x. Never `react-leaflet`, whose license is not a standard open source one |
 | Frontend linter | oxlint | 1.x |
 | Frontend formatter | Prettier | 3.x |
 | Frontend runtime | Node.js | 22.22.2 or later |
@@ -69,6 +70,8 @@ How we keep every machine on the same versions:
   - oxlint has fewer plugins and fewer type-aware rules than ESLint
   - TypeScript 7 is recent, so some tools may not support it yet
   - Java 21 reaches the end of its support earlier than Java 25
+  - The catalog map loads its tiles from `tile.openstreetmap.org` in each visitor's browser, so the OpenStreetMap Foundation receives the visitor's IP address and the page she came from, under its own privacy policy. It is the reason `docs/design-system.md` gives for not using Google Fonts, accepted here because the map needs no API key and the tiles are free. The [tile usage policy](https://operations.osmfoundation.org/policies/tiles/) allows a small app with the attribution visible, but gives no guarantee of availability: a production version would use a tile provider with an agreement
+  - Leaflet 2.0 is in beta with API changes. `^1.9.4` stays on 1.x, so moving to 2.0 later is a migration
 - **Still open:**
   - The exact version of the Vonage SDK, fixed when it is first added
   - The macOS setup steps, not tested yet

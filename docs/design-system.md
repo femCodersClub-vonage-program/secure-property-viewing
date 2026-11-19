@@ -127,6 +127,15 @@ Every interactive element shows a focus ring using `outline-2 outline-offset-2`.
 | Danger button | `outline-error` | 6.31:1 on white — passes AA |
 | Elements on dark navigation (`bg-brand-dark`) | `outline-white` | 17.61:1 on `#23122B` — passes AA |
 
+## Map
+
+The catalog map (`PropertyMap` in the `property-browsing` feature) uses Leaflet with OpenStreetMap tiles.
+
+- **Pin:** a map pin of 28×36 px whose tip marks the place, filled with `--color-brand-primary`, with a `--color-surface-page` border and dot. The purple has about 6:1 on the light background of the tiles, above the 3:1 for interface components, and the white border keeps it visible on darker areas
+- **Focus:** pins and the map use the common `outline-brand-primary` focus ring
+- **Popup:** the title in `font-display text-lg` and `--color-brand-dark`, the price in `--color-brand-primary`, and a `Link` to the details, whose accessible name includes the title
+- **Leaflet's stylesheet** is imported in `src/index.css` inside `layer(components)`, so the design system's utilities win over Leaflet's own colors and sizes. Leaflet's controls (zoom buttons, the popup's close button and the attribution) keep its own look, which is not made of our tokens: it is the one exception to the design system, because restyling them would mean overriding a third-party stylesheet
+
 ## Agency dashboard
 
 The agency dashboard (screens D1 to D5 in [`user-journeys.md`](user-journeys.md)) uses the same tokens and components as the rest of Peephole. This section only adds what the dashboard needs on top of the common rules.
@@ -171,7 +180,7 @@ D2 and D5 are tables, and the next visits in D1 follow the same rules.
 
 #### Status badges
 
-A badge always shows the status as text, with a `lucide-react` icon when it carries meaning. It uses `text-xs`, `--radius-sm`, a 1px border and text in the same color, on a white background.
+A badge always shows the status as text, with a `lucide-react` icon when it carries meaning. It uses `text-xs`, `--radius-sm`, a 1px border and text in the same color, on a 10% tint of that color, which helps when scanning a table row quickly.
 
 | Status | Color | Icon |
 | :---- | :---- | :---- |
@@ -192,3 +201,13 @@ Every section that calls the API shows its own state, so one failing call does n
 - **Empty:** one short sentence in the place of the table or list, in `--color-text-muted`, such as "No pending requests". No illustrations
 - **Error:** the message in `--color-error` and a "Try again" button. A business error (a ProblemDetail returned by the server) shows its message.
 - **Unavailable actions:** in D3, when a request is not pending, the approve and reject buttons are disabled and a sentence next to them says why, such as "This request was already approved"
+- **Join visit:** in D1 and D4, only `CONFIRMED` visits get the "Join visit" link. Any other visit shows a disabled "Join visit" button at 40% opacity, like other unavailable buttons, with a sentence saying why, such as "This visit was canceled"
+
+### Tabs
+
+D2 filters its requests by status with tabs, and other screens can reuse them.
+
+- The tab list has a bottom border in `--color-border`
+- The selected tab has bold text in `--color-text-default` and a 4px `--color-brand-primary` bar under it. The other tabs use `--color-text-muted`, so the selection does not rely on color alone
+- Only the selected tab is in the Tab order. The left and right arrow keys move between tabs and wrap around, and Home and End go to the first and last tab
+- Focus uses the common focus ring

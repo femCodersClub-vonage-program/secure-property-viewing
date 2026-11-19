@@ -1,4 +1,5 @@
 export { default as PropertyCard } from './components/PropertyCard'
+export { default as PropertyMap } from './components/PropertyMap'
 export { default as VerificationBadge } from './components/VerificationBadge'
 export type {
   PropertySummary,
