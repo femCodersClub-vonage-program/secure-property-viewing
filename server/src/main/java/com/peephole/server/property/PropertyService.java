@@ -6,11 +6,12 @@ import com.peephole.server.property.dto.ImageResponse;
 import com.peephole.server.property.dto.PropertyDetailsResponse;
 import com.peephole.server.property.dto.PropertySummaryResponse;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-class PropertyService {
+public class PropertyService {
 
     private final PropertyRepository repository;
 
@@ -29,6 +30,22 @@ class PropertyService {
     PropertyDetailsResponse findById(long id) {
         Property property = repository.findActiveById(id).orElseThrow(PropertyNotFoundException::new);
         return toDetails(property);
+    }
+
+    /** For other features: the property with this id, active or not, or empty if it doesn't exist. */
+    @Transactional(readOnly = true)
+    public Optional<PropertyOverview> findOverview(long id) {
+        return repository.findById(id).map(PropertyService::toOverview);
+    }
+
+    private static PropertyOverview toOverview(Property property) {
+        return new PropertyOverview(
+                property.getId(),
+                property.getAgency().getId(),
+                property.getTitle(),
+                property.getArea(),
+                property.getAddress(),
+                property.getStatus() == PropertyStatus.ACTIVE);
     }
 
     private static PropertySummaryResponse toSummary(Property property) {

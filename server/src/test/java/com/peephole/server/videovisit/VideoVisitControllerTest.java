@@ -366,6 +366,15 @@ class VideoVisitControllerTest {
     }
 
     @Test
+    void entersEvenWhenThePropertyWasDeactivatedAfterBooking() throws Exception {
+        jdbcTemplate.update(
+                "UPDATE property SET status = 'INACTIVE' WHERE id = (SELECT property_id FROM visit WHERE id = ?)",
+                visitId);
+
+        videoTokenForAgency(signedInAgent(agencyId), visitId).andExpect(status().isOk());
+    }
+
+    @Test
     void refusesAUserOfAnotherAgency() throws Exception {
         MockHttpSession otherAgent = signedInAgent(fixtures.createAgency());
 
