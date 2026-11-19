@@ -71,6 +71,21 @@ describe('request', () => {
       message: SYSTEM_ERROR_MESSAGE,
     })
   })
+
+  it('keeps the whole ProblemDetail, for the extra fields some errors carry', async () => {
+    const body = {
+      title: 'Room not open',
+      status: 409,
+      detail: 'The room opens 10 minutes before the visit. Come back then.',
+      code: 'VIDEO_VISIT_NOT_OPEN',
+      opensAt: '2026-11-23T10:50:00+01:00',
+    }
+    fetchMock.mockResolvedValue(jsonResponse(body, 409, 'application/problem+json'))
+
+    await expect(request('/api/room-links/video-token', parseStatus)).rejects.toMatchObject({
+      problem: body,
+    })
+  })
 })
 
 describe('request on a write', () => {

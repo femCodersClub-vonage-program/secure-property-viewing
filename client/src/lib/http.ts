@@ -22,6 +22,7 @@ type ApiErrorOptions = {
   code?: string
   fieldErrors?: Record<string, string>
   cause?: unknown
+  problem?: unknown
 }
 
 /**
@@ -35,14 +36,17 @@ export class ApiError extends Error {
   readonly code: string | undefined
   /** For VALIDATION_FAILED: the message of each invalid field, keyed by its name. */
   readonly fieldErrors: Record<string, string>
+  /** The whole ProblemDetail, for the extra fields some errors carry, such as opensAt. Validate before use. */
+  readonly problem: unknown
 
-  constructor({ kind, message, status, code, fieldErrors, cause }: ApiErrorOptions) {
+  constructor({ kind, message, status, code, fieldErrors, cause, problem }: ApiErrorOptions) {
     super(message, { cause })
     this.name = 'ApiError'
     this.kind = kind
     this.status = status
     this.code = code
     this.fieldErrors = fieldErrors ?? {}
+    this.problem = problem
   }
 }
 
@@ -161,6 +165,7 @@ export async function request<T>(
       status: response.status,
       code: body.code,
       fieldErrors: readFieldErrors(body),
+      problem: body,
     })
   }
 

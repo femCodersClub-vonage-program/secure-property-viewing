@@ -26,6 +26,13 @@ Every video visit uses one routed session, because the visitor can share a link 
 - Locally, everyone uses Viviana's application, unlike Verify
 - The server reaches Video only through the `VideoProvider` interface in `vonage/`, and the tests use a test double
 
+In `client/`:
+
+- Only `features/video-visit/videoClient.ts` imports `@vonage/client-sdk-video`, and the tests mock that file. It joins with `initSession`, `connect` and the token, then publishes with `initPublisher`
+- The SDK is about 3 MB, so it is loaded with a dynamic `import()` when someone enters the room, not with the rest of the app
+- Each video is labeled from the role in its `stream.connection.data`, and `showControls: false` hides Vonage's own buttons and names, so the room uses its own accessible ones
+- The status line follows `accessDenied` on the publisher and the session's `sessionReconnecting`, `sessionReconnected` and `sessionDisconnected` events
+
 Planned for later: the video call between the owner and the agency (journey B), and signing or ratification with the property manager and all parties.
 
 #### A working reference: OffLoad
