@@ -143,16 +143,22 @@ public class VisitService {
         });
     }
 
-    /** How many confirmed visits of the agency start from {@code from}, included, to {@code to}, excluded. */
+    /**
+     * How many confirmed visits of the agency have not ended at {@code from} and start before {@code to}, so a visit
+     * in progress still counts.
+     */
     @Transactional(readOnly = true)
     public long countConfirmedVisits(long agencyId, OffsetDateTime from, OffsetDateTime to) {
-        return queries.countWithStatus(agencyId, VisitStatus.CONFIRMED, from, to);
+        return queries.countNotEndedWithStatus(agencyId, VisitStatus.CONFIRMED, from, to);
     }
 
-    /** The first {@code limit} confirmed visits of the agency that start from {@code from}, by start time. */
+    /**
+     * The first {@code limit} confirmed visits of the agency that have not ended at {@code from}, by start time, so
+     * a visit in progress stays until it ends.
+     */
     @Transactional(readOnly = true)
     public List<AgencyVisit> nextConfirmedVisits(long agencyId, OffsetDateTime from, int limit) {
-        return queries.findWithStatusFrom(agencyId, VisitStatus.CONFIRMED, from, limit);
+        return queries.findNotEndedWithStatus(agencyId, VisitStatus.CONFIRMED, from, limit);
     }
 
     /** Every visit of the agency, in any status, that starts from {@code from}, included, to {@code to}, excluded. */

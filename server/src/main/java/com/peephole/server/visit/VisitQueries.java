@@ -7,9 +7,9 @@ import java.util.List;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Component;
 
-// Read-only queries for the agency dashboard. They join property for its agency and its title, as VisitRepository
-// does for the agency of a property, until the catalog (#52) exposes them in its service. They use JdbcClient
-// instead of VisitRepository because they return rows from three tables, not Visit entities
+// Read-only queries for the agency dashboard. They join property for its agency and its title in the same query,
+// instead of asking PropertyService for each visit, so a list of visits is one query. They use JdbcClient instead
+// of VisitRepository because they return rows from three tables, not Visit entities
 @Component
 class VisitQueries {
 
@@ -29,10 +29,11 @@ class VisitQueries {
         this.jdbcClient = jdbcClient;
     }
 
-    long countWithStatus(long agencyId, VisitStatus status, OffsetDateTime from, OffsetDateTime to) {
+    // A visit in progress counts until it ends, so the agent can still join it
+    long countNotEndedWithStatus(long agencyId, VisitStatus status, OffsetDateTime from, OffsetDateTime to) {
         return jdbcClient
                 .sql("SELECT count(*) " + VISITS_OF_AGENCY
-                        + " AND v.status = :status AND s.starts_at >= :from AND s.starts_at < :to")
+                        + " AND v.status = :status AND s.ends_at > :from AND s.starts_at < :to")
                 .param("agencyId", agencyId)
                 .param("status", status.name())
                 .param("from", from)
@@ -41,10 +42,11 @@ class VisitQueries {
                 .single();
     }
 
-    List<AgencyVisit> findWithStatusFrom(long agencyId, VisitStatus status, OffsetDateTime from, int limit) {
+    // A visit in progress stays in the list until it ends, so the agent can still join it
+    List<AgencyVisit> findNotEndedWithStatus(long agencyId, VisitStatus status, OffsetDateTime from, int limit) {
         return jdbcClient
                 .sql(VISIT_COLUMNS + VISITS_OF_AGENCY
-                        + " AND v.status = :status AND s.starts_at >= :from ORDER BY s.starts_at, v.id LIMIT :limit")
+                        + " AND v.status = :status AND s.ends_at > :from ORDER BY s.starts_at, v.id LIMIT :limit")
                 .param("agencyId", agencyId)
                 .param("status", status.name())
                 .param("from", from)

@@ -151,6 +151,25 @@ class AgencyDashboardControllerTest {
     }
 
     @Test
+    void keepsAVisitInProgressUntilItEnds() throws Exception {
+        // Each visit lasts 30 minutes, so the one that started 10 minutes ago is in progress and the one that
+        // started 30 minutes ago ends right now
+        long property = insertProperty(agencyId, "Apartment in Gràcia", "ACTIVE");
+        long inProgress = insertVisit(property, NOW.minusMinutes(10), "CONFIRMED", "In progress");
+        insertVisit(property, NOW.plusHours(1), "CONFIRMED", "Next");
+        long otherProperty = insertProperty(agencyId, "Flat in Sants", "ACTIVE");
+        insertVisit(otherProperty, NOW.minusMinutes(30), "CONFIRMED", "Just ended");
+
+        mockMvc.perform(get("/api/agency/summary").session(signIn()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.upcomingVisits").value(2))
+                .andExpect(jsonPath("$.nextVisits.length()").value(2))
+                .andExpect(jsonPath("$.nextVisits[0].visitId").value(inProgress))
+                .andExpect(jsonPath("$.nextVisits[0].visitorName").value("In progress"))
+                .andExpect(jsonPath("$.nextVisits[1].visitorName").value("Next"));
+    }
+
+    @Test
     void requiresASignedInUserForTheSummary() throws Exception {
         mockMvc.perform(get("/api/agency/summary"))
                 .andExpect(status().isUnauthorized())
