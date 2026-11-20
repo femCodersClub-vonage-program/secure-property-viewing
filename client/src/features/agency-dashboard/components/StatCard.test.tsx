@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import { ClipboardList } from 'lucide-react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import StatCard from './StatCard'
@@ -7,7 +8,13 @@ describe('StatCard', () => {
   it('shows the label, the value and a link to its screen', () => {
     render(
       <MemoryRouter>
-        <StatCard label="New requests" value={12} linkLabel="View requests" to="/agency/requests" />
+        <StatCard
+          icon={ClipboardList}
+          label="New requests"
+          value={12}
+          linkLabel="View requests"
+          to="/agency/requests"
+        />
       </MemoryRouter>,
     )
 
