@@ -32,10 +32,14 @@ function VideoRoom({ loadAccess }: Props) {
 
   return (
     <section className="flex flex-col gap-6">
-      <h1 className="font-display text-3xl font-bold text-balance text-brand-dark">Video visit</h1>
+      <h1 className="flex items-center gap-3 font-display text-3xl font-bold text-balance text-brand-dark">
+        <span aria-hidden="true" className="size-3 shrink-0 rounded-pill bg-brand-accent" />
+        Video visit
+      </h1>
       <CallStatusLine status={call.status} ref={statusRef} />
-      {/* Hidden, never removed: Vonage needs the element for our own camera from the start */}
-      <div hidden={!inCall}>
+      {/* The stage, dark as in screen 7 of the screen map. Hidden, never removed:
+          Vonage needs the element for our own camera from the start */}
+      <div hidden={!inCall} className="rounded-lg bg-brand-dark p-4">
         <VideoGrid
           ownRole={call.ownRole}
           ownVideoRef={call.ownVideoRef}
@@ -43,6 +47,7 @@ function VideoRoom({ loadAccess }: Props) {
           showRemote={call.showRemote}
         />
       </div>
+      {/* The controls live inside the stage, right under the videos */}
       {inCall && (
         <CallControls
           microphoneOn={call.microphoneOn}
