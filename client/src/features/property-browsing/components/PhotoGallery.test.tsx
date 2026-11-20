@@ -43,7 +43,9 @@ describe('PhotoGallery', () => {
   })
 
   it('shows no controls for a single image', () => {
-    render(<PhotoGallery images={[images[0]!]} />)
+    const firstImage = images[0]
+    expect(firstImage).toBeDefined()
+    render(<PhotoGallery images={firstImage ? [firstImage] : []} />)
     expect(screen.queryByRole('button', { name: 'Next photo' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Previous photo' })).not.toBeInTheDocument()
   })
