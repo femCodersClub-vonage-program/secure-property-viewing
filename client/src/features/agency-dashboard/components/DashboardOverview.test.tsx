@@ -52,25 +52,25 @@ describe('DashboardOverview', () => {
     expect(screen.getByText('No upcoming visits')).toBeInTheDocument()
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
-})
 
-it('renders the summary example from the spec', () => {
-  renderOverview({
-    agentName: 'Marta',
-    newRequests: 12,
-    upcomingVisits: 8,
-    activeProperties: 5,
-    nextVisits: [
-      {
-        visitId: 31,
-        startsAt: '2026-11-10T11:00:00+01:00',
-        visitorName: '...',
-        propertyTitle: 'Apartment in Gràcia',
-      },
-    ],
+  it('renders the summary example from the spec', () => {
+    renderOverview({
+      agentName: 'Marta',
+      newRequests: 12,
+      upcomingVisits: 8,
+      activeProperties: 5,
+      nextVisits: [
+        {
+          visitId: 31,
+          startsAt: '2026-11-10T11:00:00+01:00',
+          visitorName: '...',
+          propertyTitle: 'Apartment in Gràcia',
+        },
+      ],
+    })
+
+    expect(
+      screen.getByRole('link', { name: 'Join visit with ... on Tuesday 10 November, 11:00' }),
+    ).toHaveAttribute('href', '/agency/visits/31/room')
   })
-
-  expect(
-    screen.getByRole('link', { name: 'Join visit with ... on Tuesday 10 November, 11:00' }),
-  ).toHaveAttribute('href', '/agency/visits/31/room')
 })
