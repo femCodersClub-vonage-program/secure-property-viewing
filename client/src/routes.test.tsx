@@ -105,6 +105,31 @@ describe('routes', () => {
     expect(screen.getByRole('link', { name: 'Go to the home page' })).toHaveAttribute('href', '/')
   })
 
+  it.each([
+    ['/agency', 'Hello, Marta'],
+    ['/agency/properties', 'Properties'],
+    ['/agency/listing-requests', 'Listing requests'],
+    ['/agency/listing-requests/18', 'Request details'],
+    ['/agency/calendar', 'Calendar'],
+    ['/agency/messages', 'Messages'],
+    ['/agency/profile', 'Profile'],
+  ])('shows %s inside the agency layout', (path, heading) => {
+    renderAt(path)
+
+    expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Agency' })).toBeInTheDocument()
+  })
+
+  it('shows the agency room outside the agency layout, so the call has the whole screen', () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(() => new Promise(() => {})),
+    )
+    renderAt('/agency/visits/5/room')
+
+    expect(screen.queryByRole('navigation', { name: 'Agency' })).not.toBeInTheDocument()
+  })
+
   it('reads the room token from the link and removes it from the address', async () => {
     const fetchMock = vi.fn<typeof fetch>(() => new Promise(() => {}))
     vi.stubGlobal('fetch', fetchMock)

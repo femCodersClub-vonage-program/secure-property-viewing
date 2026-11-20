@@ -1,4 +1,4 @@
-import type { AgencyVisit, ListingRequestSummary } from './types'
+import type { AgencySummary, AgencyVisit, ListingRequestSummary } from './types'
 
 // Shaped like the examples in specs/agency-dashboard.md, until the agency endpoints are in dev
 export const SAMPLE_VISITS: AgencyVisit[] = [
@@ -57,3 +57,42 @@ export const SAMPLE_LISTING_REQUESTS: ListingRequestSummary[] = [
     status: 'REJECTED',
   },
 ]
+
+export const SAMPLE_SUMMARY: AgencySummary = {
+  agentName: 'Marta',
+  newRequests: 12,
+  upcomingVisits: 8,
+  activeProperties: 5,
+  nextVisits: [
+    {
+      visitId: 31,
+      startsAt: '2027-01-12T11:00:00+01:00',
+      visitorName: 'Laura Gómez',
+      propertyTitle: 'Apartment in Gràcia',
+    },
+    {
+      visitId: 32,
+      startsAt: '2027-01-12T17:30:00+01:00',
+      visitorName: 'Joan Puig',
+      propertyTitle: 'Studio in Poblenou',
+    },
+    {
+      visitId: 34,
+      startsAt: '2027-01-13T09:30:00+01:00',
+      visitorName: 'Pau Serra',
+      propertyTitle: 'House in Sarrià',
+    },
+    {
+      visitId: 35,
+      startsAt: '2027-01-14T16:00:00+01:00',
+      visitorName: 'Clara Martí',
+      propertyTitle: 'Apartment in Gràcia',
+    },
+    {
+      visitId: 36,
+      startsAt: '2027-01-15T12:00:00+01:00',
+      visitorName: 'Nil Ferrer',
+      propertyTitle: 'Studio in Poblenou',
+    },
+  ],
+}

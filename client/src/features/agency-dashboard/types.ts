@@ -24,3 +24,20 @@ export type ListingRequestSummary = {
   createdAt: string
   status: ListingRequestStatus
 }
+
+/** One item of nextVisits in GET /api/agency/summary */
+export type UpcomingVisit = {
+  visitId: number
+  startsAt: string
+  visitorName: string
+  propertyTitle: string
+}
+
+/** GET /api/agency/summary */
+export type AgencySummary = {
+  agentName: string
+  newRequests: number
+  upcomingVisits: number
+  activeProperties: number
+  nextVisits: UpcomingVisit[]
+}
