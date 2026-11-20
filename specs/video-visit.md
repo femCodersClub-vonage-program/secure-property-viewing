@@ -151,7 +151,7 @@ In code, the feature lives in a `videovisit/` package. It talks to Vonage throug
 
 ### Client
 
-- A7 as a page in `src/pages/`, with a `video-visit` feature that holds its `api.ts`, types and components, following `client/AGENTS.md`. Two routes in `routes.tsx`: `/visits/room` for the visitor and guests, which reads the token from the part of the URL after `#` and then removes it with `history.replaceState`, and `/agency/visits/:id/room` for agents
+- A7 as a page in `src/pages/`, with a `video-visit` feature that holds its `api.ts`, types and components, following `client/AGENTS.md`. Two routes in `routes.tsx`: `/visits/room` for the visitor and guests, which reads the token from the part of the URL after `#` and then removes it by replacing the history entry through React Router (`navigate` with `replace`), so the router's own copy of the URL loses it too, and `/agency/visits/:id/room` for agents
 - The page asks for its video token, then joins the session with `@vonage/client-sdk-video`: `OT.initSession(applicationId, sessionId)`, connects with the token and publishes the camera and microphone
 - A grid of videos, each labeled from the role in its `stream.connection.data`, and a control bar with mute, camera and hang up as `<button>`s with accessible names. The state of each control is announced with `aria-pressed`
 - A status line for waiting, permissions denied, reconnecting, hung up and time over, in a live region so the change is announced

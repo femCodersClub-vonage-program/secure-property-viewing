@@ -106,7 +106,7 @@ Las pull requests de la propia tech lead pueden integrarse sin la aprobación de
 
 ## Antes de abrir una pull request
 
-1. Actualiza tu rama con los últimos cambios de `dev`  
+1. Actualiza tu rama con los últimos cambios de `dev`, como explica paso a paso la skill [`sync-branch-with-dev`](.claude/skills/sync-branch-with-dev/SKILL.md)  
 2. Pasa los tests en local  
 3. Pasa los **agentes de revisión** sobre tus cambios y resuelve lo que señalen: `docs-reviewer` siempre, `test-reviewer` cuando el cambio toca `client/` o `server/`, `ui-reviewer` cuando toca `client/`, y `server-reviewer` cuando toca `server/`. Funcionan con Claude Code y con GitHub Copilot, como se explica en [Cómo pasar los agentes de revisión](#cómo-pasar-los-agentes-de-revisión). En la pull request, la sección *Review agents* resume qué encontró cada uno y qué hiciste con ello: si lo arreglaste o si lo dejaste como estaba y por qué  
 4. Revisa que entiendes y puedes explicar cada línea, también la que haya generado la IA
