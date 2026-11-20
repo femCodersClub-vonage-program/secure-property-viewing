@@ -93,6 +93,8 @@ No new tables: `listing_request`, `property`, `visit` and `message` from the [da
 }
 ```
 
+`upcomingVisits` counts the confirmed visits that have not ended yet and start in the next 7 days, and `nextVisits` lists the first five confirmed visits that have not ended yet, by start time. A visit in progress stays until it ends, so an agent who signs in late can still join it.
+
 `GET /api/agency/listing-requests?status=PENDING`, with an optional status of `PENDING`, `APPROVED` or `REJECTED`:
 
 ```json
@@ -135,7 +137,7 @@ No new tables: `listing_request`, `property`, `visit` and `message` from the [da
 
 `POST /api/agency/listing-requests/{id}/approve` returns `200` with `{ "propertyId": 13 }`. `POST /api/agency/listing-requests/{id}/reject` receives `{ "reason": "..." }` and returns `200` with `{ "id": 18, "status": "REJECTED" }`. Both return `409 LISTING_REQUEST_ALREADY_REVIEWED` if the request was already approved or rejected.
 
-`GET /api/agency/visits?from=&to=`:
+`GET /api/agency/visits?from=2026-11-23&to=2026-11-29`, ordered by start time:
 
 ```json
 [
@@ -149,6 +151,8 @@ No new tables: `listing_request`, `property`, `visit` and `message` from the [da
   }
 ]
 ```
+
+`from` and `to` are required dates in `YYYY-MM-DD` format, the same format as `GET /api/properties/{id}/slots`, in `Europe/Madrid`, and both days are included. They are required because the calendar always asks for a week, and the range is at most 31 days. A missing date, a date in another format, a `to` before `from` or a longer range returns `400 VALIDATION_FAILED`.
 
 `GET /api/agency/messages`, newest first, with the status stored by the messages feature. Each message has either `visitId` or `listingRequestId`, and the other one is `null`:
 
@@ -185,6 +189,6 @@ None directly. The dashboard shows what Messages and Video produce: message stat
 
 ### Client
 
-- Pages under `/agency` in `routes.tsx`, composed from an `agency-dashboard` feature with its `api.ts`, types and components, following the folder rules in `client/AGENTS.md`
+- Pages under `/agency` in `routes.tsx`, composed of an `agency-dashboard` feature with its `api.ts`, types and components, following the folder rules in `client/AGENTS.md`
 - The dashboard components are built in issue #27. The layout and D1 are built first, in issue #16, and D2 to D5 follow in the next weeks
 - The shared API client uses relative `/api` paths in every environment and sends the `X-XSRF-TOKEN` header with every `POST`, `PUT`, `PATCH` and `DELETE`, as decided in [ADR 0004](../docs/adr/0004-agency-sign-in.md). On the first load and after signing in or out, it makes a `GET` before the next of those requests, because the server clears the `XSRF-TOKEN` cookie on sign-in and sign-out and issues a new one with the next response
