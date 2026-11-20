@@ -59,7 +59,7 @@ Messages and notifications (D5):
 All screens:
 
 - [ ] Loading, empty and error states, using the API client
-- [ ] Design system components and tokens only, and the accessibility rules in the root `AGENTS.md`
+- [ ] Design system components and tokens only, including the dashboard's own tokens and fonts in [`docs/design-system.md`](../docs/design-system.md#agency-dashboard), and the accessibility rules in the root `AGENTS.md`
 - [ ] Sample data in one file per screen while its endpoint is not in `dev`
 
 ## Out of scope
@@ -185,6 +185,7 @@ None directly. The dashboard shows what Messages and Video produce: message stat
 
 ### Client
 
-- Pages under `/agency` in `routes.tsx`, composed from an `agency-dashboard` feature with its `api.ts`, types and components, following the folder rules in `client/AGENTS.md`
+- Pages under `/agency` in `routes.tsx`, composed from an `agency-dashboard` feature with its `api.ts`, types and components, following the folder rules in `client/AGENTS.md
+- D1 opens with the next visit, the earliest in `nextVisits` after sorting it on the client, in its own card with a "Join visit" link, and marks that visit in the table with a "Next" label. Its look, tokens and self-hosted fonts are in the agency dashboard section of [`docs/design-system.md`](../docs/design-system.md#agency-dashboard)
 - The dashboard components are built in issue #27. The layout and D1 are built first, in issue #16, and D2 to D5 follow in the next weeks
 - The shared API client uses relative `/api` paths in every environment and sends the `X-XSRF-TOKEN` header with every `POST`, `PUT`, `PATCH` and `DELETE`, as decided in [ADR 0004](../docs/adr/0004-agency-sign-in.md). On the first load and after signing in or out, it makes a `GET` before the next of those requests, because the server clears the `XSRF-TOKEN` cookie on sign-in and sign-out and issues a new one with the next response
