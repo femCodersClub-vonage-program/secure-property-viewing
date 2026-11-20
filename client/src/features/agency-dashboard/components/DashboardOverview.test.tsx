@@ -33,6 +33,29 @@ describe('DashboardOverview', () => {
     }
   })
 
+  it('features the next visit with its own Join visit link', () => {
+    renderOverview()
+
+    const card = screen.getByRole('region', { name: 'Next video visit' })
+    expect(card).toHaveTextContent('Laura Gómez')
+    expect(
+      within(card).getByRole('link', {
+        name: 'Join visit with Laura Gómez on Tuesday 12 January, 11:00',
+      }),
+    ).toHaveAttribute('href', '/agency/visits/31/room')
+  })
+
+  it('features the earliest visit even when the list comes unordered', () => {
+    renderOverview({ ...SAMPLE_SUMMARY, nextVisits: [...SAMPLE_SUMMARY.nextVisits].reverse() })
+
+    expect(screen.getByRole('region', { name: 'Next video visit' })).toHaveTextContent(
+      'Laura Gómez',
+    )
+    // Row 0 is the header row, so the table and the card agree on which visit is next
+    const rows = within(screen.getByRole('table', { name: 'Next visits' })).getAllByRole('row')
+    expect(rows[1]).toHaveTextContent('Laura Gómez')
+  })
+
   it('lists the next visits, each with a Join visit link to its room', () => {
     renderOverview()
 
@@ -40,17 +63,26 @@ describe('DashboardOverview', () => {
     // The header row plus one row per visit
     expect(within(table).getAllByRole('row')).toHaveLength(6)
     expect(
-      screen.getByRole('link', {
+      within(table).getByRole('link', {
         name: 'Join visit with Laura Gómez on Tuesday 12 January, 11:00',
       }),
     ).toHaveAttribute('href', '/agency/visits/31/room')
   })
 
-  it('says there are no upcoming visits instead of an empty table', () => {
+  it('labels the next visit in the table, so the highlight does not rely on color', () => {
+    renderOverview()
+
+    const table = screen.getByRole('table', { name: 'Next visits' })
+    expect(within(table).getAllByText('Next')).toHaveLength(1)
+    expect(within(table).getByText('Next').closest('tr')).toHaveTextContent('Laura Gómez')
+  })
+
+  it('says there are no upcoming visits instead of an empty table or a featured card', () => {
     renderOverview({ ...SAMPLE_SUMMARY, nextVisits: [] })
 
     expect(screen.getByText('No upcoming visits')).toBeInTheDocument()
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Next video visit' })).not.toBeInTheDocument()
   })
 
   it('renders the summary example from the spec', () => {
@@ -69,8 +101,11 @@ describe('DashboardOverview', () => {
       ],
     })
 
+    const table = screen.getByRole('table', { name: 'Next visits' })
     expect(
-      screen.getByRole('link', { name: 'Join visit with ... on Tuesday 10 November, 11:00' }),
+      within(table).getByRole('link', {
+        name: 'Join visit with ... on Tuesday 10 November, 11:00',
+      }),
     ).toHaveAttribute('href', '/agency/visits/31/room')
   })
 })
