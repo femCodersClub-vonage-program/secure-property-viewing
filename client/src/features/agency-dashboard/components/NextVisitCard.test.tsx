@@ -26,6 +26,10 @@ describe('NextVisitCard', () => {
 
     expect(card).toHaveTextContent('Laura Gómez')
     expect(card).toHaveTextContent('Apartment in Gràcia · Tuesday 12 January, 11:00')
+    expect(within(card).getByText('Tuesday 12 January, 11:00')).toHaveAttribute(
+      'datetime',
+      '2027-01-12T11:00:00+01:00',
+    )
   })
 
   it('links to the visit room with a name that says which visit', () => {

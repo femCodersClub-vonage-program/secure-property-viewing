@@ -51,6 +51,9 @@ describe('DashboardOverview', () => {
     expect(screen.getByRole('region', { name: 'Next video visit' })).toHaveTextContent(
       'Laura Gómez',
     )
+    // Row 0 is the header row, so the table and the card agree on which visit is next
+    const rows = within(screen.getByRole('table', { name: 'Next visits' })).getAllByRole('row')
+    expect(rows[1]).toHaveTextContent('Laura Gómez')
   })
 
   it('lists the next visits, each with a Join visit link to its room', () => {
