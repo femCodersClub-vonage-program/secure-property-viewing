@@ -138,24 +138,46 @@ The catalog map (`PropertyMap` in the `property-browsing` feature) uses Leaflet 
 
 ## Agency dashboard
 
-The agency dashboard (screens D1 to D5 in [`user-journeys.md`](user-journeys.md)) uses the same tokens and components as the rest of Peephole. This section only adds what the dashboard needs on top of the common rules.
+The agency dashboard (screens D1 to D5 in [`user-journeys.md`](user-journeys.md)) uses the same components as the rest of Peephole. On top of the common tokens it has its own colors, fonts and shadow, listed below and used only in `features/agency-dashboard`. This section only adds what the dashboard needs on top of the common rules.
 
 ### Direction
 
 We chose **Option A: Premium SaaS**. Most of the dashboard is reading and comparing rows: listing requests (D2), visits (D4) and messages (D5) are lists with a status, and D1 has only three indicators and the next five visits. Premium SaaS is built around clear hierarchy and well-resolved tables, so an agent finds what needs attention at a glance. Bento works best with many indicators and charts, which the dashboard does not have, and its grid of cards of different sizes makes the reading order harder to follow on mobile and with the keyboard.
 
+On top of Premium SaaS, the dashboard uses the **Mango on purple** look: a dark purple side navigation with a gradient, a mango (`#FFC93C`) highlight for the current page and the next visit, indicator cards with a gradient icon and a large number, and Space Grotesk and Inter type. The shared components in `src/components/ui/` keep their own look, so links and buttons inside the dashboard still use `--font-body`.
+
+### Tokens
+
+These tokens are in the `@theme` block of `src/index.css`, after the common ones, and are used only in `features/agency-dashboard`.
+
+| Token | Value | Role |
+| :---- | :---- | :---- |
+| `--color-dashboard-highlight` | `#FFC93C` | Mango: current page in the navigation, the next visit's "Join visit" link and "Next" label, the agent's name in the greeting and a 15% tint on the next visit's row. Only as a background under `--color-brand-dark` text, or as text on dark purple |
+| `--color-dashboard-page` | `#FBF8FC` | Page background behind the dashboard's cards |
+| `--color-dashboard-nav-end` | `#3B1743` | End of the navigation gradient, from `--color-brand-dark` |
+| `--color-dashboard-featured-mid` | `#5A1764` | Middle stop of the next visit card gradient, from `--color-brand-dark` to `--color-brand-primary` |
+| `--font-dashboard-display` | `'Space Grotesk', system-ui, sans-serif` | Page heading, section headings, the next visit's name and the indicator numbers |
+| `--font-dashboard-body` | `'Inter', system-ui, sans-serif` | All other dashboard text |
+| `--shadow-dashboard-highlight` | `0 8px 24px rgba(255, 201, 60, 0.35)` | The mango "Join visit" link |
+
+Gradients have no token of their own: they combine these colors with Tailwind's `bg-linear-*` utilities, such as `bg-linear-to-b from-brand-dark to-dashboard-nav-end`.
+
+### Fonts
+
+Inter and Space Grotesk are variable fonts, self-hosted as `.woff2` files in `src/assets/fonts/` and declared with `@font-face` in `src/index.css` with `font-display: swap`. Both are under the SIL Open Font License 1.1, whose text is kept next to each font (`OFL-Inter.txt` and `OFL-SpaceGrotesk.txt`). No Google Fonts.
+
 ### Layout
 
 - Side navigation on the left and the page content on the right, with the page heading (`h1`) at the top of the content
-- Content sections, such as the indicators and the next visits in D1, are cards that follow the common card rules
+- Content sections, such as the indicators and the next visits in D1, are cards that follow the common card rules. The next visit card is the one exception, described in [Next visit card](#next-visit-card)
 - On mobile the side navigation collapses into a menu button in a top bar, and the content takes the full width
 
 ### Navigation
 
-- The side navigation uses `--color-brand-dark` as its background, like the public navbar
+- The side navigation has a vertical gradient from `--color-brand-dark` to `--color-dashboard-nav-end`. On desktop it starts with the name Peephole in `--font-dashboard-display` next to a decorative `--color-brand-accent` dot; on mobile the name is in the top bar
 - Each item has a `lucide-react` icon and a text label, never an icon on its own. Items: Dashboard, Properties, Listing requests, Calendar, Messages and Profile, with Sign out at the bottom, separated by a divider
-- Item text is white (`#FFFFFF` on `#23122B`, 17.61:1, already in the contrast table)
-- The active page has `aria-current="page"`, bold text and a 4px white bar on its left edge, so it does not rely on color alone
+- The active page has `aria-current="page"`, a `--color-dashboard-highlight` background and bold `--color-brand-dark` text (11.46:1), so it does not rely on color alone. The other items get a 10% white background on hover
+- Item text is white (`#FFFFFF` on `#23122B`, 17.61:1, and on `#3B1743`, 15.11:1)
 - `--color-brand-primary` is not used on the dark navigation: it has 2.39:1 on `--color-brand-dark`, below 3:1
 - Focus inside the navigation uses a white outline, with the same width and offset as the common focus ring, because the common `outline-brand-primary` would not be visible on the dark background
 - The mobile menu button has an accessible name and `aria-expanded`
@@ -163,7 +185,7 @@ We chose **Option A: Premium SaaS**. Most of the dashboard is reading and compar
 ### Indicators
 
 - D1 shows its three indicators (new requests, upcoming visits and active properties) in a row of three cards on desktop, stacked on mobile
-- Each card has a label in `text-sm` and `--color-text-muted`, the number in `text-3xl`, bold, in `--color-text-default`, and a link to the related screen, such as "View requests" to D2
+- Each card is a default `Card` with, in order: a decorative 44px icon (the same `lucide-react` icon as its navigation item, white on a `--color-brand-primary` to `--color-brand-accent` gradient, hidden from assistive technology), the label in `text-sm`, semibold, in `--color-text-muted`, the number in `text-5xl`, bold, in `--font-dashboard-display` and `--color-brand-dark`, and a link to the related screen, such as "View requests" to D2
 - No trend percentages and no charts: the API does not return that data
 - Numbers use `tabular-nums`, so they line up
 
@@ -177,6 +199,7 @@ D2 and D5 are tables, and the next visits in D1 follow the same rules.
 - The row links to its details through a real link on its main text, such as the property title in D2, not by making the whole row clickable
 - In D2 the status filters (pending, approved, rejected) use the design system tabs
 - On mobile each row becomes a stacked item with its label and value, instead of a table with horizontal scroll
+- In D1 the next visit's row has a 15% `--color-dashboard-highlight` tint and a "Next" label (`NextLabel`, bold `--color-brand-dark` text on mango) next to its time, so it does not rely on color alone. Other tables have no tinted rows
 
 #### Status badges
 
@@ -192,6 +215,37 @@ A badge always shows the status as text, with a `lucide-react` icon when it carr
 | Message `FAILED` | `--color-error` | Alert |
 
 A rejected request is a decision, not an error, so it is neutral. A failed message is the only status that uses `--color-error`, so it stands out in D5, and its row also shows the text "Failed".
+
+### Next visit card
+
+D1 shows the next visit, the earliest in `nextVisits`, in its own card (`NextVisitCard`) above the indicators. It is not shown when there are no upcoming visits.
+
+- A `section` named by its heading "Next video visit", with `--radius-lg` and a diagonal gradient from `--color-brand-dark` through `--color-dashboard-featured-mid` to `--color-brand-primary`, and white text
+- The heading in `text-sm`, bold and uppercase in `--color-dashboard-highlight`, the visitor's name in `text-3xl` and `--font-dashboard-display`, and the property and time in white at 85%
+- A decorative `--color-brand-accent` glow in one corner. Text never goes on top of it
+- "Join visit" is a `HighlightLink`: a pill with a `--color-dashboard-highlight` background, bold `--color-brand-dark` text and a white focus outline. It is only for the dashboard's dark surfaces, because mango on white has 1.54:1 and a white outline would not show. Its accessible name says which visit, like the links in the table
+
+### Dashboard contrast
+
+Pairs used only in the dashboard, checked against WCAG 2.1 AA:
+
+| Text color | Background | Ratio | Use |
+| :---- | :---- | :---- | :---- |
+| `#23122B` | `#FFC93C` | 11.46:1 | Active navigation item, "Join visit" link, "Next" label |
+| `#FFC93C` | `#23122B` | 11.46:1 | Next visit heading, darkest part of the card |
+| `#FFC93C` | `#92189E` | 4.80:1 | Next visit heading, lightest part of the card. Passes AA for all text |
+| `#FFFFFF` | `#3B1743` | 15.11:1 | Navigation text at the end of the gradient |
+| `#FFFFFF` | `#5A1764` | 12.06:1 | Next visit card text |
+| `#0F0F0F` | `#FFF7E2` | 17.94:1 | Text on the tinted next visit row |
+| `#666666` | `#FFF7E2` | 5.37:1 | Mobile labels on the tinted row |
+| `#666666` | `#FBF8FC` | 5.45:1 | Muted text on the dashboard page background |
+
+Pairs that must never be used:
+
+| Pair | Ratio | Why it fails |
+| :---- | :---- | :---- |
+| `#FFC93C` text on `#FFFFFF` | 1.54:1 | Far below 3:1. Mango is never text on white |
+| `#FFFFFF` text on `#FF0090` | 3.71:1 | Below 4.5:1. The pink glow is decorative only |
 
 ### States
 
