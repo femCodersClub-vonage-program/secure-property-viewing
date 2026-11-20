@@ -128,6 +128,21 @@ describe('VideoRoom', () => {
     expect(screen.getByRole('status')).toHaveFocus()
   })
 
+  it('shows what comes after the call only once the visitor hangs up', async () => {
+    // A plain paragraph is enough: the room only decides when to show it, not what it is
+    render(
+      <VideoRoom loadAccess={() => Promise.resolve(access)} afterCall={<p>After the call</p>} />,
+    )
+    await joined()
+
+    // Still in the call: nothing yet
+    expect(screen.queryByText('After the call')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hang up' }))
+
+    expect(screen.getByText('After the call')).toBeInTheDocument()
+  })
+
   it('explains how to allow the camera and microphone when they are denied', async () => {
     renderRoom()
     await joined()

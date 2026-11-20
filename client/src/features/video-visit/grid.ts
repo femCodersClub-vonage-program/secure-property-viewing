@@ -5,7 +5,7 @@
 export function gridClasses(peopleCount: number): string {
   // Alone: one large video, centered
   if (peopleCount <= 1) {
-    return 'mx-auto w-full max-w-4xl grid-cols-1'
+    return 'grid-cols-1'
   }
   // Two people: stacked on a phone, side by side from a tablet up
   if (peopleCount === 2) {

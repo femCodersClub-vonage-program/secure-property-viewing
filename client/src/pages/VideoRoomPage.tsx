@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
+import { Link } from '../components/ui'
 import {
   getRoomVideoToken,
   readRoomToken,
@@ -35,9 +36,16 @@ function VideoRoomPage() {
   }
 
   return (
-    <main className="mx-auto flex max-w-6xl flex-col px-4 py-8">
+    <main className="mx-auto flex max-w-5xl flex-col px-4 py-8">
       <title>Video visit · Peephole</title>
-      <VideoRoom loadAccess={loadAccess} />
+      <VideoRoom
+        loadAccess={loadAccess}
+        afterCall={
+          <Link to="/" variant="button" className="min-h-12 w-full max-w-xs">
+            See other properties
+          </Link>
+        }
+      />
     </main>
   )
 }
