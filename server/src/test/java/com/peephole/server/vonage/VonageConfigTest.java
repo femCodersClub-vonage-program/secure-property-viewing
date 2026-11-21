@@ -50,6 +50,21 @@ class VonageConfigTest {
     }
 
     @Test
+    void requiresTheSignatureSecretWhenSilentAuthenticationIsOn() {
+        assertThatThrownBy(() -> config.verifyWebhookSignatureVerifier(true, " "))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageStartingWith("VONAGE_SILENT_AUTH_SIGNATURE_SECRET is not set");
+    }
+
+    @Test
+    void rejectsEveryWebhookWithoutASecretWhenSilentAuthenticationIsOff() {
+        WebhookSignatureVerifier verifier = config.verifyWebhookSignatureVerifier(false, "");
+
+        assertThat(verifier.isValid("Bearer " + TestWebhookTokens.signedWith("any-secret")))
+                .isFalse();
+    }
+
+    @Test
     void failsWhenTheVideoApplicationIdIsMissing() throws Exception {
         assertThatThrownBy(() -> config.videoProvider(" ", privateKey()))
                 .isInstanceOf(IllegalStateException.class)
