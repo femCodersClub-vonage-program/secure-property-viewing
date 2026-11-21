@@ -38,7 +38,7 @@ const sdk = vi.hoisted(() => {
       (
         _element: HTMLElement,
         _properties: object,
-        _callback: (error?: { name: string; message: string }) => void,
+        _callback: (error?: { name: string; message: string } | null) => void,
       ) => publisher,
     ),
   }
@@ -178,4 +178,16 @@ it('reports when the camera or microphone fails to start or to publish', async (
   initCallback({ name: 'OT_HARDWARE_UNAVAILABLE', message: 'No camera' })
 
   expect(events.onMediaFailed).toHaveBeenCalledOnce()
+})
+
+it('does not report a failure when the camera and microphone start fine', async () => {
+  const events = fakeEvents()
+  await joinVideoCall(access, document.createElement('div'), events)
+
+  // The SDK calls the callback with null when everything works, not with undefined
+  const [, , initCallback] = sdk.initPublisher.mock.calls[0]
+  initCallback(null)
+
+  // No error, so no warning on screen
+  expect(events.onMediaFailed).not.toHaveBeenCalled()
 })
