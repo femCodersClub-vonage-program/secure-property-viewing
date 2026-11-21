@@ -9,7 +9,7 @@ type Props = {
 }
 
 const regularClasses = 'font-body text-text-default'
-const prominentclasess = 'font-display text-3xl font-bold text-balance text-brand-dark'
+const prominentClasses = 'font-display text-3xl font-bold text-balance text-brand-dark'
 
 function CallStatusLine({ status, ref, prominent = false }: Props) {
   return (
@@ -19,7 +19,7 @@ function CallStatusLine({ status, ref, prominent = false }: Props) {
       ref={ref}
       role="status"
       tabIndex={-1}
-      className={prominent ? prominentclasess : regularClasses}
+      className={prominent ? prominentClasses : regularClasses}
     >
       {statusMessage(status)}
     </p>

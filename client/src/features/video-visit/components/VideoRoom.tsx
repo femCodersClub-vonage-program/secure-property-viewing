@@ -64,7 +64,7 @@ function VideoRoom({ loadAccess, afterCall }: Props) {
           showRemote={call.showRemote}
         />
       </div>
-      {/* The controls live inside the stage, right under the videos */}
+      {/* The controls go right under the stage */}
       {inCall && (
         <CallControls
           microphoneOn={call.microphoneOn}

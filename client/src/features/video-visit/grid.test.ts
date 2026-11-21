@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { gridClasses } from './grid'
 
 describe('gridClasses', () => {
-  it('shows a single video large and centered', () => {
+  it('shows a single video centered, with a max width', () => {
     // Alone in the room: one column, with a max width so it doesn't grow huge on desktop
-    expect(gridClasses(1)).toBe('grid-cols-1')
+    expect(gridClasses(1)).toBe('grid-cols-1 max-w-3xl mx-auto')
   })
 
   it('puts two videos side by side on a wide screen', () => {
