@@ -2,8 +2,9 @@ import { useEffect, useId, useRef, type Ref } from 'react'
 import { ROLE_LABELS } from '../roles'
 import type { VideoRole } from '../types'
 import type { RemoteVideo } from '../videoClient'
+import { gridClasses } from '../grid'
 
-const tileClasses = 'aspect-video w-full overflow-hidden rounded-md bg-brand-dark'
+const tileClasses = 'aspect-video w-full overflow-hidden rounded-md bg-brand-secondary'
 
 type TileProps = { label: string; videoRef: Ref<HTMLDivElement> }
 
@@ -16,7 +17,7 @@ function VideoTile({ label, videoRef }: TileProps) {
     // aria-labelledby makes the name explicit: not every screen reader takes it from figcaption
     <figure aria-labelledby={captionId} className="flex flex-col gap-2">
       <div ref={videoRef} className={tileClasses} />
-      <figcaption id={captionId} className="font-body font-semibold text-brand-dark">
+      <figcaption id={captionId} className="font-body font-semibold text-text-light">
         {label}
       </figcaption>
     </figure>
@@ -52,10 +53,12 @@ type Props = {
 
 function VideoGrid({ ownRole, ownVideoRef, remotes, showRemote }: Props) {
   const ownLabel = ownRole === undefined ? 'You' : `You (${ROLE_LABELS[ownRole]})`
+  // Our own video plus everyone else's
+  const peopleCount = 1 + remotes.length
 
   return (
-    // One column on a phone, two on a tablet or a phone in landscape, three on a wide screen
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    // The columns depend on how many people are in the call
+    <div className={`grid gap-4 ${gridClasses(peopleCount)}`}>
       <VideoTile label={ownLabel} videoRef={ownVideoRef} />
       {remotes.map((video) => (
         <RemoteVideoTile key={video.id} video={video} showRemote={showRemote} />
