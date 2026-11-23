@@ -4,8 +4,8 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Component;
 
 // Read-only counts for the dashboard. They read listing_request and property directly until those features expose
-// the counts in their services: the listing requests feature for the pending requests and the catalog (#52) for
-// the active properties. The visits come from VisitService
+// the counts in their services: the listing feature, with the agency's review in #57, for the pending requests and
+// the catalog (#52) for the active properties. The visits come from VisitService
 @Component
 class AgencyDashboardQueries {
 
