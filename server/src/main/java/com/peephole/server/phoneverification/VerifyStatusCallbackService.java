@@ -1,7 +1,6 @@
 package com.peephole.server.phoneverification;
 
 import com.peephole.server.vonage.PhoneVerifier;
-import com.peephole.server.vonage.SmsStepResult;
 import com.peephole.server.vonage.VerifyStatusCallback;
 import java.time.Clock;
 import java.time.OffsetDateTime;
@@ -11,7 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 // What a Verify status callback changes, as specs/silent-authentication.md describes. Only a pending verification
 // changes: a verified, failed or expired one keeps its status. A summary reports the whole request once it ends, and
 // an event about the silent step only moves the verification on, since Vonage may send expired for that step alone
-// and then go on with the SMS by itself
+// and then go on with the SMS by itself. An error from Vonage or the database rolls everything back, and the webhook
+// answers 500 so Vonage sends the callback again
 @Service
 class VerifyStatusCallbackService {
 
@@ -51,11 +51,12 @@ class VerifyStatusCallbackService {
     }
 
     // A completed request still brings its code back through silent-check or check, so only an ending without one
-    // changes the verification
+    // changes the verification. Peephole only cancels a request when a new code replaces it, so cancelled is handled
+    // as expired
     private static void requestEnded(PhoneVerification verification, VerifyStatusCallback callback) {
         switch (callback.status()) {
-            case EXPIRED -> verification.markExpired();
-            case FAILED, USER_REJECTED -> verification.markFailed();
+            case EXPIRED, CANCELLED -> verification.markExpired();
+            case FAILED, USER_REJECTED, REJECTED, BLOCKED -> verification.markFailed();
             default -> {}
         }
     }
@@ -71,16 +72,10 @@ class VerifyStatusCallbackService {
                     verification.markExpired();
                 }
             }
-            // As sms-fallback does: a +990 number ends FAILED, and a real one moves on to SMS
-            case FAILED, USER_REJECTED -> {
-                if (!verification.hasSmsFallback()) {
-                    verification.markFailed();
-                } else if (phoneVerifier.moveToSms(verification.getVonageRequestId()) == SmsStepResult.ENDED) {
-                    verification.markExpired();
-                } else {
-                    verification.moveOnToSms();
-                }
-            }
+            // Blocked by Vonage's velocity rules or because the number is VoIP, which the SMS step would hit too
+            case BLOCKED -> verification.markFailed();
+            // As sms-fallback does
+            case FAILED, USER_REJECTED, REJECTED -> SmsFallback.apply(verification, phoneVerifier);
             default -> {}
         }
     }

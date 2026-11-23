@@ -51,16 +51,16 @@ class VonageConfigTest {
 
     @Test
     void requiresTheSignatureSecretWhenSilentAuthenticationIsOn() {
-        assertThatThrownBy(() -> config.verifyWebhookSignatureVerifier(true, " "))
+        assertThatThrownBy(() -> config.verifyWebhookReader(true, " "))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageStartingWith("VONAGE_SILENT_AUTH_SIGNATURE_SECRET is not set");
     }
 
     @Test
     void rejectsEveryWebhookWithoutASecretWhenSilentAuthenticationIsOff() {
-        WebhookSignatureVerifier verifier = config.verifyWebhookSignatureVerifier(false, "");
+        VerifyWebhookReader reader = config.verifyWebhookReader(false, "");
 
-        assertThat(verifier.isValid("Bearer " + TestWebhookTokens.signedWith("any-secret")))
+        assertThat(reader.isSignedByVonage("Bearer " + TestWebhookTokens.signedWith("any-secret"), "{}"))
                 .isFalse();
     }
 

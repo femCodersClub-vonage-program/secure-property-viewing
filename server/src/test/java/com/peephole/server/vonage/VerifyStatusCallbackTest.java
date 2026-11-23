@@ -38,17 +38,34 @@ class VerifyStatusCallbackTest {
         });
     }
 
+    // blocked, cancelled and rejected are documented by Vonage but missing from the SDK, so the body is read here
     @ParameterizedTest
-    @CsvSource({"completed, COMPLETED", "failed, FAILED", "expired, EXPIRED", "action_pending, OTHER"})
+    @CsvSource({
+        "completed, COMPLETED",
+        "user_rejected, USER_REJECTED",
+        "rejected, REJECTED",
+        "failed, FAILED",
+        "expired, EXPIRED",
+        "blocked, BLOCKED",
+        "cancelled, CANCELLED",
+        "action_pending, OTHER"
+    })
     void readsEachStatus(String status, VerifyCallbackStatus expected) {
         assertThat(VerifyStatusCallback.fromJson(event("silent_auth", status)))
                 .map(VerifyStatusCallback::status)
                 .contains(expected);
     }
 
+    @Test
+    void readsAStatusOfASummaryThatTheSdkDoesNotKnow() {
+        assertThat(VerifyStatusCallback.fromJson(summary("cancelled")))
+                .map(VerifyStatusCallback::status)
+                .contains(VerifyCallbackStatus.CANCELLED);
+    }
+
     @ParameterizedTest
     @NullAndEmptySource
-    @ValueSource(strings = {"not json", "{}", "{\"status\":\"expired\"}"})
+    @ValueSource(strings = {"not json", "{}", "{\"status\":\"expired\"}", "{\"request_id\":42,\"status\":\"expired\"}"})
     void isEmptyWhenTheBodyCannotBeRead(String body) {
         assertThat(VerifyStatusCallback.fromJson(body)).isEmpty();
     }

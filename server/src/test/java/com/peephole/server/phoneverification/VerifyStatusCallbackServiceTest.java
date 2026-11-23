@@ -58,6 +58,19 @@ class VerifyStatusCallbackServiceTest {
         assertThat(verification.getStatus()).isEqualTo(PhoneVerificationStatus.PENDING);
     }
 
+    // rejected is listed by Vonage but never explained, so it is handled as user_rejected
+    @Test
+    void movesARealNumberOnToSmsWhenTheSilentStepIsRejected() {
+        PhoneVerification verification = silentVerification(true, CREATED_AT);
+        when(repository.findWithLockByVonageRequestId(REQUEST_ID)).thenReturn(Optional.of(verification));
+        when(phoneVerifier.moveToSms(REQUEST_ID)).thenReturn(SmsStepResult.STARTED);
+
+        service.handle(silentEvent(VerifyCallbackStatus.REJECTED));
+
+        assertThat(verification.getChannel()).isEqualTo(PhoneVerificationChannel.SMS);
+        assertThat(verification.getStatus()).isEqualTo(PhoneVerificationStatus.PENDING);
+    }
+
     @Test
     void movesARealNumberOnToSmsWhenTheSilentCheckFails() {
         PhoneVerification verification = silentVerification(true, CREATED_AT);
@@ -67,6 +80,18 @@ class VerifyStatusCallbackServiceTest {
         service.handle(silentEvent(VerifyCallbackStatus.FAILED));
 
         assertThat(verification.getChannel()).isEqualTo(PhoneVerificationChannel.SMS);
+    }
+
+    // Blocked by Vonage's velocity rules or because the number is VoIP, which the SMS step would hit too
+    @Test
+    void failsARealNumberWhenTheSilentStepIsBlocked() {
+        PhoneVerification verification = silentVerification(true, CREATED_AT);
+        when(repository.findWithLockByVonageRequestId(REQUEST_ID)).thenReturn(Optional.of(verification));
+
+        service.handle(silentEvent(VerifyCallbackStatus.BLOCKED));
+
+        assertThat(verification.getStatus()).isEqualTo(PhoneVerificationStatus.FAILED);
+        verifyNoInteractions(phoneVerifier);
     }
 
     @Test
@@ -164,12 +189,34 @@ class VerifyStatusCallbackServiceTest {
         verifyNoInteractions(phoneVerifier);
     }
 
+    // Peephole only cancels a request when a new code replaces it, so this is the same as the request expiring
+    @Test
+    void expiresTheVerificationWhenTheWholeRequestIsCancelled() {
+        PhoneVerification verification = silentVerification(true, CREATED_AT);
+        when(repository.findWithLockByVonageRequestId(REQUEST_ID)).thenReturn(Optional.of(verification));
+
+        service.handle(summary(VerifyCallbackStatus.CANCELLED));
+
+        assertThat(verification.getStatus()).isEqualTo(PhoneVerificationStatus.EXPIRED);
+    }
+
     @Test
     void failsTheVerificationWhenTheWholeRequestFails() {
         PhoneVerification verification = silentVerification(true, CREATED_AT);
         when(repository.findWithLockByVonageRequestId(REQUEST_ID)).thenReturn(Optional.of(verification));
 
         service.handle(summary(VerifyCallbackStatus.FAILED));
+
+        assertThat(verification.getStatus()).isEqualTo(PhoneVerificationStatus.FAILED);
+    }
+
+    @Test
+    void failsTheVerificationWhenTheWholeRequestIsBlocked() {
+        PhoneVerification verification =
+                new PhoneVerification(PhoneVerificationPurpose.VISIT, "phone-hash", REQUEST_ID, CREATED_AT);
+        when(repository.findWithLockByVonageRequestId(REQUEST_ID)).thenReturn(Optional.of(verification));
+
+        service.handle(summary(VerifyCallbackStatus.BLOCKED));
 
         assertThat(verification.getStatus()).isEqualTo(PhoneVerificationStatus.FAILED);
     }

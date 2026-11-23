@@ -11,8 +11,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.peephole.server.vonage.PhoneVerifier;
+import com.peephole.server.vonage.PhoneVerifierException;
 import com.peephole.server.vonage.SmsStepResult;
 import com.peephole.server.vonage.TestWebhookTokens;
+import com.peephole.server.vonage.VerifyWebhookTokens;
 import jakarta.persistence.EntityManager;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -93,6 +95,31 @@ class VerifyWebhookControllerTest {
     }
 
     @Test
+    void appliesABodyThatMatchesItsHash() throws Exception {
+        long id = insertSilentVerification();
+        when(phoneVerifier.moveToSms(REQUEST_ID)).thenReturn(SmsStepResult.STARTED);
+        String body = silentEvent("user_rejected");
+
+        callback("Bearer " + VerifyWebhookTokens.signedWithHashOf(SECRET, body), body)
+                .andExpect(status().isOk());
+
+        assertThat(stored(id)).containsEntry("channel", "SMS");
+    }
+
+    // A token that leaked cannot carry another body
+    @Test
+    void rejectsABodyThatDoesNotMatchItsHash() throws Exception {
+        long id = insertSilentVerification();
+
+        expectSignatureInvalid(callback(
+                "Bearer " + VerifyWebhookTokens.signedWithHashOf(SECRET, silentEvent("action_pending")),
+                silentEvent("user_rejected")));
+
+        assertThat(stored(id)).containsEntry("channel", "SILENT_AUTH").containsEntry("status", "PENDING");
+        verify(phoneVerifier, never()).moveToSms(any());
+    }
+
+    @Test
     void acceptsABodyItCannotReadWithoutChangingAnything() throws Exception {
         long id = insertSilentVerification();
 
@@ -100,6 +127,21 @@ class VerifyWebhookControllerTest {
 
         assertThat(stored(id)).containsEntry("channel", "SILENT_AUTH").containsEntry("status", "PENDING");
         verify(phoneVerifier, never()).moveToSms(any());
+    }
+
+    // An error answers 500 and changes nothing, so Vonage sends the callback again
+    @Test
+    void answersAnErrorWithoutChangingAnythingWhenVonageFailsToMoveOnToSms() throws Exception {
+        long id = insertSilentVerification();
+        when(phoneVerifier.moveToSms(REQUEST_ID))
+                .thenThrow(new PhoneVerifierException("Vonage answered 500 when moving on to SMS"));
+
+        callback("Bearer " + TestWebhookTokens.signedWith(SECRET), silentEvent("user_rejected"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
+
+        assertThat(stored(id)).containsEntry("channel", "SILENT_AUTH").containsEntry("status", "PENDING");
     }
 
     private ResultActions callback(String authorization, String body) throws Exception {

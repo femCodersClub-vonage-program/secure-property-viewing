@@ -27,17 +27,18 @@ class VonageConfig {
         return new VonagePhoneVerifier(client.getVerify2Client());
     }
 
-    // Checks the signature of the Verify status webhook. With Silent Authentication on, the server does not start
-    // without the secret, as with the other variables. Off, a missing secret rejects every call
+    // Checks and reads the Verify status webhook. With Silent Authentication on, the server does not start without
+    // the secret, as with the other variables. Off, a missing secret rejects every call. The signature verifier stays
+    // inside the reader instead of being a bean, so it never clashes with the one of another webhook
     @Bean
-    WebhookSignatureVerifier verifyWebhookSignatureVerifier(
+    VerifyWebhookReader verifyWebhookReader(
             @Value("${app.silent-auth.enabled}") boolean silentAuthEnabled,
             @Value("${app.vonage.silent-auth.signature-secret}") String signatureSecret) {
         if (silentAuthEnabled && signatureSecret.isBlank()) {
             throw new IllegalStateException("VONAGE_SILENT_AUTH_SIGNATURE_SECRET is not set. Add it to server/.env"
                     + " as explained in docs/setup.md");
         }
-        return new WebhookSignatureVerifier(signatureSecret);
+        return new VerifyWebhookReader(new WebhookSignatureVerifier(signatureSecret));
     }
 
     @Bean

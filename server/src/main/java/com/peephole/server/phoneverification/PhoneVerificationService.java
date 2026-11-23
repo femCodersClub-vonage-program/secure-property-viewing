@@ -11,7 +11,6 @@ import com.peephole.server.vonage.PhoneVerifier;
 import com.peephole.server.vonage.PhoneVerifierException;
 import com.peephole.server.vonage.SilentAuthStart;
 import com.peephole.server.vonage.SilentAuthUnavailableException;
-import com.peephole.server.vonage.SmsStepResult;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -153,17 +152,17 @@ public class PhoneVerificationService {
             verification.markVerified(OffsetDateTime.now(clock));
             return toResponse(verification);
         }
-        // The silent code has a single attempt, so a +990 number ends FAILED whatever Vonage answers
-        if (!verification.hasSmsFallback()) {
-            verification.markFailed();
-            return toResponse(verification);
-        }
-        if (result == CodeCheckResult.ENDED) {
+        // Verify has ended the request of a real number, so there is no SMS step to move on to. A +990 number, which
+        // never had one, ends FAILED below whatever Vonage answers, since the silent code has a single attempt
+        if (result == CodeCheckResult.ENDED && verification.hasSmsFallback()) {
             verification.markExpired();
             throw new VerificationExpiredException();
         }
-        moveOnToSms(verification);
-        throw new VerificationCodeInvalidException();
+        return switch (SmsFallback.apply(verification, phoneVerifier)) {
+            case FAILED -> toResponse(verification);
+            case EXPIRED -> throw new VerificationExpiredException();
+            case ON_SMS -> throw new VerificationCodeInvalidException();
+        };
     }
 
     // When the redirect brings an error_description, or the person came back without a result
@@ -178,12 +177,10 @@ public class PhoneVerificationService {
         if (verification.getChannel() != PhoneVerificationChannel.SILENT_AUTH) {
             throw new VerificationSilentCheckUnavailableException();
         }
-        if (!verification.hasSmsFallback()) {
-            verification.markFailed();
-            return toResponse(verification);
-        }
-        moveOnToSms(verification);
-        return toResponse(verification);
+        return switch (SmsFallback.apply(verification, phoneVerifier)) {
+            case FAILED, ON_SMS -> toResponse(verification);
+            case EXPIRED -> throw new VerificationExpiredException();
+        };
     }
 
     /** Checks the shared rules for using a verification and returns when it was verified. */
@@ -219,14 +216,6 @@ public class PhoneVerificationService {
             throw new VerificationExpiredException();
         }
         return Optional.empty();
-    }
-
-    private void moveOnToSms(PhoneVerification verification) {
-        if (phoneVerifier.moveToSms(verification.getVonageRequestId()) == SmsStepResult.ENDED) {
-            verification.markExpired();
-            throw new VerificationExpiredException();
-        }
-        verification.moveOnToSms();
     }
 
     private void checkLimits(String phoneHash, OffsetDateTime now) {

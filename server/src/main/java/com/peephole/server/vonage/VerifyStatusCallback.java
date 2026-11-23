@@ -1,16 +1,19 @@
 package com.peephole.server.vonage;
 
-import com.vonage.client.verify2.VerificationCallback;
 import java.util.Locale;
 import java.util.Optional;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.JsonNodeType;
 
 // What the phone verification needs from a Verify status callback: the request it is about, whether it reports one
-// channel or the whole request, which channel, and what happened. Read with the SDK's VerificationCallback, which the
-// first step of #106 checked with a real callback
+// channel or the whole request, which channel, and what happened. Read without the SDK, whose VerificationCallback has
+// no value for some documented statuses, such as blocked, and would lose the whole callback
 public record VerifyStatusCallback(
         String requestId, VerifyCallbackType type, String channel, VerifyCallbackStatus status) {
 
     private static final String SILENT_AUTH_CHANNEL = "silent_auth";
+    private static final JsonMapper JSON = JsonMapper.builder().build();
 
     // An event about the silent step only, not about the SMS step or the whole request
     public boolean isSilentAuthEvent() {
@@ -23,21 +26,27 @@ public record VerifyStatusCallback(
             return Optional.empty();
         }
         try {
-            VerificationCallback callback = VerificationCallback.fromJson(body);
-            if (callback.getRequestId() == null || callback.getStatus() == null) {
+            JsonNode json = JSON.readTree(body);
+            String requestId = text(json, "request_id");
+            String status = text(json, "status");
+            if (requestId == null || status == null) {
                 return Optional.empty();
             }
+            String type = text(json, "type");
+            String channel = text(json, "channel");
             return Optional.of(new VerifyStatusCallback(
-                    callback.getRequestId().toString(),
-                    callback.getType() == null
-                            ? VerifyCallbackType.OTHER
-                            : VerifyCallbackType.from(String.valueOf(callback.getType())),
-                    callback.getChannel() == null
-                            ? null
-                            : String.valueOf(callback.getChannel()).toLowerCase(Locale.ROOT),
-                    VerifyCallbackStatus.from(String.valueOf(callback.getStatus()))));
+                    requestId,
+                    type == null ? VerifyCallbackType.OTHER : VerifyCallbackType.from(type),
+                    channel == null ? null : channel.toLowerCase(Locale.ROOT),
+                    VerifyCallbackStatus.from(status)));
         } catch (RuntimeException exception) {
             return Optional.empty();
         }
+    }
+
+    // Null unless the field is there as text
+    private static String text(JsonNode json, String field) {
+        JsonNode value = json.get(field);
+        return value != null && value.getNodeType() == JsonNodeType.STRING ? value.asString() : null;
     }
 }
