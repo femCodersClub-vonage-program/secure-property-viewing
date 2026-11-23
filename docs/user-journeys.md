@@ -35,6 +35,8 @@ Wants to list their property. Verifies their phone number and validates the requ
 
 Manages properties, requests and visits.
 
+Every agency screen needs a signed-in agent; a signed-out agent goes to the sign-in page first.
+
 1. Dashboard  
 2. Listing requests  
 3. Request details  
