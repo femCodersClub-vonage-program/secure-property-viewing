@@ -1,7 +1,7 @@
 # Post-visit call
 
 - **Status:** Approved
-- **Issue:** to be linked with the build issues
+- **Issue:** [#112](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/112) (server) and [#113](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/113) (client)
 - **Journey:** after step 7 of journey A in [`docs/user-journeys.md`](../docs/user-journeys.md). It is a phone call, not a screen
 
 ## Problem
