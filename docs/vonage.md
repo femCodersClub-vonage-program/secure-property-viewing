@@ -14,7 +14,14 @@ Phone verification for visitors and owners using a one-time passcode (OTP) sent 
 - The Verify application needs no capability, so locally each person uses her own
 - The server reaches Verify only through the `PhoneVerifier` interface in `vonage/`, and the tests use a test double
 
-Silent Authentication, with the SMS code as the fallback, is specified in [`specs/silent-authentication.md`](../specs/silent-authentication.md). It is tested with Vonage's Virtual Operator, which answers for `+990` numbers. Live checks need mobile data, a supported operator, such as Orange, Telefónica or Vodafone in Spain, and either a registration in the Network Registry or one of up to 5 numbers allowlisted in the Playground.
+Silent Authentication, with the SMS code as the fallback, is specified in [`specs/silent-authentication.md`](../specs/silent-authentication.md). It is tested with Vonage's Virtual Operator, which answers for `+990` numbers. The Virtual Operator only accepts `silent_auth` as the single step, so `+990` numbers get no SMS fallback. Live checks, such as the one for the demo, need mobile data, a supported operator, such as Orange, Telefónica or Vodafone in Spain, and either a registration in the Network Registry or one of up to 5 numbers allowlisted in the Playground.
+
+In `client/`, for Silent Authentication:
+
+- The screen asks for the silent check from a phone's browser, told by `navigator.userAgentData.mobile` or the `(pointer: coarse)` media query, and for a `+990` number from any browser
+- Before leaving, the page saves its form in `sessionStorage` under `peephole.silent-check`, never with the SMS code. It opens the `checkUrl` in the same tab, and only if it starts with `https://`
+- The operator sends the person back to `/verification/return`, the value of `SILENT_AUTH_REDIRECT_URL`, with `request_id` and `code`, or `error_description`, in the URL fragment. That route sends them on to the page they left, which reads the fragment and removes it from the address bar with `replace`, so the single-use code is never sent twice
+- Coming back without a result, with the back button or from the back/forward cache, asks the server for the SMS step
 
 ### Video API
 
@@ -25,6 +32,13 @@ Every video visit uses one routed session, because the visitor can share a link 
 - If Vonage fails or times out while creating the session, the server answers `500 INTERNAL_ERROR`
 - Locally, everyone uses Viviana's application, unlike Verify
 - The server reaches Video only through the `VideoProvider` interface in `vonage/`, and the tests use a test double
+
+In `client/`:
+
+- Only `features/video-visit/videoClient.ts` imports `@vonage/client-sdk-video`, and the tests mock that file. It joins with `initSession`, `connect` and the token, then publishes with `initPublisher`
+- The SDK is about 3 MB, so it is loaded with a dynamic `import()` when someone enters the room, not with the rest of the app
+- Each video is labeled from the role in its `stream.connection.data`, and `showControls: false` hides Vonage's own buttons and names, so the room uses its own accessible ones
+- The status line follows `accessDenied` on the publisher and the session's `sessionReconnecting`, `sessionReconnected` and `sessionDisconnected` events
 
 Planned for later: the video call between the owner and the agency (journey B), and signing or ratification with the property manager and all parties.
 

@@ -1,7 +1,15 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { StrictMode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
+import { openCheckUrl } from '../silentAuth'
 import PhoneVerification from './PhoneVerification'
+
+// jsdom cannot leave the page, so opening the check URL is recorded instead
+vi.mock('../silentAuth', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../silentAuth')>()),
+  openCheckUrl: vi.fn(),
+}))
 
 // Copied as-is from specs/phone-verification.md, "API"
 const startedFromSpec = {
@@ -45,6 +53,9 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers()
   vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+  vi.mocked(openCheckUrl).mockReset()
+  sessionStorage.clear()
   fetchMock.mockReset()
   document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/'
 })
@@ -419,5 +430,326 @@ describe('PhoneVerification', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent(detail)
     expect(screen.getByRole('textbox', { name: 'Phone number' })).toBeInTheDocument()
+  })
+})
+
+// Shaped as in specs/silent-authentication.md, "API"
+const CHECK_URL =
+  'https://api.nexmo.com/v2/verify/c11236f4-00bf-4b89-84ba-88b25df97315/silent-auth/redirect'
+const startedWithCheckUrl = { ...startedFromSpec, checkUrl: CHECK_URL }
+const visitForm = { propertyId: 7, visitorName: 'Laura Gómez', slot: { id: 302 } }
+
+function savedCheck(phone = '+34600000000') {
+  return {
+    saved: {
+      verificationId: 42,
+      purpose: 'VISIT' as const,
+      phone,
+      resendAvailableAt: startedFromSpec.resendAvailableAt,
+      form: visitForm,
+    },
+    result: { outcome: 'none' as const },
+  }
+}
+
+function silentCodeBack(phone?: string) {
+  return {
+    ...savedCheck(phone),
+    result: { outcome: 'code' as const, requestId: 'c11236f4', code: 'si9sfG' },
+  }
+}
+
+// As a phone's browser answers the media query the spec uses when userAgentData is missing
+function useAPhoneBrowser() {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn((query: string) => ({ matches: query === '(pointer: coarse)' })),
+  )
+}
+
+function sendNumber(phone: string) {
+  fireEvent.change(screen.getByRole('textbox', { name: 'Phone number' }), {
+    target: { value: phone },
+  })
+  fireEvent.click(screen.getByRole('button', { name: 'Send code' }))
+}
+
+describe('PhoneVerification with Silent Authentication', () => {
+  it('from a phone, saves the form without any code and opens the check URL in the same tab', async () => {
+    useAPhoneBrowser()
+    fetchMock.mockResolvedValueOnce(json(startedWithCheckUrl, 201))
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} formToKeep={visitForm} />)
+
+    sendNumber('+34 600 000 000')
+
+    await vi.waitFor(() => expect(openCheckUrl).toHaveBeenCalledWith(CHECK_URL))
+    expect(sentBody(0)).toEqual({ phone: '+34600000000', purpose: 'VISIT', silentAuth: true })
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Checking your number with your mobile operator…',
+    )
+    // The form and its button are gone, so the focus must not fall back to the page body
+    await vi.waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'Checking your number' })).toHaveFocus(),
+    )
+    expect(JSON.parse(sessionStorage.getItem('peephole.silent-check') ?? 'null')).toEqual({
+      verificationId: 42,
+      purpose: 'VISIT',
+      phone: '+34600000000',
+      resendAvailableAt: startedFromSpec.resendAvailableAt,
+      form: visitForm,
+    })
+  })
+
+  it('tries the silent check for a +990 number from a computer too', async () => {
+    fetchMock.mockResolvedValueOnce(json(startedWithCheckUrl, 201))
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} formToKeep={visitForm} />)
+
+    sendNumber('+990123400')
+
+    await vi.waitFor(() => expect(openCheckUrl).toHaveBeenCalled())
+    expect(sentBody(0)).toEqual({ phone: '+990123400', purpose: 'VISIT', silentAuth: true })
+  })
+
+  it('never asks for the silent check from a computer, or when the page has no form to keep', async () => {
+    fetchMock.mockResolvedValueOnce(json(startedFromSpec, 201))
+    const { unmount } = render(
+      <PhoneVerification purpose="VISIT" onVerified={vi.fn()} formToKeep={visitForm} />,
+    )
+    await sendCodeTo('+34600000000')
+    expect(sentBody(0)).toEqual({ phone: '+34600000000', purpose: 'VISIT' })
+    unmount()
+
+    useAPhoneBrowser()
+    fetchMock.mockResolvedValueOnce(json(startedFromSpec, 201))
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
+    await sendCodeTo('+34600000000')
+    expect(sentBody(1)).toEqual({ phone: '+34600000000', purpose: 'VISIT' })
+  })
+
+  it('shows the SMS code entry as today when the answer has no checkUrl', async () => {
+    useAPhoneBrowser()
+    fetchMock.mockResolvedValueOnce(json(startedFromSpec, 201))
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} formToKeep={visitForm} />)
+
+    await sendCodeTo('+34600000000')
+
+    expect(sentBody(0)).toEqual({ phone: '+34600000000', purpose: 'VISIT', silentAuth: true })
+    expect(openCheckUrl).not.toHaveBeenCalled()
+    expect(sessionStorage.getItem('peephole.silent-check')).toBeNull()
+    expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus()
+  })
+
+  it('asks for a new code by SMS only, as the spec says once the SMS step has started', async () => {
+    useAPhoneBrowser()
+    fetchMock
+      .mockResolvedValueOnce(json(startedFromSpec, 201))
+      .mockResolvedValueOnce(json(startedFromSpec, 201))
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} formToKeep={visitForm} />)
+    await sendCodeTo('+34600000000')
+
+    passTime(32_000)
+    fireEvent.click(screen.getByRole('button', { name: 'Send a new code' }))
+
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+    expect(sentBody(1)).toEqual({ phone: '+34600000000', purpose: 'VISIT' })
+  })
+
+  it('moves on to the SMS code when the page comes back from the back/forward cache', async () => {
+    useAPhoneBrowser()
+    fetchMock
+      .mockResolvedValueOnce(json(startedWithCheckUrl, 201))
+      .mockResolvedValueOnce(json({ id: 42, status: 'PENDING' }, 200))
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} formToKeep={visitForm} />)
+    sendNumber('+34600000000')
+    await vi.waitFor(() => expect(openCheckUrl).toHaveBeenCalled())
+
+    // A first load is not a page restored from the cache, so it does nothing
+    window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: false }))
+    window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }))
+
+    expect(await screen.findByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(fetchMock.mock.calls[1]?.[0]).toBe('/api/phone-verifications/42/sms-fallback')
+    expect(sessionStorage.getItem('peephole.silent-check')).toBeNull()
+  })
+
+  it('goes straight to the SMS code when the browser does not let it save the form', async () => {
+    useAPhoneBrowser()
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('Blocked', 'SecurityError')
+    })
+    fetchMock
+      .mockResolvedValueOnce(json(startedWithCheckUrl, 201))
+      .mockResolvedValueOnce(json({ id: 42, status: 'PENDING' }, 200))
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} formToKeep={visitForm} />)
+
+    sendNumber('+34600000000')
+
+    expect(await screen.findByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus()
+    expect(openCheckUrl).not.toHaveBeenCalled()
+    expect(fetchMock.mock.calls[1]?.[0]).toBe('/api/phone-verifications/42/sms-fallback')
+  })
+
+  it('checks the code the operator sent back once, and hands over the verified phone', async () => {
+    fetchMock.mockResolvedValueOnce(json({ id: 42, status: 'VERIFIED' }, 200))
+    const onVerified = vi.fn()
+    const resumed = silentCodeBack()
+    sessionStorage.setItem('peephole.silent-check', JSON.stringify(resumed.saved))
+
+    // StrictMode runs effects twice, as React does in development
+    render(
+      <StrictMode>
+        <PhoneVerification purpose="VISIT" onVerified={onVerified} resumed={resumed} />
+      </StrictMode>,
+    )
+
+    await vi.waitFor(() =>
+      expect(onVerified).toHaveBeenCalledWith({ verificationId: 42, phone: '+34600000000' }),
+    )
+    // Vonage checks the silent code only once, so a second call would always fail
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/phone-verifications/42/silent-check')
+    expect(sentBody(0)).toEqual({ requestId: 'c11236f4', code: 'si9sfG' })
+    expect(sessionStorage.getItem('peephole.silent-check')).toBeNull()
+  })
+
+  it('shows the SMS code entry when Verify rejects the silent code of a real number', async () => {
+    fetchMock.mockResolvedValueOnce(
+      problem(422, 'VERIFICATION_CODE_INVALID', 'The code does not match.'),
+    )
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} resumed={silentCodeBack()} />)
+
+    expect(await screen.findByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent(
+      "We've sent a 6-digit code by SMS to +34 600 000 000.",
+    )
+  })
+
+  it('says a +990 number could not be verified and moves the focus to start again', async () => {
+    fetchMock.mockResolvedValueOnce(json({ id: 42, status: 'FAILED' }, 200))
+    render(
+      <PhoneVerification
+        purpose="VISIT"
+        onVerified={vi.fn()}
+        resumed={silentCodeBack('+990123499')}
+      />,
+    )
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      "Your mobile operator couldn't confirm this number. Check it and start again.",
+    )
+    const startAgain = screen.getByRole('button', { name: 'Start again' })
+    await vi.waitFor(() => expect(startAgain).toHaveFocus())
+    expect(screen.queryByRole('button', { name: 'Send a new code' })).not.toBeInTheDocument()
+
+    fireEvent.click(startAgain)
+    expect(screen.getByRole('textbox', { name: 'Phone number' })).toHaveValue('+990123499')
+  })
+
+  it('never offers a new code to a +990 number whose verification has expired', async () => {
+    fetchMock.mockResolvedValueOnce(json({ id: 42, status: 'EXPIRED' }, 200))
+    render(
+      <PhoneVerification purpose="VISIT" onVerified={vi.fn()} resumed={savedCheck('+990123400')} />,
+    )
+
+    expect(await screen.findByRole('button', { name: 'Start again' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Send a new code' })).not.toBeInTheDocument()
+  })
+
+  it('keeps the SMS code entry open and says what went wrong when the server fails', async () => {
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 503 }))
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} resumed={savedCheck()} />)
+
+    expect(await screen.findByRole('textbox', { name: 'Code from the SMS' })).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveTextContent(SYSTEM_ERROR_MESSAGE)
+  })
+})
+
+describe('PhoneVerification, telling a phone and following the check URL', () => {
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, 'userAgentData')
+  })
+
+  function browserSays(mobile: boolean) {
+    Object.defineProperty(navigator, 'userAgentData', { value: { mobile }, configurable: true })
+  }
+
+  it('trusts userAgentData over the media query, so a touchscreen laptop gets the SMS', async () => {
+    browserSays(false)
+    useAPhoneBrowser()
+    fetchMock.mockResolvedValueOnce(json(startedFromSpec, 201))
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} formToKeep={visitForm} />)
+
+    await sendCodeTo('+34600000000')
+
+    expect(sentBody(0)).toEqual({ phone: '+34600000000', purpose: 'VISIT' })
+  })
+
+  it('asks for the silent check when userAgentData says it is a phone', async () => {
+    browserSays(true)
+    fetchMock.mockResolvedValueOnce(json(startedFromSpec, 201))
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} formToKeep={visitForm} />)
+
+    await sendCodeTo('+34600000000')
+
+    expect(sentBody(0)).toEqual({ phone: '+34600000000', purpose: 'VISIT', silentAuth: true })
+  })
+
+  it('never follows a check URL that is not HTTPS, and shows the SMS code entry', async () => {
+    useAPhoneBrowser()
+    fetchMock.mockResolvedValueOnce(
+      json({ ...startedFromSpec, checkUrl: 'javascript:alert(1)' }, 201),
+    )
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} formToKeep={visitForm} />)
+
+    await sendCodeTo('+34600000000')
+
+    expect(openCheckUrl).not.toHaveBeenCalled()
+    expect(sessionStorage.getItem('peephole.silent-check')).toBeNull()
+  })
+})
+
+describe('PhoneVerification, errors from the silent check', () => {
+  it('shows the SMS code entry without an alert when the verification already moved on to SMS', async () => {
+    fetchMock.mockResolvedValueOnce(
+      problem(409, 'VERIFICATION_SILENT_CHECK_UNAVAILABLE', 'It already moved on to SMS.'),
+    )
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} resumed={silentCodeBack()} />)
+
+    expect(await screen.findByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it.each([
+    [404, 'VERIFICATION_NOT_FOUND', NOT_FOUND],
+    [422, 'VERIFICATION_EXPIRED', EXPIRED],
+  ])('offers a new code for a real number after a %i %s', async (status, code, detail) => {
+    fetchMock.mockResolvedValueOnce(problem(status, code, detail))
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} resumed={silentCodeBack()} />)
+
+    expect(
+      await screen.findByRole('heading', { name: "Let's send you a new code" }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveTextContent(detail)
+    await expectFocusOnTheMessage()
+  })
+
+  it.each([
+    [404, 'VERIFICATION_NOT_FOUND', NOT_FOUND],
+    [422, 'VERIFICATION_EXPIRED', EXPIRED],
+  ])('offers to start again for a +990 number after a %i %s', async (status, code, detail) => {
+    fetchMock.mockResolvedValueOnce(problem(status, code, detail))
+    render(
+      <PhoneVerification
+        purpose="VISIT"
+        onVerified={vi.fn()}
+        resumed={silentCodeBack('+990123400')}
+      />,
+    )
+
+    const startAgain = await screen.findByRole('button', { name: 'Start again' })
+    await vi.waitFor(() => expect(startAgain).toHaveFocus())
+    expect(screen.queryByRole('button', { name: 'Send a new code' })).not.toBeInTheDocument()
   })
 })

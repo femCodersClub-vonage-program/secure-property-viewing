@@ -109,4 +109,89 @@ describe('routes', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Page not found' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Go to the home page' })).toHaveAttribute('href', '/')
   })
+
+  it.each([
+    ['/agency', 'Dashboard'],
+    ['/agency/properties', 'Properties'],
+    ['/agency/listing-requests', 'Listing requests'],
+    ['/agency/listing-requests/18', 'Request details'],
+    ['/agency/calendar', 'Calendar'],
+    ['/agency/messages', 'Messages'],
+    ['/agency/profile', 'Profile'],
+  ])('shows %s inside the agency layout', (path, heading) => {
+    // D1 asks the server for its summary: the answer never comes, so it stays on its loading heading
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(() => new Promise(() => {})),
+    )
+    renderAt(path)
+
+    expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Agency' })).toBeInTheDocument()
+  })
+
+  it('asks the server for the dashboard summary at /agency', () => {
+    const fetchMock = vi.fn<typeof fetch>(() => new Promise(() => {}))
+    vi.stubGlobal('fetch', fetchMock)
+    renderAt('/agency')
+
+    expect(screen.getByRole('status')).toHaveTextContent('Loading the dashboard…')
+    expect(fetchMock).toHaveBeenCalledWith('/api/agency/summary', expect.anything())
+  })
+
+  it('shows the agency room outside the agency layout, so the call has the whole screen', () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(() => new Promise(() => {})),
+    )
+    renderAt('/agency/visits/5/room')
+
+    expect(screen.queryByRole('navigation', { name: 'Agency' })).not.toBeInTheDocument()
+  })
+
+  it('reads the room token from the link and removes it from the address', async () => {
+    const fetchMock = vi.fn<typeof fetch>(() => new Promise(() => {}))
+    vi.stubGlobal('fetch', fetchMock)
+    document.cookie = 'XSRF-TOKEN=test-token; path=/'
+    const router = createMemoryRouter(routes, { initialEntries: ['/visits/room#room-token-1'] })
+    render(<RouterProvider router={router} />)
+
+    // The bug found by hand: the token stayed in the address bar
+    await waitFor(() => expect(router.state.location.hash).toBe(''))
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/room-links/video-token',
+        expect.objectContaining({ body: JSON.stringify({ token: 'room-token-1' }) }),
+      ),
+    )
+  })
+
+  it('says the room link does not work when it has no token', () => {
+    renderAt('/visits/room')
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: "This room link doesn't work" }),
+    ).toBeInTheDocument()
+  })
+
+  it('shows the not found page for an agency room without a valid visit id', () => {
+    renderAt('/agency/visits/abc/room')
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Page not found' })).toBeInTheDocument()
+  })
+
+  it('asks for the agency video token of the visit in the link', async () => {
+    const fetchMock = vi.fn<typeof fetch>(() => new Promise(() => {}))
+    vi.stubGlobal('fetch', fetchMock)
+    document.cookie = 'XSRF-TOKEN=test-token; path=/'
+    renderAt('/agency/visits/5/room')
+
+    // Protects the conversion of the id in the URL to a number
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/agency/visits/5/video-token',
+        expect.objectContaining({ method: 'POST' }),
+      ),
+    )
+  })
 })

@@ -43,7 +43,7 @@ export function parseProperty(data: unknown): PropertySummary {
   throw new Error('Unexpected GET /api/properties/{id} response')
 }
 
-function parseSlot(value: unknown): Slot {
+export function parseSlot(value: unknown): Slot {
   if (
     isObject(value) &&
     typeof value.id === 'number' &&

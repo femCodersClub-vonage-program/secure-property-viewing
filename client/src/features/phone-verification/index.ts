@@ -1,2 +1,4 @@
 export { default as PhoneVerification } from './components/PhoneVerification'
-export type { PhoneVerificationPurpose, VerifiedPhone } from './types'
+export { default as VerificationNotFound } from './components/VerificationNotFound'
+export { clearSilentCheck, findSilentCheck, readSilentCheck } from './silentAuth'
+export type { PhoneVerificationPurpose, ResumedSilentCheck, VerifiedPhone } from './types'

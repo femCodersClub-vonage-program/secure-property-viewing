@@ -26,6 +26,7 @@ interface VisitSlotRepository extends JpaRepository<VisitSlot, Long> {
     List<AvailableVisitSlot> findAvailable(
             long propertyId, OffsetDateTime now, OffsetDateTime fromInclusive, OffsetDateTime toExclusive);
 
+    // Checks the property's status inside the UPDATE, not through PropertyService, so booking stays atomic
     @Modifying
     @Transactional(propagation = Propagation.MANDATORY)
     @Query(value = """

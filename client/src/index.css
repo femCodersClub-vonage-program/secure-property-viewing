@@ -2,6 +2,22 @@
 /* In a layer, so the design system's utilities still win over Leaflet's own colors inside the map */
 @import 'leaflet/dist/leaflet.css' layer(components);
 
+/* Self-hosted. Used only by the agency dashboard */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('./assets/fonts/InterVariable.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('./assets/fonts/SpaceGrotesk-Variable.woff2') format('woff2');
+}
+
 @theme {
   /* ── Colors ───────────────────────────────────────────────────────────── */
 
@@ -51,4 +67,17 @@
 
   --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.08);
   --shadow-button: 0 4px 16px rgba(146, 24, 158, 0.3);
+
+  /* ── Agency dashboard (only in features/agency-dashboard) ─────────────── */
+
+  /* Mango: background with brand-dark text (11.46:1) or text on dark purple. Never text on white (1.54:1) */
+  --color-dashboard-highlight: #ffc93c;
+  --color-dashboard-page: #fbf8fc;
+  --color-dashboard-nav-end: #3b1743; /* nav gradient, from brand-dark */
+  --color-dashboard-featured-mid: #5a1764; /* next-visit card gradient, brand-dark → brand-primary */
+
+  --font-dashboard-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-dashboard-body: 'Inter', system-ui, sans-serif;
+
+  --shadow-dashboard-highlight: 0 8px 24px rgba(255, 201, 60, 0.35);
 }

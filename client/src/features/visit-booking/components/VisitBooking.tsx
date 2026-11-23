@@ -2,7 +2,12 @@ import { CalendarX } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Alert, Button, FormField, Input, Link } from '../../../components/ui'
 import { ApiError, SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
-import { PhoneVerification, type VerifiedPhone } from '../../phone-verification'
+import {
+  clearSilentCheck,
+  PhoneVerification,
+  type ResumedSilentCheck,
+  type VerifiedPhone,
+} from '../../phone-verification'
 import { bookVisit, getProperty, getSlots } from '../api'
 import {
   addDays,
@@ -13,6 +18,7 @@ import {
   monthOf,
   monthsBetween,
 } from '../calendar'
+import { readSavedVisitForm, type SavedVisitForm } from '../savedVisitForm'
 import type { BookedVisit, PropertySummary as Property, Slot } from '../types'
 import MonthCalendar from './MonthCalendar'
 import PropertySummary from './PropertySummary'
@@ -22,7 +28,11 @@ type Props = {
   propertyId: number
   /** Called with the confirmed visit, so the page can open the confirmation screen (A6). */
   onBooked: (visit: BookedVisit) => void
+  /** A silent check the visitor came back from, with the form saved before it. */
+  resumedCheck?: ResumedSilentCheck
 }
+
+type Restored = { check: ResumedSilentCheck; form: SavedVisitForm }
 
 type Load =
   | { status: 'loading' }
@@ -42,19 +52,30 @@ function errorMessage(error: unknown): string {
   return error instanceof ApiError ? error.message : SYSTEM_ERROR_MESSAGE
 }
 
+// Only a form saved for this same property is restored: anything else is an old entry
+function restore(check: ResumedSilentCheck | undefined, propertyId: number): Restored | undefined {
+  const form = check ? readSavedVisitForm(check.saved.form) : undefined
+  return check && form?.propertyId === propertyId ? { check, form } : undefined
+}
+
 function slotLabel(slot: Slot): string {
   return `${dayLabel(madridDay(slot.startsAt))}, from ${madridTime(slot.startsAt)} to ${madridTime(slot.endsAt)}`
 }
 
-function VisitBooking({ propertyId, onBooked }: Props) {
+function VisitBooking({ propertyId, onBooked, resumedCheck }: Props) {
+  const [restored] = useState(() => restore(resumedCheck, propertyId))
+  // Handed to the verification screen once: after any step change it has been used
+  const [pendingCheck, setPendingCheck] = useState(restored?.check)
   const [load, setLoad] = useState<Load>({ status: 'loading' })
   const [attempt, setAttempt] = useState(0)
-  const [step, setStep] = useState<Step>('calendar')
+  const [step, setStep] = useState<Step>(restored ? 'verify' : 'calendar')
   const [stepChangedByVisitor, setStepChangedByVisitor] = useState(false)
-  const [pickedDay, setPickedDay] = useState<string>()
+  const [pickedDay, setPickedDay] = useState(() =>
+    restored ? madridDay(restored.form.slot.startsAt) : undefined,
+  )
   const [shownMonth, setShownMonth] = useState<string>()
-  const [selectedSlotId, setSelectedSlotId] = useState<number>()
-  const [name, setName] = useState('')
+  const [selectedSlotId, setSelectedSlotId] = useState(restored?.form.slot.id)
+  const [name, setName] = useState(restored?.form.visitorName ?? '')
   // Kept after a 409, so the visitor books another time without a new SMS
   const [verification, setVerification] = useState<VerifiedPhone>()
   // A new key mounts a fresh verification screen after the server rejects the last one
@@ -62,6 +83,13 @@ function VisitBooking({ propertyId, onBooked }: Props) {
   const [notice, setNotice] = useState<Notice>()
   const noticeRef = useRef<HTMLDivElement>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
+
+  // A saved form that does not belong here is never used, so it is deleted
+  useEffect(() => {
+    if (resumedCheck && !restored) {
+      clearSilentCheck()
+    }
+  }, [resumedCheck, restored])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -93,6 +121,7 @@ function VisitBooking({ propertyId, onBooked }: Props) {
   }, [notice, step, stepChangedByVisitor])
 
   function goTo(next: Step) {
+    setPendingCheck(undefined)
     setStepChangedByVisitor(true)
     setStep(next)
   }
@@ -138,7 +167,8 @@ function VisitBooking({ propertyId, onBooked }: Props) {
   const { property, slots, today } = load
   const summary = <PropertySummary property={property} />
 
-  if (slots.length === 0) {
+  // From a restored silent check the verification finishes first, even if its time was taken
+  if (slots.length === 0 && step === 'calendar') {
     return (
       <div className="flex flex-col gap-6">
         {summary}
@@ -162,13 +192,17 @@ function VisitBooking({ propertyId, onBooked }: Props) {
 
   const months = monthsBetween(today, addDays(today, BOOKING_WINDOW_DAYS))
   const freeDays = new Set(slots.map((slot) => madridDay(slot.startsAt)))
-  const firstFreeDay = madridDay(slots[0].startsAt)
+  // Empty only while a restored silent check finishes, and then no calendar is shown
+  const firstFreeDay = slots.length > 0 ? madridDay(slots[0].startsAt) : today
   // The first free day is chosen on arrival, so there are times to see straight away
   const day = pickedDay && freeDays.has(pickedDay) ? pickedDay : firstFreeDay
   const month = shownMonth ?? monthOf(day)
   const monthIndex = months.indexOf(month)
   const slotsOfDay = slots.filter((slot) => madridDay(slot.startsAt) === day)
-  const selectedSlot = slots.find((slot) => slot.id === selectedSlotId)
+  // A restored time may have been booked by someone else meanwhile: booking it then gets a 409
+  const selectedSlot =
+    slots.find((slot) => slot.id === selectedSlotId) ??
+    (restored?.form.slot.id === selectedSlotId ? restored?.form.slot : undefined)
   const visitorName = name.trim()
   const rebooking = verification !== undefined
 
@@ -254,6 +288,8 @@ function VisitBooking({ propertyId, onBooked }: Props) {
         <PhoneVerification
           key={verificationAttempt}
           purpose="VISIT"
+          formToKeep={{ propertyId, visitorName, slot: selectedSlot } satisfies SavedVisitForm}
+          resumed={pendingCheck}
           onVerified={(verifiedPhone) => void book(selectedSlot, verifiedPhone)}
         />
       </div>

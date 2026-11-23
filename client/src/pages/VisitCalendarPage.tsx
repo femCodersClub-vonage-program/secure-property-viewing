@@ -1,11 +1,24 @@
-import { useNavigate, useParams } from 'react-router'
+import { useEffect, useState } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router'
+import { findSilentCheck } from '../features/phone-verification'
 import { VisitBooking, type VisitConfirmationState } from '../features/visit-booking'
 import NotFoundPage from './NotFoundPage'
 
 function VisitCalendarPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const propertyId = Number(id)
+  // Read on the first render only: the effect below removes the silent check's result from the URL
+  const [resumedCheck] = useState(() => findSilentCheck('VISIT', location.hash))
+
+  useEffect(() => {
+    if (location.hash === '') {
+      return
+    }
+    // `replace`, so neither "back" nor a reload sends the single-use code again
+    void navigate({ pathname: location.pathname, search: location.search }, { replace: true })
+  }, [location.hash, location.pathname, location.search, navigate])
 
   if (!Number.isInteger(propertyId) || propertyId <= 0) {
     return <NotFoundPage />
@@ -17,6 +30,7 @@ function VisitCalendarPage() {
       <VisitBooking
         key={propertyId}
         propertyId={propertyId}
+        resumedCheck={resumedCheck}
         onBooked={(visit) => {
           const state: VisitConfirmationState = { visit }
           void navigate(`/visits/${visit.visitId}/confirmation`, { state })

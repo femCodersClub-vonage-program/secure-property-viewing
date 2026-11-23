@@ -1,6 +1,7 @@
 import type { AgencyVisit, ListingRequestSummary } from './types'
 
-// Shaped like the examples in specs/agency-dashboard.md, until the agency endpoints are in dev
+// Shaped like the examples in specs/agency-dashboard.md, for the screens whose endpoint is not used yet.
+// D1 reads GET /api/agency/summary, so it has no sample data any more
 export const SAMPLE_VISITS: AgencyVisit[] = [
   {
     visitId: 31,

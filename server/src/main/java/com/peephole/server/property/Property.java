@@ -108,6 +108,10 @@ class Property {
         return area;
     }
 
+    String getAddress() {
+        return address;
+    }
+
     BigDecimal getLatitude() {
         return latitude;
     }

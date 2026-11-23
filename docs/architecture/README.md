@@ -11,6 +11,7 @@ flowchart LR
   A[Agency] --> C
   C["client<br/>Web application"] -->|REST API| S["server<br/>API and business logic"]
   C <-->|Video Client SDK| VV[Vonage Video]
+  C -->|silent check, same tab| VY
   C -->|map tiles| OSM[OpenStreetMap tiles]
   S --> DB[(Database)]
   S -->|Server SDK| VY[Vonage Verify]
@@ -32,11 +33,20 @@ sequenceDiagram
   V->>C: Chooses a date and time and enters the phone number
   C->>S: Starts the phone verification
   S->>VY: Starts verification
-  VY-->>V: OTP code by SMS
-  V->>C: Enters the code
-  C->>S: Sends the code
-  S->>VY: Checks the code
-  VY-->>S: Phone verified
+  alt From a phone, when the operator supports the silent check
+    S-->>C: Check URL
+    C->>VY: Opens the check URL in the same tab, over mobile data
+    VY-->>C: Back to /verification/return with a code
+    C->>S: Sends the silent code
+    S->>VY: Checks the code
+    VY-->>S: Phone verified
+  else Otherwise, or when the silent check fails
+    VY-->>V: OTP code by SMS
+    V->>C: Enters the code
+    C->>S: Sends the code
+    S->>VY: Checks the code
+    VY-->>S: Phone verified
+  end
   C->>S: Requests available slots for the property
   S-->>C: Available slots in the next 14 days
   V->>C: Chooses a time and enters her name

@@ -12,6 +12,9 @@ class VisitSlot {
     @Id
     private Long id;
 
+    @Column(name = "property_id", nullable = false, updatable = false)
+    private Long propertyId;
+
     @Column(name = "starts_at", nullable = false)
     private OffsetDateTime startsAt;
 
@@ -22,6 +25,10 @@ class VisitSlot {
 
     Long getId() {
         return id;
+    }
+
+    Long getPropertyId() {
+        return propertyId;
     }
 
     OffsetDateTime getStartsAt() {

@@ -40,7 +40,7 @@ const pinIcon = L.divIcon({
 function hasCoordinates(
   property: PropertySummary,
 ): property is PropertySummary & { latitude: number; longitude: number } {
-  return property.latitude !== null && property.longitude !== null
+  return typeof property.latitude === 'number' && typeof property.longitude === 'number'
 }
 
 function prefersReducedMotion(): boolean {

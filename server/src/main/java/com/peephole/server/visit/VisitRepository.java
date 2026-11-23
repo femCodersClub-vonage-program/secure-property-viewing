@@ -13,25 +13,6 @@ interface VisitRepository extends JpaRepository<Visit, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Visit> findWithLockById(long id);
 
-    // Reads the property table directly until the catalog (#52) exposes the agency of a property in its service
-    @Query(value = "SELECT agency_id FROM property WHERE id = :propertyId", nativeQuery = true)
-    long findAgencyIdOfProperty(long propertyId);
-
-    @Query(
-            value = "SELECT EXISTS(SELECT 1 FROM property WHERE id = :propertyId AND status = 'ACTIVE')",
-            nativeQuery = true)
-    // Reads the property table directly until the catalog (#52) exposes it in its service
-    boolean existsActiveProperty(long propertyId);
-
-    @Query(value = """
-                    SELECT p.id AS "propertyId", p.title AS title, p.area AS area, p.address AS address
-                    FROM property p
-                    JOIN visit_slot s ON s.property_id = p.id
-                    WHERE s.id = :slotId
-                    """, nativeQuery = true)
-    // Reads the property table directly until the catalog (#52) exposes it in its service
-    VisitPropertySummary findPropertySummaryBySlotId(long slotId);
-
     @Query(
             value = "SELECT EXISTS(SELECT 1 FROM visit WHERE phone_verification_id = :verificationId)",
             nativeQuery = true)

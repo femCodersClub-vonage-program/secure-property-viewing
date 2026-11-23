@@ -3,6 +3,8 @@ package com.peephole.server.visit;
 import com.peephole.server.common.FieldValidationException;
 import com.peephole.server.phoneverification.PhoneVerificationInvalidException;
 import com.peephole.server.phoneverification.PhoneVerificationService;
+import com.peephole.server.property.PropertyOverview;
+import com.peephole.server.property.PropertyService;
 import com.peephole.server.visit.dto.VisitBookingRequest;
 import com.peephole.server.visit.dto.VisitBookingResponse;
 import com.peephole.server.visit.dto.VisitSlotResponse;
@@ -26,19 +28,25 @@ import org.springframework.transaction.annotation.Transactional;
 public class VisitService {
 
     private final VisitRepository repository;
+    private final VisitQueries queries;
     private final VisitSlotRepository slotRepository;
     private final PhoneVerificationService phoneVerificationService;
+    private final PropertyService propertyService;
     private final Clock clock;
     private static final ZoneId MADRID = ZoneId.of("Europe/Madrid");
 
     VisitService(
             VisitRepository repository,
+            VisitQueries queries,
             VisitSlotRepository slotRepository,
             PhoneVerificationService phoneVerificationService,
+            PropertyService propertyService,
             Clock clock) {
         this.repository = repository;
+        this.queries = queries;
         this.slotRepository = slotRepository;
         this.phoneVerificationService = phoneVerificationService;
+        this.propertyService = propertyService;
         this.clock = clock;
     }
 
@@ -54,7 +62,10 @@ public class VisitService {
         LocalDate lastAllowedDay = today.plusDays(14);
         LocalDate lastDay = to == null || to.isAfter(lastAllowedDay) ? lastAllowedDay : to;
 
-        if (!repository.existsActiveProperty(propertyId)) {
+        if (propertyService
+                .findOverview(propertyId)
+                .filter(PropertyOverview::active)
+                .isEmpty()) {
             throw new VisitNotFoundException();
         }
         if (firstDay.isAfter(lastDay)) {
@@ -90,14 +101,11 @@ public class VisitService {
         }
 
         VisitSlot slot = slotRepository.findById(request.slotId()).orElseThrow(VisitNotFoundException::new);
-        VisitPropertySummary property = repository.findPropertySummaryBySlotId(request.slotId());
+        PropertyOverview property = propertyService
+                .findOverview(slot.getPropertyId())
+                .orElseThrow(() -> new IllegalStateException("Slot " + slot.getId() + " has no property"));
         Visit visit = new Visit(
-                property.getPropertyId(),
-                slot,
-                request.phoneVerificationId(),
-                request.visitorName(),
-                request.phone(),
-                now);
+                property.id(), slot, request.phoneVerificationId(), request.visitorName(), request.phone(), now);
         try {
             visit = repository.saveAndFlush(visit);
         } catch (DataIntegrityViolationException exception) {
@@ -110,8 +118,7 @@ public class VisitService {
                 inMadrid(slot.getStartsAt()),
                 inMadrid(slot.getEndsAt()),
                 visit.getVisitorName(),
-                new VisitBookingResponse.PropertySummary(
-                        property.getTitle(), property.getArea(), property.getAddress()));
+                new VisitBookingResponse.PropertySummary(property.title(), property.area(), property.address()));
     }
 
     /** Locks the visit until the caller's transaction ends, so its checks and writes see no other change. */
@@ -136,13 +143,40 @@ public class VisitService {
         });
     }
 
+    /**
+     * How many confirmed visits of the agency have not ended at {@code from} and start before {@code to}, so a visit
+     * in progress still counts.
+     */
+    @Transactional(readOnly = true)
+    public long countConfirmedVisits(long agencyId, OffsetDateTime from, OffsetDateTime to) {
+        return queries.countNotEndedWithStatus(agencyId, VisitStatus.CONFIRMED, from, to);
+    }
+
+    /**
+     * The first {@code limit} confirmed visits of the agency that have not ended at {@code from}, by start time, so
+     * a visit in progress stays until it ends.
+     */
+    @Transactional(readOnly = true)
+    public List<AgencyVisit> nextConfirmedVisits(long agencyId, OffsetDateTime from, int limit) {
+        return queries.findNotEndedWithStatus(agencyId, VisitStatus.CONFIRMED, from, limit);
+    }
+
+    /** Every visit of the agency, in any status, that starts from {@code from}, included, to {@code to}, excluded. */
+    @Transactional(readOnly = true)
+    public List<AgencyVisit> visitsBetween(long agencyId, OffsetDateTime from, OffsetDateTime to) {
+        return queries.findBetween(agencyId, from, to);
+    }
+
     private BookedVisit toBookedVisit(Visit visit) {
         return new BookedVisit(
                 visit.getId(),
                 visit.getStatus() == VisitStatus.CONFIRMED,
                 visit.getSlot().getStartsAt().toInstant(),
                 visit.getSlot().getEndsAt().toInstant(),
-                repository.findAgencyIdOfProperty(visit.getPropertyId()));
+                propertyService
+                        .findOverview(visit.getPropertyId())
+                        .map(PropertyOverview::agencyId)
+                        .orElseThrow(() -> new IllegalStateException("Visit " + visit.getId() + " has no property")));
     }
 
     private RuntimeException mapConstraintViolation(DataIntegrityViolationException exception) {

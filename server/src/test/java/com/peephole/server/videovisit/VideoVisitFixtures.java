@@ -5,7 +5,8 @@ import java.util.List;
 import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-// Booking (#73) doesn't exist yet, so the tests write a visit straight into the tables it would fill
+// Writes a visit straight into the tables booking fills, so these tests don't go through the phone
+// verification and the free-slot rules of POST /api/visits
 final class VideoVisitFixtures {
 
     // The example of the spec: a visit from 11:00 to 11:30, so the room is open from 10:50 to 11:45
