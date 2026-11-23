@@ -133,7 +133,7 @@ En local, todas rellenan los grupos de Verify y de Video, porque el servidor no 
 
 Rellena el grupo de Messages solo si es tuyo, y si no, déjalo con sus valores de ejemplo.
 
-**Silent Authentication.** Viene apagado (`SILENT_AUTH_ENABLED=false`), así que la verificación del teléfono envía un código por SMS, como antes, y su grupo puede quedarse con los valores de ejemplo. Para probarlo, como describe la [spec de Silent Authentication](../specs/silent-authentication.md), rellena su grupo con la aplicación de Mayleth del Drive, que tiene Network Registry en Test access, y pon:
+**Silent Authentication.** Pon `SILENT_AUTH_ENABLED` y `SILENT_AUTH_VIRTUAL_OPERATOR` en `false` para dejarlo apagado. Así la verificación del teléfono envía un código por SMS, como antes, y el resto de sus variables puede quedarse con los valores de ejemplo. Para probarlo, como describe la [spec de Silent Authentication](../specs/silent-authentication.md), rellena su grupo con la aplicación de Mayleth del Drive, que tiene Network Registry en Test access, y pon:
 
 | Variable | Valor |
 | :---- | :---- |
@@ -200,6 +200,7 @@ Abre `http://localhost:5173`. Para pararlo, pulsa `Ctrl+C`.
 | `password authentication failed for user "peephole"` | `DB_PASSWORD` de `server/.env` no coincide con la contraseña del usuario `peephole` | Comprueba que las dos son la contraseña compartida del Drive |
 | `Could not resolve placeholder 'app.flyway.locations.…'` | `LOAD_DEMO_DATA` en `server/.env` todavía tiene el valor de ejemplo de `.env.example` | Ponlo en `true` o `false` |
 | `Failed to bind properties under 'server.servlet.session.cookie.secure'` | `SESSION_COOKIE_SECURE` en `server/.env` todavía tiene el valor de ejemplo de `.env.example` | Ponlo en `false` |
+| `Invalid boolean value [true_or_false]` | `SILENT_AUTH_ENABLED` o `SILENT_AUTH_VIRTUAL_OPERATOR` en `server/.env` todavía tiene el valor de ejemplo de `.env.example` | Ponlo en `false`, o en `true` para probar Silent Authentication como en [Variables de Vonage](#variables-de-vonage) |
 | `database "peephole" does not exist` | No se completó el paso 3 | Lanza el comando `createdb` del paso 3 |
 | `npm error code EBADENGINE` en `client/` | Tu versión de Node.js es más antigua que la que necesita el proyecto | Instala una versión más nueva (paso 2) y vuelve a lanzar `npm ci` |
 | `Connection refused` en el puerto `5432` | PostgreSQL no está arrancado | Windows: arranca el servicio `postgresql-x64-17`. macOS: `brew services start postgresql@17` |
