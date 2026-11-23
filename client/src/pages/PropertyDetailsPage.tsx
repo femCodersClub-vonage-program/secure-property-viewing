@@ -17,6 +17,10 @@ type State =
   | { status: 'success'; data: PropertyDetail }
 
 function PropertyDetailsContent({ property }: { property: PropertyDetail }) {
+  useEffect(() => {
+    document.title = `${property.title} — Peephole`
+  }, [property.title])
+
   const {
     id,
     title,
@@ -35,7 +39,13 @@ function PropertyDetailsContent({ property }: { property: PropertyDetail }) {
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 flex flex-col gap-section">
       <nav aria-label="Breadcrumb">
-        <Link to="/properties"><span aria-hidden="true">← </span>Back to catalog</Link>
+        <ol>
+          <li>
+            <Link to="/properties">
+              <span aria-hidden="true">← </span>Back to catalog
+            </Link>
+          </li>
+        </ol>
       </nav>
 
       {images.length > 0 ? (
@@ -138,7 +148,9 @@ function PropertyDetailsPage() {
   if (state.status === 'error') {
     return (
       <main className="mx-auto max-w-3xl px-4 py-8 flex flex-col gap-4 items-start">
-        <Link to="/properties"><span aria-hidden="true">← </span>Back to catalog</Link>
+        <Link to="/properties">
+          <span aria-hidden="true">← </span>Back to catalog
+        </Link>
         <Alert variant="error">{state.message}</Alert>
       </main>
     )

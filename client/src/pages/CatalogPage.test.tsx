@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import CatalogPage from './CatalogPage'
 import { SYSTEM_ERROR_MESSAGE } from '../lib/http'
@@ -57,12 +57,17 @@ afterEach(() => {
   fetchMock.mockReset()
 })
 
+function LocationDisplay() {
+  return <output data-testid="location">{useLocation().search}</output>
+}
+
 function renderCatalog(search = '') {
   return render(
     <MemoryRouter initialEntries={[`/properties${search}`]}>
       <Routes>
         <Route path="/properties" element={<CatalogPage />} />
       </Routes>
+      <LocationDisplay />
     </MemoryRouter>,
   )
 }
@@ -144,6 +149,20 @@ describe('CatalogPage', () => {
       const links = screen.getAllByRole('link', { name: /see the details/i })
       expect(links[0]).toHaveAttribute('href', `/properties/${firstProperty?.id}`)
     })
+  })
+
+  it('updates the URL when a filter button is clicked', async () => {
+    fetchMock.mockReturnValue(Promise.resolve(json(propertiesFromSpec)))
+    renderCatalog()
+    fireEvent.click(screen.getByRole('button', { name: 'Rent' }))
+    expect(screen.getByTestId('location').textContent).toBe('?operation=RENT')
+  })
+
+  it('clears the URL filter when All is clicked', async () => {
+    fetchMock.mockReturnValue(Promise.resolve(json(propertiesFromSpec)))
+    renderCatalog('?operation=RENT')
+    fireEvent.click(screen.getByRole('button', { name: 'All' }))
+    expect(screen.getByTestId('location').textContent).toBe('')
   })
 
   it('fetches again with new filter when a filter button is clicked', async () => {

@@ -26,6 +26,10 @@ function parseOperation(value: string | null): Operation | undefined {
 }
 
 function CatalogPage() {
+  useEffect(() => {
+    document.title = 'Properties in Barcelona — Peephole'
+  }, [])
+
   const [searchParams, setSearchParams] = useSearchParams()
   const operation = parseOperation(searchParams.get('operation'))
   const [state, setState] = useState<State>({ status: 'loading' })

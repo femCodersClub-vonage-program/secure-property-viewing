@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { MessageCircle, ShieldCheck, Video } from 'lucide-react'
 import { Link } from '../components/ui'
 
@@ -20,14 +21,19 @@ const TRUST_POINTS = [
 ]
 
 function HomePage() {
+  useEffect(() => {
+    document.title = 'Peephole — Find your next home in Catalonia, without scams.'
+  }, [])
+
   return (
-    <main className="flex flex-col min-h-screen bg-surface-page">
+    <>
       <header className="flex items-center gap-3 px-6 py-4 bg-brand-dark">
         <ShieldCheck className="size-8 text-brand-accent" aria-hidden="true" />
         <span className="font-display text-2xl font-bold text-text-light">Peephole</span>
       </header>
 
-      <section className="relative flex items-end min-h-96 sm:min-h-[520px]">
+      <main className="flex flex-col min-h-screen bg-surface-page">
+      <section aria-labelledby="hero-heading" className="relative flex items-end min-h-96 sm:min-h-[520px]">
         <img
           src="/properties/property-03-cover.webp"
           alt=""
@@ -36,7 +42,7 @@ function HomePage() {
         {/* Dark gradient so white text meets 4.5:1 contrast over the photo */}
         <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/90 via-brand-dark/50 to-transparent" />
         <div className="relative flex flex-col gap-5 px-6 py-10 max-w-xl sm:px-10">
-          <h1 className="font-display text-3xl font-bold text-text-light text-balance sm:text-4xl">
+          <h1 id="hero-heading" className="font-display text-3xl font-bold text-text-light text-balance sm:text-4xl">
             Find your next home in Catalonia, without scams.
           </h1>
           <p className="font-body text-lg text-text-light/90">
@@ -74,7 +80,8 @@ function HomePage() {
           ))}
         </ul>
       </section>
-    </main>
+      </main>
+    </>
   )
 }
 
