@@ -7,14 +7,14 @@ interface PropertyCardProps {
   property: PropertySummary
 }
 
-const GENERIC_IMAGE_SRC = '/images/property-placeholder.webp'
+const GENERIC_IMAGE_SRC = '/images/property-placeholder.svg'
 const GENERIC_IMAGE_ALT = 'Property image not available'
 
 function PropertyCard({ property }: PropertyCardProps) {
   const { id, title, operation, priceEuros, area, bedrooms, sizeM2, coverImage, agency } = property
 
   return (
-    <Card className="overflow-hidden p-0 flex flex-col h-full">
+    <Card className="overflow-hidden p-0 flex flex-col h-full w-full">
       <img
         src={coverImage?.url ?? GENERIC_IMAGE_SRC}
         alt={coverImage?.altText ?? GENERIC_IMAGE_ALT}
@@ -22,7 +22,9 @@ function PropertyCard({ property }: PropertyCardProps) {
       />
       <div className="p-card flex flex-col gap-3 flex-1">
         <div>
-          <h2 className="font-display text-text-default text-lg font-semibold">{title}</h2>
+          <h2 className="font-display text-text-default text-lg font-semibold line-clamp-2">
+            {title}
+          </h2>
           <p className="font-body font-semibold text-brand-primary text-base mt-1">
             {formatPrice(priceEuros, operation)}
           </p>
@@ -52,8 +54,13 @@ function PropertyCard({ property }: PropertyCardProps) {
           </div>
         )}
 
-        <Link to={`/properties/${id}/visit`} variant="button" className="w-full mt-auto">
-          Request a video visit
+        <Link
+          to={`/properties/${id}`}
+          variant="button"
+          className="w-full mt-auto"
+          aria-label={`See the details: ${title}`}
+        >
+          See the details
         </Link>
       </div>
     </Card>

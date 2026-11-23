@@ -31,7 +31,12 @@ describe('routes', () => {
   it('shows the home page at the root path', () => {
     renderAt('/')
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Peephole' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Find your next home in Catalonia, without scams.',
+      }),
+    ).toBeInTheDocument()
   })
 
   it('shows the visit calendar of the property in the link', () => {
