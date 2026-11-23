@@ -186,21 +186,23 @@ public class PhoneVerificationService {
         return toResponse(verification);
     }
 
+    /** Checks the shared rules for using a verification and returns when it was verified. */
     @Transactional(propagation = Propagation.MANDATORY)
-    public OffsetDateTime validateForVisit(long id, String phone, Long sessionVerificationId) {
+    public OffsetDateTime validateVerified(
+            long id, PhoneVerificationPurpose purpose, String phone, Long sessionVerificationId) {
         if (!Objects.equals(id, sessionVerificationId)) {
-            throw new PhoneVerificationInvalidException();
+            throw new PhoneVerificationInvalidException(purpose);
         }
 
         PhoneVerification verification =
-                repository.findWithLockById(id).orElseThrow(PhoneVerificationInvalidException::new);
+                repository.findWithLockById(id).orElseThrow(() -> new PhoneVerificationInvalidException(purpose));
         OffsetDateTime verifiedAt = verification.getVerifiedAt();
 
         if (verification.getStatus() != PhoneVerificationStatus.VERIFIED
-                || verification.getPurpose() != PhoneVerificationPurpose.VISIT
+                || verification.getPurpose() != purpose
                 || verifiedAt == null
                 || !phoneHasher.hash(phone).equals(verification.getPhoneHash())) {
-            throw new PhoneVerificationInvalidException();
+            throw new PhoneVerificationInvalidException(purpose);
         }
         return verifiedAt;
     }

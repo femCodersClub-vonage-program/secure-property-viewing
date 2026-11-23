@@ -57,6 +57,17 @@ class OpenApiDocsTest {
     }
 
     @Test
+    void documentsTheListingRequestEndpointAndItsErrors() throws Exception {
+        String submit = "$.paths['/api/listing-requests'].post";
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(jsonPath(submit + ".responses['201']").exists())
+                .andExpect(jsonPath(submit + ".responses['400']").exists())
+                .andExpect(jsonPath(submit + ".responses['403']").exists())
+                .andExpect(jsonPath(submit + ".responses['422']").exists())
+                .andExpect(jsonPath(submit + ".security").doesNotExist());
+    }
+
+    @Test
     void documentsTheVideoVisitEndpointsAndTheirErrors() throws Exception {
         String roomLinks = "$.paths['/api/visits/{id}/room-links'].post";
         String linkToken = "$.paths['/api/room-links/video-token'].post";

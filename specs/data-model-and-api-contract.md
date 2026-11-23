@@ -93,7 +93,7 @@ Public:
 | `POST /api/visits` | Book a visit with a verified phone | [Visit booking](visit-booking.md) |
 | `POST /api/visits/{id}/room-links` | Create the visitor's room link or a guest link, right after booking | [Video visit](video-visit.md) |
 | `POST /api/room-links/video-token` | Enter the video visit with a room link | [Video visit](video-visit.md) |
-| `POST /api/listing-requests` | Send a listing request with a verified phone | Owner listing (week 2) |
+| `POST /api/listing-requests` | Send a listing request with a verified phone | [Owner listing](owner-listing.md) |
 
 Agency:
 

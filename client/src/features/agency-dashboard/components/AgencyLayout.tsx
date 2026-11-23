@@ -13,15 +13,15 @@ function AgencyLayout() {
   const isMenuOpen = openOn === pathname
 
   return (
-    <div className="flex min-h-screen flex-col bg-surface-page md:flex-row">
+    <div className="flex min-h-screen flex-col bg-dashboard-page font-dashboard-body text-text-default md:flex-row">
       <header className="flex items-center justify-between bg-brand-dark px-4 py-2 md:hidden">
-        <p className="font-display text-lg font-bold text-text-light">Peephole</p>
+        <p className="font-dashboard-display text-lg font-bold text-text-light">Peephole</p>
         <button
           type="button"
           aria-expanded={isMenuOpen}
           aria-controls={NAVIGATION_ID}
           onClick={() => setOpenOn(isMenuOpen ? null : pathname)}
-          className="flex min-h-11 items-center gap-2 px-3 font-body text-text-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-text-light"
+          className="flex min-h-11 items-center gap-2 px-3 font-dashboard-body text-text-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-text-light"
         >
           <Menu aria-hidden="true" className="size-5" />
           Menu
@@ -34,7 +34,7 @@ function AgencyLayout() {
         {/* TEMPORARY: until the agency session exists, signing out goes back to the home page */}
         <SideNav onSignOut={() => void navigate('/')} />
       </div>
-      <main className="flex-1 px-4 py-8 md:px-8">
+      <main className="min-w-0 flex-1 px-4 py-8 md:px-12 md:py-10">
         <Outlet />
       </main>
     </div>

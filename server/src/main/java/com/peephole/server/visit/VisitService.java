@@ -2,6 +2,7 @@ package com.peephole.server.visit;
 
 import com.peephole.server.common.FieldValidationException;
 import com.peephole.server.phoneverification.PhoneVerificationInvalidException;
+import com.peephole.server.phoneverification.PhoneVerificationPurpose;
 import com.peephole.server.phoneverification.PhoneVerificationService;
 import com.peephole.server.property.PropertyOverview;
 import com.peephole.server.property.PropertyService;
@@ -83,13 +84,13 @@ public class VisitService {
     @Transactional
     public VisitBookingResponse book(VisitBookingRequest request, Long sessionVerificationId) {
         OffsetDateTime now = OffsetDateTime.now(clock);
-        OffsetDateTime verifiedAt = phoneVerificationService.validateForVisit(
-                request.phoneVerificationId(), request.phone(), sessionVerificationId);
+        OffsetDateTime verifiedAt = phoneVerificationService.validateVerified(
+                request.phoneVerificationId(), PhoneVerificationPurpose.VISIT, request.phone(), sessionVerificationId);
         if (!now.isBefore(verifiedAt.plusMinutes(30))) {
-            throw new PhoneVerificationInvalidException();
+            throw new PhoneVerificationInvalidException(PhoneVerificationPurpose.VISIT);
         }
         if (repository.existsByPhoneVerificationId(request.phoneVerificationId())) {
-            throw new PhoneVerificationInvalidException();
+            throw new PhoneVerificationInvalidException(PhoneVerificationPurpose.VISIT);
         }
 
         int updated = slotRepository.bookIfAvailable(request.slotId(), now);
@@ -186,7 +187,7 @@ public class VisitService {
                     return new SlotUnavailableException();
                 }
                 if (Objects.equals("visit_phone_verification_id_key", violation.getConstraintName())) {
-                    return new PhoneVerificationInvalidException();
+                    return new PhoneVerificationInvalidException(PhoneVerificationPurpose.VISIT);
                 }
             }
             if (cause instanceof SQLException sqlException && "23505".equals(sqlException.getSQLState())) {
@@ -196,7 +197,7 @@ public class VisitService {
                         return new SlotUnavailableException();
                     }
                     if (message.contains("visit_phone_verification_id_key")) {
-                        return new PhoneVerificationInvalidException();
+                        return new PhoneVerificationInvalidException(PhoneVerificationPurpose.VISIT);
                     }
                 }
             }

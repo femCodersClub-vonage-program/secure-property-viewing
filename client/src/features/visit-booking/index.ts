@@ -3,4 +3,5 @@ export { default as ConfirmationUnavailable } from './components/ConfirmationUna
 export { default as VisitBooking } from './components/VisitBooking'
 export { default as VisitConfirmation } from './components/VisitConfirmation'
 export { readConfirmationState, type VisitConfirmationState } from './confirmationState'
+export { readSavedVisitForm, visitBookingPath } from './savedVisitForm'
 export type { BookedVisit } from './types'

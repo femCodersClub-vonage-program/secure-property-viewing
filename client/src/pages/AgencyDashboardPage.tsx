@@ -1,11 +1,11 @@
-import { DashboardOverview, SAMPLE_SUMMARY } from '../features/agency-dashboard'
+import { DashboardHome } from '../features/agency-dashboard'
 
-// TEMPORARY: sample data until GET /api/agency/summary is in dev
+// D1: the summary comes from GET /api/agency/summary
 function AgencyDashboardPage() {
   return (
     <>
       <title>Dashboard · Peephole</title>
-      <DashboardOverview summary={SAMPLE_SUMMARY} />
+      <DashboardHome />
     </>
   )
 }
