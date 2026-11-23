@@ -248,6 +248,15 @@ Pairs that must never be used:
 | `#FFC93C` text on `#FFFFFF` | 1.54:1 | Far below 3:1. Mango is never text on white |
 | `#FFFFFF` text on `#FF0090` | 3.71:1 | Below 4.5:1. The pink glow is decorative only |
 
+### Calendar
+
+D4 shows the visits of one week, from Monday to Sunday in `Europe/Madrid`, and opens on the current week.
+
+- Under the page heading, the week is an `h2` in `--font-dashboard-display`, such as "23 November – 29 November 2026", next to "Previous week" and "Next week" `secondary` buttons. Each button has a text label, and its chevron icon is decorative. The buttons stay on screen while the week loads or fails, so the agent can always change week
+- From `xl` up, the days are seven columns, each with its name as an `h3` and its visits below, and a day with no visits says "No visits". Below `xl`, the same days are a list that only shows the days with visits, so mobile and 200% zoom need no horizontal scroll. The columns start at `xl` because below it, with the side navigation, a column is narrower than a visit card
+- Each visit is a `CalendarEvent`: a default `Card` with the start and end times in `tabular-nums`, the visitor, the property in `--color-text-muted`, and "Join visit" at the full width of the card, as described in [States](#states). Its accessible name says which visit and on which day, as in D1
+- While loading, the sentence names the week, such as "Loading the visits of 23 November – 29 November 2026…". An empty week says "No visits this week"
+
 ### States
 
 Every section that calls the API shows its own state, so one failing call does not leave the whole screen blank.
