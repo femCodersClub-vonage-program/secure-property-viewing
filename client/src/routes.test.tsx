@@ -106,7 +106,7 @@ describe('routes', () => {
   })
 
   it.each([
-    ['/agency', 'Hello, Marta'],
+    ['/agency', 'Dashboard'],
     ['/agency/properties', 'Properties'],
     ['/agency/listing-requests', 'Listing requests'],
     ['/agency/listing-requests/18', 'Request details'],
@@ -114,10 +114,24 @@ describe('routes', () => {
     ['/agency/messages', 'Messages'],
     ['/agency/profile', 'Profile'],
   ])('shows %s inside the agency layout', (path, heading) => {
+    // D1 asks the server for its summary: the answer never comes, so it stays on its loading heading
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(() => new Promise(() => {})),
+    )
     renderAt(path)
 
     expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Agency' })).toBeInTheDocument()
+  })
+
+  it('asks the server for the dashboard summary at /agency', () => {
+    const fetchMock = vi.fn<typeof fetch>(() => new Promise(() => {}))
+    vi.stubGlobal('fetch', fetchMock)
+    renderAt('/agency')
+
+    expect(screen.getByRole('status')).toHaveTextContent('Loading the dashboard…')
+    expect(fetchMock).toHaveBeenCalledWith('/api/agency/summary', expect.anything())
   })
 
   it('shows the agency room outside the agency layout, so the call has the whole screen', () => {
