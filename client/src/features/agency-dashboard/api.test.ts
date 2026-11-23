@@ -54,6 +54,14 @@ describe('parseAgencySummary', () => {
       name: 'a visit without an id',
       data: { ...summaryExample, nextVisits: [{ ...visitExample, visitId: undefined }] },
     },
+    {
+      name: 'a visit without a visitor name',
+      data: { ...summaryExample, nextVisits: [{ ...visitExample, visitorName: undefined }] },
+    },
+    {
+      name: 'a visit without a property title',
+      data: { ...summaryExample, nextVisits: [{ ...visitExample, propertyTitle: undefined }] },
+    },
     { name: 'no body', data: null },
   ])('refuses a summary with $name', ({ data }) => {
     expect(() => parseAgencySummary(data)).toThrow()
