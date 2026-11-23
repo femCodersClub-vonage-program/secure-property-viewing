@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { addWeeks, currentWeekStart, weekDays, weekEnd, weekLabel, weekStart } from './week'
+import {
+  addWeeks,
+  currentWeekStart,
+  dayParts,
+  weekDays,
+  weekEnd,
+  weekLabel,
+  weekStart,
+} from './week'
 
 describe('weekStart', () => {
   it.each([
@@ -53,5 +61,19 @@ describe('weekLabel', () => {
 
   it('shows both years when the week crosses into a new one', () => {
     expect(weekLabel('2026-12-28')).toBe('28 December 2026 – 3 January 2027')
+  })
+})
+
+describe('dayParts', () => {
+  it('splits a day into its weekday, number and month', () => {
+    expect(dayParts('2026-11-24')).toEqual({
+      weekday: 'Tuesday',
+      dayOfMonth: '24',
+      month: 'November',
+    })
+  })
+
+  it('gives the number without a leading zero', () => {
+    expect(dayParts('2026-12-01').dayOfMonth).toBe('1')
   })
 })

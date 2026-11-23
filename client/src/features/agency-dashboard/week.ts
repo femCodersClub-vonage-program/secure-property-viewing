@@ -56,3 +56,22 @@ export function weekLabel(monday: string): string {
   const startFormat = monday.slice(0, 4) === sunday.slice(0, 4) ? dayAndMonth : fullDate
   return `${startFormat.format(dayToDate(monday))} – ${fullDate.format(dayToDate(sunday))}`
 }
+
+export type DayParts = {
+  weekday: string
+  dayOfMonth: string
+  month: string
+}
+
+const weekdayFormat = new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', weekday: 'long' })
+const monthFormat = new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', month: 'long' })
+
+/** The parts of a day for its heading in the calendar, such as Tuesday, 24 and November. */
+export function dayParts(day: string): DayParts {
+  const date = dayToDate(day)
+  return {
+    weekday: weekdayFormat.format(date),
+    dayOfMonth: String(date.getUTCDate()),
+    month: monthFormat.format(date),
+  }
+}
