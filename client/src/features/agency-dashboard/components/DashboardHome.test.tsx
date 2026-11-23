@@ -138,8 +138,8 @@ describe('DashboardHome', () => {
     const consoleError = vi.spyOn(console, 'error')
     // Like a real fetch: the call fails with an AbortError when its signal is aborted
     const fetchMock = vi.fn<typeof fetch>(
-      (input, init) =>
-        new Promise<Response>((resolve, reject) => {
+      (_input, init) =>
+        new Promise<Response>((_resolve, reject) => {
           init?.signal?.addEventListener('abort', () =>
             reject(new DOMException('Aborted', 'AbortError')),
           )
