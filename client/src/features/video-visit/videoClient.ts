@@ -70,8 +70,8 @@ export async function joinVideoCall(
 
   // Any failure to start or send the camera and microphone, such as no camera found.
   // A denied permission also comes through accessDenied, and the hook lets that one win
-  const reportMediaFailure = (error?: OT.OTError) => {
-    if (error !== undefined) {
+  const reportMediaFailure = (error?: OT.OTError | null) => {
+    if (error) {
       events.onMediaFailed()
     }
   }

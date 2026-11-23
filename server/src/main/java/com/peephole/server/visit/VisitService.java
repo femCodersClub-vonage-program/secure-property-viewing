@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class VisitService {
 
     private final VisitRepository repository;
+    private final VisitQueries queries;
     private final VisitSlotRepository slotRepository;
     private final PhoneVerificationService phoneVerificationService;
     private final PropertyService propertyService;
@@ -36,11 +37,13 @@ public class VisitService {
 
     VisitService(
             VisitRepository repository,
+            VisitQueries queries,
             VisitSlotRepository slotRepository,
             PhoneVerificationService phoneVerificationService,
             PropertyService propertyService,
             Clock clock) {
         this.repository = repository;
+        this.queries = queries;
         this.slotRepository = slotRepository;
         this.phoneVerificationService = phoneVerificationService;
         this.propertyService = propertyService;
@@ -138,6 +141,30 @@ public class VisitService {
             visit.assignVideoSession(sessionId);
             return sessionId;
         });
+    }
+
+    /**
+     * How many confirmed visits of the agency have not ended at {@code from} and start before {@code to}, so a visit
+     * in progress still counts.
+     */
+    @Transactional(readOnly = true)
+    public long countConfirmedVisits(long agencyId, OffsetDateTime from, OffsetDateTime to) {
+        return queries.countNotEndedWithStatus(agencyId, VisitStatus.CONFIRMED, from, to);
+    }
+
+    /**
+     * The first {@code limit} confirmed visits of the agency that have not ended at {@code from}, by start time, so
+     * a visit in progress stays until it ends.
+     */
+    @Transactional(readOnly = true)
+    public List<AgencyVisit> nextConfirmedVisits(long agencyId, OffsetDateTime from, int limit) {
+        return queries.findNotEndedWithStatus(agencyId, VisitStatus.CONFIRMED, from, limit);
+    }
+
+    /** Every visit of the agency, in any status, that starts from {@code from}, included, to {@code to}, excluded. */
+    @Transactional(readOnly = true)
+    public List<AgencyVisit> visitsBetween(long agencyId, OffsetDateTime from, OffsetDateTime to) {
+        return queries.findBetween(agencyId, from, to);
     }
 
     private BookedVisit toBookedVisit(Visit visit) {
