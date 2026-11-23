@@ -65,13 +65,13 @@ OffLoad shows what worked in practice. The Vonage Documentation MCP Server is st
 
 ### Messages API
 
-Visit confirmations, reminders and request status updates, always sent from the platform's official channel. We start with SMS, and WhatsApp Business is planned for later.
+Planned, not built yet: visit confirmations, reminders and request status updates, always sent from the platform's official channel. The first one is the visit confirmation by SMS (#87), and WhatsApp Business is planned for later.
 
 ## Vonage developer tools
 
 | Tool | What we use it for | Where |
 | :---- | :---- | :---- |
-| **Java Server SDK** (`com.vonage:server-sdk`) | Calling Verify, Video and Messages from the server and generating video session tokens | `server/` |
+| **Java Server SDK** (`com.vonage:server-sdk`) | Calling Verify and Video from the server, and Messages once it is built, and generating video session tokens | `server/` |
 | **Video Client SDK** (`@vonage/client-sdk-video`) | Embedding the video room in the browser | `client/` |
 | **Vonage CLI** | Creating and configuring the Vonage application, its keys and test numbers from the terminal, and checking that configuration, such as webhook URLs, before an end-to-end test | Project setup and manual checks |
 | **Documentation MCP Server** | Querying Vonage documentation, SDKs and sample code from the AI assistant without leaving the editor, so answers are checked against the official source. It is read-only | AI assistants |

@@ -131,7 +131,7 @@ Locally, everyone fills in the Video group, and the Verify group while Silent Au
 - **Verify:** your own Vonage application. Verify needs no capability, so any of your applications works
 - **Video:** Viviana's application, with the values from the team's shared Drive folder, as the [video visit spec](../specs/video-visit.md) decides
 
-Fill in the Messages group only if it is yours, and leave it with its placeholders otherwise.
+No code reads the Messages group yet: it is kept for the messages feature (#87), so leave it with its placeholders.
 
 **Silent Authentication.** Set `SILENT_AUTH_ENABLED` and `SILENT_AUTH_VIRTUAL_OPERATOR` to `false` to keep it off. Phone verification then sends an SMS code, as before, and the rest of its variables can keep their placeholders. To try it, as the [Silent Authentication spec](../specs/silent-authentication.md) describes, fill in its group with Mayleth's application from the Drive folder, which has Network Registry in Test access, and set:
 

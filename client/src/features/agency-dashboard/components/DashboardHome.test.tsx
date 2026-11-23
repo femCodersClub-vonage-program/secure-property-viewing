@@ -73,6 +73,37 @@ describe('DashboardHome', () => {
     )
   })
 
+  it('shows no Visits to review card for a server from before the post-visit call', async () => {
+    // summaryExample has no alerts field, like the server before the post-visit call
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(async () => json(summaryExample)),
+    )
+    renderHome()
+
+    await screen.findByRole('heading', { level: 1, name: 'Hello, Marta' })
+    expect(screen.queryByRole('table', { name: 'Visits to review' })).not.toBeInTheDocument()
+  })
+
+  it('shows the alerts the server sends in the Visits to review card', async () => {
+    const alert = {
+      visitId: 31,
+      visitorName: 'Laura Gómez',
+      propertyTitle: 'Apartment in Gràcia',
+      startsAt: '2026-11-10T11:00:00+01:00',
+      reportedAt: '2026-11-10T11:47:12+01:00',
+    }
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(async () => json({ ...summaryExample, alerts: [alert] })),
+    )
+    renderHome()
+
+    expect(await screen.findByRole('table', { name: 'Visits to review' })).toHaveTextContent(
+      'Asked for money before signing',
+    )
+  })
+
   it('says there are no upcoming visits when the server sends none', async () => {
     vi.stubGlobal(
       'fetch',

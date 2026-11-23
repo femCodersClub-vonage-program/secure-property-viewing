@@ -131,7 +131,7 @@ En local, todas rellenan el grupo de Video, y el de Verify mientras Silent Authe
 - **Verify:** tu propia aplicación de Vonage. Verify no necesita ninguna capacidad, así que sirve cualquiera de tus aplicaciones
 - **Video:** la aplicación de Viviana, con los valores de la carpeta compartida del equipo en Drive, como decide la [spec de la videovisita](../specs/video-visit.md)
 
-Rellena el grupo de Messages solo si es tuyo, y si no, déjalo con sus valores de ejemplo.
+Todavía no hay código que lea el grupo de Messages: está reservado para la funcionalidad de mensajes (#87), así que déjalo con sus valores de ejemplo.
 
 **Silent Authentication.** Pon `SILENT_AUTH_ENABLED` y `SILENT_AUTH_VIRTUAL_OPERATOR` en `false` para dejarlo apagado. Así la verificación del teléfono envía un código por SMS, como antes, y el resto de sus variables puede quedarse con los valores de ejemplo. Para probarlo, como describe la [spec de Silent Authentication](../specs/silent-authentication.md), rellena su grupo con la aplicación de Mayleth del Drive, que tiene Network Registry en Test access, y pon:
 

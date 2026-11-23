@@ -118,8 +118,6 @@ Never:
 - Change a token or a shared component on your own initiative as an AI assistant: propose the change and let the team decide
 - Invent a design decision that is missing: point out the gap instead
 
-`HomePage` and `NotFoundPage` still use Tailwind palette colors and typography classes because the tokens and components do not exist yet. They move to tokens and components in the design system issue. Until then, the `design-system-reviewer` agent reports palette colors and visual styling in pages as suggestions, not as blocking.
-
 ## Other rules
 
 - Call the server under `/api`, always with a relative path such as `/api/health`, so the browser sees one origin. In development, Vite proxies `/api` to `http://localhost:8080`, and on Railway the client's `Caddyfile` sends it to the server over the private network, as decided in [ADR 0004](../docs/adr/0004-agency-sign-in.md)

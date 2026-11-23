@@ -66,6 +66,10 @@ function VisitConfirmation({ visit }: Props) {
           </div>
         </dl>
       </Card>
+      <p className="font-body text-text-default">
+        After the visit, Peephole will call you with one safety question. Answer with your
+        phone&apos;s keypad.
+      </p>
     </div>
   )
 }

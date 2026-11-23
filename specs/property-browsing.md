@@ -109,4 +109,3 @@ None.
 - Pages in `src/pages/` for the home page, the catalog and the details, registered in `routes.tsx`
 - A `property-browsing` feature with its `api.ts`, types and components, following the folder rules in `client/AGENTS.md`
 - The map uses `leaflet` with OpenStreetMap tiles, in issue #30. Coordinates are approximate, at neighborhood level, because the full address is only shown after booking a visit
-- Sample data in the shape above while the endpoints are not in `dev`
