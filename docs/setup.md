@@ -117,13 +117,14 @@ The demo data is fictional and lives in `server/src/main/resources/db/seed/`. It
 
 ### Vonage variables
 
-Each Vonage API runs on the Vonage application of one person on the team, so the server has one group of variables per API: the application ID and its private key, plus the signature secret that Messages uses to verify its webhooks.
+Each Vonage API runs on the Vonage application of one person on the team, so the server has one group of variables per API: the application ID and its private key, plus the signature secret that Messages and Voice use to verify their webhooks. Voice also needs the Vonage number it calls from.
 
 | Group | Variables | Values on Railway |
 | :---- | :---- | :---- |
 | Verify | `VONAGE_VERIFY_APPLICATION_ID`, `VONAGE_VERIFY_PRIVATE_KEY` | Candé |
 | Video | `VONAGE_VIDEO_APPLICATION_ID`, `VONAGE_VIDEO_PRIVATE_KEY` | Viviana |
 | Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY`, `VONAGE_MESSAGES_SIGNATURE_SECRET` | Damaris |
+| Voice | `VONAGE_VOICE_APPLICATION_ID`, `VONAGE_VOICE_PRIVATE_KEY`, `VONAGE_VOICE_FROM_NUMBER`, `VONAGE_VOICE_SIGNATURE_SECRET` | Irina |
 
 Locally, everyone fills in the Verify and Video groups, because the server does not start without them:
 
@@ -131,6 +132,23 @@ Locally, everyone fills in the Verify and Video groups, because the server does 
 - **Video:** Viviana's application, with the values from the team's shared Drive folder, as the [video visit spec](../specs/video-visit.md) decides
 
 Fill in the Messages group only if it is yours, and leave it with its placeholders otherwise.
+
+**The post-visit call.** The [post-visit call](../specs/post-visit-call.md) is off by default, with `VOICE_CALLS_ENABLED=false`, so the server starts without the Voice group and never places a call. To try it, set these and fill in the Voice group with Irina's values from the Drive folder:
+
+| Variable | Value |
+| :---- | :---- |
+| `VOICE_CALLS_ENABLED` | `true` to call the visitor after the visit. With it on, the server doesn't start while a Voice variable or `SERVER_PUBLIC_URL` is missing |
+| `POST_VISIT_CALL_DELAY_MINUTES` | Minutes after the visit ends, `15` by default, which is when its room closes |
+| `SERVER_PUBLIC_URL` | The public `https://` address of your server, which Vonage sends the call's webhooks to. Locally it is an ngrok tunnel, as below |
+| `VONAGE_VOICE_FROM_NUMBER` | The Spanish Vonage number, in E.164 without the `+` |
+
+Vonage can't reach `localhost`, so locally the webhooks go through an [ngrok](https://ngrok.com/) tunnel to port 8080. Install it and sign in once with the token of your free ngrok account, then start it before the server and copy the `https://` address it shows into `SERVER_PUBLIC_URL`:
+
+```bash
+ngrok http 8080
+```
+
+The address changes each time ngrok starts, unless your account has a fixed domain.
 
 **The private key in base64.** Each private key goes on a single line, so the same value works in `server/.env` and on Railway. To copy yours:
 
@@ -144,7 +162,7 @@ base64 -i path/to/your.key | tr -d '\n' | pbcopy
 [Convert]::ToBase64String([IO.File]::ReadAllBytes("path\to\your.key")) | Set-Clipboard
 ```
 
-**Sharing your credentials.** Each person uploads hers to the team's shared Drive folder: her API key, API secret, application ID and private key file (`.key`), plus the signature secret if she builds Messages. Never send them through Slack, an issue, the repository or an AI assistant.
+**Sharing your credentials.** Each person uploads hers to the team's shared Drive folder: her API key, API secret, application ID and private key file (`.key`), plus the signature secret if she builds Messages or Voice. Never send them through Slack, an issue, the repository or an AI assistant.
 
 **On Railway.** The same variables go in the `server` service, as described in [Railway from the terminal](guides/railway.md) (in Spanish).
 
@@ -195,4 +213,6 @@ Open `http://localhost:5173`. Stop it with `Ctrl+C`.
 | `PHONE_HASH_SECRET is not set`, `VONAGE_VERIFY_… is not set` or `VONAGE_VIDEO_… is not set` | That variable is empty in `server/.env` | Fill it in: the hash secret as in step 4, the Verify group with your own Vonage application and the Video group with Viviana's values from the Drive folder, as in [Vonage variables](#vonage-variables) |
 | `VONAGE_VERIFY_PRIVATE_KEY does not match VONAGE_VERIFY_APPLICATION_ID`, or the same for `VONAGE_VIDEO_…` | The key and the ID come from different applications, or the key was not copied whole | Copy both again from the same application, with the key in base64 on a single line |
 | `VONAGE_VERIFY_APPLICATION_ID is not a valid application ID`, or the same for `VONAGE_VIDEO_…` | The value is not an application ID, which looks like `aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee` | Copy it again: Verify from your application in the Vonage dashboard, Video from the Drive folder |
+| `VONAGE_VOICE_… is not set` or `SERVER_PUBLIC_URL is not set` | `VOICE_CALLS_ENABLED` is `true` and that variable is empty | Fill in the Voice group with Irina's values from the Drive folder and start ngrok, as in [Vonage variables](#vonage-variables), or set `VOICE_CALLS_ENABLED=false` |
+| `SERVER_PUBLIC_URL must start with https://` | Vonage only sends the webhooks of the call over HTTPS | Copy the `https://` address that ngrok shows |
 | `VONAGE_VERIFY_PRIVATE_KEY is not valid base64`, or the same for `VONAGE_VIDEO_…` | The key was pasted as it is, or with spaces or line breaks | Convert it again with the command in [Vonage variables](#vonage-variables) and paste the single line |

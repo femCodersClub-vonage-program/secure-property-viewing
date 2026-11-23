@@ -59,11 +59,21 @@ OffLoad shows what worked in practice. The Vonage Documentation MCP Server is st
 
 Visit confirmations, reminders and request status updates, always sent from the platform's official channel. We start with SMS, and WhatsApp Business is planned for later.
 
+### Voice API
+
+The [post-visit call](../specs/post-visit-call.md): after a video visit, the server calls the visitor's verified phone, asks in Spanish whether anyone asked for money before signing, and waits for one key. A "yes" becomes an alert on the agency dashboard.
+
+- **One Spanish Vonage number** in Irina's account, in its own application with the Voice capability
+- **No answer URL.** The NCCO goes inside the create-call request: a `talk` action in `es-ES` and an `input` action for one DTMF digit, with its own webhook for the key
+- **Voicemail never hears the question.** The call uses `machine_detection: hangup`, which hangs up before the first action
+- **Signed webhooks.** Vonage signs the key and status webhooks with the account's signature secret, and the server rejects any webhook without a valid signature. They travel over HTTPS, so the server doesn't need to check the hash of the body as well
+- **Off by default.** With `VOICE_CALLS_ENABLED=false`, local development and the tests need no number and place no call
+
 ## Vonage developer tools
 
 | Tool | What we use it for | Where |
 | :---- | :---- | :---- |
-| **Java Server SDK** (`com.vonage:server-sdk`) | Calling Verify, Video and Messages from the server and generating video session tokens | `server/` |
+| **Java Server SDK** (`com.vonage:server-sdk`) | Calling Verify, Video, Messages and Voice from the server and generating video session tokens | `server/` |
 | **Video Client SDK** (`@vonage/client-sdk-video`) | Embedding the video room in the browser | `client/` |
 | **Vonage CLI** | Creating and configuring the Vonage application, its keys and test numbers from the terminal, and checking that configuration, such as webhook URLs, before an end-to-end test | Project setup and manual checks |
 | **Documentation MCP Server** | Querying Vonage documentation, SDKs and sample code from the AI assistant without leaving the editor, so answers are checked against the official source. It is read-only | AI assistants |

@@ -78,7 +78,7 @@ What each status means:
 | `CALLING` | The row is inserted and the call requested | No |
 | `ANSWERED` | The input webhook arrived, with any key or none. `answer` is set only for 1 or 2 | Yes |
 | `NOT_REACHED` | Busy, unanswered, rejected, voicemail, or a call that completed with no input | Only an input webhook can still change it to `ANSWERED` |
-| `FAILED` | Vonage refused to start the call | Yes |
+| `FAILED` | Vonage refused to start the call, or its answer never arrived | Only an input webhook can still change it to `ANSWERED`, because the call may have started anyway |
 | `SKIPPED` | The call would fall outside 09:00 to 21:00 | Yes |
 
 The feature lives in a `postvisitcall` package. It reads visits through a new `VisitService` method, never through the visit repository, and the agency summary gets the alerts from this feature's service. The [data model](data-model-and-api-contract.md) gets the table, the column and the two webhooks in the build pull request, as [`specs/README.md`](README.md) describes.
@@ -89,7 +89,7 @@ The sample data adds two `ANSWERED` calls with `ASKED_FOR_MONEY` on past sample 
 
 Two Vonage webhooks, under `/api/webhooks/**`, so they need no CSRF token and are checked with the signed JWT instead. `{id}` is our `post_visit_call.id`, and both are documented for springdoc:
 
-- `POST /api/webhooks/voice/input?callId={id}`: the `input` result. The first time, it sets the status to `ANSWERED`, records the answer and `answered_at`, and returns the closing NCCO as a JSON array. A repeat returns the same NCCO and changes nothing
+- `POST /api/webhooks/voice/input?callId={id}`: the `input` result. The first time, it sets the status to `ANSWERED`, records the answer and `answered_at`, and returns the closing NCCO as a JSON array. A repeat returns the same NCCO and changes nothing. A key on a `NOT_REACHED` or `FAILED` call still records the answer
 - `POST /api/webhooks/voice/event?callId={id}`: call status. `busy`, `unanswered`, `rejected`, `failed`, `timeout`, `cancelled`, a `machine` result and a `completed` with no input mark the call `NOT_REACHED`. `started`, `ringing`, `answered`, `human`, `input` and `disconnected` are ignored, and a final status never changes. It answers `204`
 
 | Case | Input webhook | Event webhook |

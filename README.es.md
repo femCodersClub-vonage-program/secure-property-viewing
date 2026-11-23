@@ -64,12 +64,14 @@ El programa dura seis semanas, así que el MVP se centra en lo que da sentido al
 [![Vonage Verify API](https://img.shields.io/badge/Verify%20API-1f2937?logo=vonage&logoColor=white&style=for-the-badge)](docs/vonage.md#verify-api)
 [![Vonage Video API](https://img.shields.io/badge/Video%20API-1f2937?logo=vonage&logoColor=white&style=for-the-badge)](docs/vonage.md#video-api)
 [![Vonage Messages API](https://img.shields.io/badge/Messages%20API-1f2937?logo=vonage&logoColor=white&style=for-the-badge)](docs/vonage.md#messages-api)
+[![Vonage Voice API](https://img.shields.io/badge/Voice%20API-1f2937?logo=vonage&logoColor=white&style=for-the-badge)](docs/vonage.md#voice-api)
 
 | Vector de fraude | Riesgo | Módulo de Vonage que lo mitiga |
 | :---- | :---- | :---- |
 | **Anuncio fantasma o identidad falsa**: anunciante con número desechable o bot | Anunciante no verificado: no se sabe si la persona es real o usa un número temporal | **Verify API**: OTP por SMS para verificar el teléfono del anunciante, con Silent Authentication como evolución |
 | **Piso inexistente o fotos robadas**: la vivienda no corresponde con el anuncio | Vivienda mal representada: las fotos son falsas o de otra propiedad | **Video API**: visita interactiva en directo para comprobar que la vivienda existe y coincide con el anuncio |
 | **Phishing o derivación a canales externos**: enlaces trampa o cobros por canales opacos | Enlaces y pagos fraudulentos fuera de los canales oficiales | **Messages API**: notificaciones enviadas siempre desde el canal oficial de la plataforma, para que la comunicación sea segura y trazable |
+| **Pedir dinero antes de firmar**: una señal para «reservar» la vivienda o un pago por verla, justo después de la visita | La persona visitante paga antes de que exista un contrato, y la agencia no se entera | **Voice API**: después de la videovisita, una llamada automática pregunta a la persona visitante si alguien le ha pedido dinero, y un «sí» crea una alerta en el panel de la agencia |
 | **Venta múltiple o arras ficticias** *(evolución)*: falta de trazabilidad y dobles reservas | La misma vivienda se reserva o se vende a varias personas, con pagos iniciales sin garantías | **Video API + Verify API**: firma o ratificación con la gestora por vídeo y verificación en dos pasos de todas las partes antes de cualquier orden de pago |
 
 Cómo usamos cada API, y los SDK, el CLI y los servidores MCP de Vonage que apoyan el desarrollo, se describe en [`docs/vonage.md`](docs/vonage.md) (en inglés).
