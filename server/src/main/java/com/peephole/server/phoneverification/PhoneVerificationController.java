@@ -40,13 +40,14 @@ class PhoneVerificationController {
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(
             summary = "Send a code",
-            description = "Sends a 6-digit code by SMS. If this browser has a verification that is not verified, it is"
-                    + " canceled and replaced by a new one. Needs the X-XSRF-TOKEN header.")
+            description = "Sends a 6-digit code by SMS, or with silentAuth tries the silent check with the mobile"
+                    + " operator first and returns its checkUrl. If this browser has a verification that is not"
+                    + " verified, it is canceled and replaced by a new one. Needs the X-XSRF-TOKEN header.")
     @ApiResponse(responseCode = "201", description = "The code was sent")
     @ApiResponse(
             responseCode = "400",
             description = "VALIDATION_FAILED: the phone is not in international format, Vonage cannot send an SMS to"
-                    + " it, or the purpose is not valid",
+                    + " it, it is a +990 test number while they are not accepted, or the purpose is not valid",
             content =
                     @Content(
                             mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
@@ -67,7 +68,8 @@ class PhoneVerificationController {
                             schema = @Schema(implementation = ProblemResponse.class)))
     @ApiResponse(
             responseCode = "429",
-            description = "VERIFICATION_RESEND_TOO_SOON: a new code was asked for before resendAvailableAt."
+            description = "VERIFICATION_RESEND_TOO_SOON: a new code was asked for before resendAvailableAt, or while"
+                    + " the silent check is still pending."
                     + " VERIFICATION_LIMIT_REACHED: 5 verifications for this phone or 30 in total in the last hour",
             content =
                     @Content(
@@ -77,8 +79,11 @@ class PhoneVerificationController {
             @Valid @RequestBody StartPhoneVerificationRequest request, HttpSession session) {
         Long pendingId = session.getAttribute(SESSION_ATTRIBUTE) instanceof Long pending ? pending : null;
 
-        StartPhoneVerificationResponse response =
-                service.start(request.phone(), PhoneVerificationPurpose.valueOf(request.purpose()), pendingId);
+        StartPhoneVerificationResponse response = service.start(
+                request.phone(),
+                PhoneVerificationPurpose.valueOf(request.purpose()),
+                pendingId,
+                Boolean.TRUE.equals(request.silentAuth()));
         session.setAttribute(SESSION_ATTRIBUTE, response.id());
         return response;
     }

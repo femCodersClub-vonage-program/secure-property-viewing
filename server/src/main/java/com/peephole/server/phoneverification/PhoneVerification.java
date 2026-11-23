@@ -40,16 +40,36 @@ class PhoneVerification {
     @Column(name = "verified_at")
     private OffsetDateTime verifiedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PhoneVerificationChannel channel;
+
+    @Column(name = "sms_fallback", nullable = false)
+    private boolean smsFallback;
+
     protected PhoneVerification() {}
 
+    // An SMS-only verification, as before Silent Authentication
     PhoneVerification(
             PhoneVerificationPurpose purpose, String phoneHash, String vonageRequestId, OffsetDateTime createdAt) {
+        this(purpose, phoneHash, vonageRequestId, createdAt, PhoneVerificationChannel.SMS, true);
+    }
+
+    PhoneVerification(
+            PhoneVerificationPurpose purpose,
+            String phoneHash,
+            String vonageRequestId,
+            OffsetDateTime createdAt,
+            PhoneVerificationChannel channel,
+            boolean smsFallback) {
         this.purpose = purpose;
         this.phoneHash = phoneHash;
         this.vonageRequestId = vonageRequestId;
         this.status = PhoneVerificationStatus.PENDING;
         this.checkAttempts = 0;
         this.createdAt = createdAt;
+        this.channel = channel;
+        this.smsFallback = smsFallback;
     }
 
     void recordCheckAttempt() {
@@ -99,5 +119,13 @@ class PhoneVerification {
 
     OffsetDateTime getVerifiedAt() {
         return verifiedAt;
+    }
+
+    PhoneVerificationChannel getChannel() {
+        return channel;
+    }
+
+    boolean hasSmsFallback() {
+        return smsFallback;
     }
 }
