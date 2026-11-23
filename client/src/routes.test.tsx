@@ -114,7 +114,7 @@ describe('routes', () => {
     ['/agency/messages', 'Messages'],
     ['/agency/profile', 'Profile'],
   ])('shows %s inside the agency layout', (path, heading) => {
-    // D1 asks the server for its summary: the answer never comes, so it stays on its loading heading
+    // D1 and D4 ask the server for their data: the answer never comes, so they stay on their loading heading
     vi.stubGlobal(
       'fetch',
       vi.fn<typeof fetch>(() => new Promise(() => {})),
@@ -132,6 +132,19 @@ describe('routes', () => {
 
     expect(screen.getByRole('status')).toHaveTextContent('Loading the dashboard…')
     expect(fetchMock).toHaveBeenCalledWith('/api/agency/summary', expect.anything())
+  })
+
+  it('asks the server for the visits of a week at /agency/calendar', () => {
+    const fetchMock = vi.fn<typeof fetch>(() => new Promise(() => {}))
+    vi.stubGlobal('fetch', fetchMock)
+    renderAt('/agency/calendar')
+
+    expect(screen.getByRole('status')).toHaveTextContent(/^Loading the visits of /)
+    // The week depends on today, so only the shape of the query is checked here
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringMatching(/^\/api\/agency\/visits\?from=\d{4}-\d{2}-\d{2}&to=\d{4}-\d{2}-\d{2}$/),
+      expect.anything(),
+    )
   })
 
   it('shows the agency room outside the agency layout, so the call has the whole screen', () => {

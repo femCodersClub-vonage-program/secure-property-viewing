@@ -8,8 +8,9 @@ export { default as ScreenPlaceholder } from './components/ScreenPlaceholder'
 export { default as SideNav } from './components/SideNav'
 export { default as StatCard } from './components/StatCard'
 export { default as Tabs, type TabItem } from './components/Tabs'
+export { default as VisitsCalendar } from './components/VisitsCalendar'
 
-export { SAMPLE_LISTING_REQUESTS, SAMPLE_VISITS } from './sampleData'
+export { SAMPLE_LISTING_REQUESTS } from './sampleData'
 export type {
   AgencySummary,
   AgencyVisit,
