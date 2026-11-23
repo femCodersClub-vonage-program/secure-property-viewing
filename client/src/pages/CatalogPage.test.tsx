@@ -138,11 +138,12 @@ describe('CatalogPage', () => {
   it('links each card to the property details page', async () => {
     fetchMock.mockReturnValue(Promise.resolve(json(propertiesFromSpec)))
     renderCatalog()
-    await waitFor(() => screen.getAllByRole('link', { name: /see the details/i }))
-    const links = screen.getAllByRole('link', { name: /see the details/i })
     const firstProperty = propertiesFromSpec[0]
     expect(firstProperty).toBeDefined()
-    expect(links[0]).toHaveAttribute('href', `/properties/${firstProperty?.id}`)
+    await waitFor(() => {
+      const links = screen.getAllByRole('link', { name: /see the details/i })
+      expect(links[0]).toHaveAttribute('href', `/properties/${firstProperty?.id}`)
+    })
   })
 
   it('fetches again with new filter when a filter button is clicked', async () => {

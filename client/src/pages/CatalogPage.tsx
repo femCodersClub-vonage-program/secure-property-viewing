@@ -29,6 +29,7 @@ function CatalogPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const operation = parseOperation(searchParams.get('operation'))
   const [state, setState] = useState<State>({ status: 'loading' })
+  const [retryCount, setRetryCount] = useState(0)
 
   useEffect(() => {
     setState({ status: 'loading' })
@@ -42,7 +43,7 @@ function CatalogPage() {
         setState({ status: 'error', message })
       })
     return () => controller.abort()
-  }, [operation])
+  }, [operation, retryCount])
 
   function setOperation(op: Operation | undefined) {
     setSearchParams(op ? { operation: op } : {})
@@ -78,8 +79,16 @@ function CatalogPage() {
       {state.status === 'error' && (
         <div className="flex flex-col gap-4 items-start">
           <Alert variant="error">{state.message}</Alert>
-          <Button onClick={() => setState({ status: 'loading' })}>Try again</Button>
+          <Button onClick={() => setRetryCount((c) => c + 1)}>Try again</Button>
         </div>
+      )}
+
+      {state.status === 'success' && (
+        <p className="sr-only" aria-live="polite" aria-atomic="true">
+          {state.data.length === 0
+            ? 'No properties found.'
+            : `${state.data.length} ${state.data.length === 1 ? 'property' : 'properties'} found.`}
+        </p>
       )}
 
       {state.status === 'success' && state.data.length === 0 && (

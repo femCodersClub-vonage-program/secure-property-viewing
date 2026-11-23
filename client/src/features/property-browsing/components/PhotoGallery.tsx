@@ -23,8 +23,7 @@ function PhotoGallery({ images, className }: PhotoGalleryProps) {
   }
 
   return (
-    <figure
-      role="region"
+    <section
       aria-label="Photo gallery"
       className={['relative overflow-hidden rounded-md', className ?? ''].join(' ').trim()}
     >
@@ -43,14 +42,14 @@ function PhotoGallery({ images, className }: PhotoGalleryProps) {
             onClick={prev}
             className="size-10"
           >
-            ←
+            <span aria-hidden="true">←</span>
           </Button>
           <span
             className="font-body text-sm text-text-muted tabular-nums"
             aria-live="polite"
             aria-atomic="true"
           >
-            {index + 1} / {count}
+            {index + 1} / {count} — {current.altText}
           </span>
           <Button
             variant="secondary"
@@ -59,11 +58,11 @@ function PhotoGallery({ images, className }: PhotoGalleryProps) {
             onClick={next}
             className="size-10"
           >
-            →
+            <span aria-hidden="true">→</span>
           </Button>
         </div>
       )}
-    </figure>
+    </section>
   )
 }
 

@@ -17,8 +17,6 @@ const propertyFromSpec = {
   floor: 2,
   description: 'A charming apartment.',
   videoVisitAvailable: true,
-  latitude: 41.4036,
-  longitude: 2.1566,
   coverImage: { url: '/photo.jpg', altText: 'Living room' },
   agency: { name: 'Demo Agency', verified: true },
   images: [
@@ -108,7 +106,7 @@ describe('PropertyDetailsPage', () => {
   it('shows the verified agency badge', async () => {
     fetchMock.mockReturnValue(Promise.resolve(json(propertyFromSpec)))
     renderDetails()
-    await waitFor(() => expect(screen.getByText(/Verified agency/)).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('Verified agency')).toBeInTheDocument())
   })
 
   it('shows the first photo with its alt text', async () => {
@@ -167,6 +165,14 @@ describe('PropertyDetailsPage', () => {
     renderDetails()
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
     expect(screen.getByText(SYSTEM_ERROR_MESSAGE)).toBeInTheDocument()
+  })
+
+  it('shows the description', async () => {
+    fetchMock.mockReturnValue(Promise.resolve(json(propertyFromSpec)))
+    renderDetails()
+    await waitFor(() =>
+      expect(screen.getByText('A charming apartment.')).toBeInTheDocument(),
+    )
   })
 
   it('shows the not found page for a non-numeric id', () => {
