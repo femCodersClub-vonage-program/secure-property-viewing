@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router'
 import { Alert, Button } from '../components/ui'
 import {
   PropertyCard,
+  PropertyMap,
   getProperties,
   type Operation,
   type PropertySummary,
@@ -53,69 +54,81 @@ function CatalogPage() {
     setSearchParams(op ? { operation: op } : {})
   }
 
-  return (
-    <main className="mx-auto max-w-6xl px-4 py-8 flex flex-col gap-section">
-      <div className="flex flex-col gap-4">
-        <h1 className="font-display text-3xl font-bold text-brand-dark text-balance">
-          Properties in Barcelona
-        </h1>
+  const properties = state.status === 'success' ? state.data : []
 
-        <div role="group" aria-label="Filter by operation" className="flex gap-2 flex-wrap">
-          {OPERATIONS.map(({ label, value }) => (
-            <Button
-              key={label}
-              variant={operation === value ? 'primary' : 'secondary'}
-              aria-pressed={operation === value}
-              onClick={() => setOperation(value)}
-            >
-              {label}
-            </Button>
-          ))}
+  return (
+    <main>
+      <div className="sticky top-0 z-10 bg-surface-page border-b border-border px-4 py-4 flex flex-col gap-3">
+        <div className="mx-auto w-full max-w-7xl flex flex-col gap-3">
+          <h1 className="font-display text-3xl font-bold text-brand-dark text-balance">
+            Properties in Barcelona
+          </h1>
+
+          <div role="group" aria-label="Filter by operation" className="flex gap-2 flex-wrap">
+            {OPERATIONS.map(({ label, value }) => (
+              <Button
+                key={label}
+                variant={operation === value ? 'primary' : 'secondary'}
+                aria-pressed={operation === value}
+                onClick={() => setOperation(value)}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {state.status === 'loading' && (
-        <p className="font-body text-text-muted" aria-live="polite">
-          Loading properties…
-        </p>
-      )}
+      <div className="mx-auto max-w-7xl px-4 py-8 flex flex-col gap-section">
+        {state.status === 'loading' && (
+          <p className="font-body text-text-muted" aria-live="polite">
+            Loading properties…
+          </p>
+        )}
 
-      {state.status === 'error' && (
-        <div className="flex flex-col gap-4 items-start">
-          <Alert variant="error">{state.message}</Alert>
-          <Button onClick={() => setRetryCount((c) => c + 1)}>Try again</Button>
-        </div>
-      )}
+        {state.status === 'error' && (
+          <div className="flex flex-col gap-4 items-start">
+            <Alert variant="error">{state.message}</Alert>
+            <Button onClick={() => setRetryCount((c) => c + 1)}>Try again</Button>
+          </div>
+        )}
 
-      {state.status === 'success' && (
         <p className="sr-only" aria-live="polite" aria-atomic="true">
-          {state.data.length === 0
+          {state.status === 'success' && state.data.length === 0
             ? 'No properties found.'
-            : `${state.data.length} ${state.data.length === 1 ? 'property' : 'properties'} found.`}
+            : state.status === 'success'
+              ? `${state.data.length} ${state.data.length === 1 ? 'property' : 'properties'} found.`
+              : ''}
         </p>
-      )}
 
-      {state.status === 'success' && state.data.length === 0 && (
-        <div className="flex flex-col gap-4 items-start">
-          <p className="font-body text-text-default">No properties match the current filter.</p>
-          <Button variant="secondary" onClick={() => setOperation(undefined)}>
-            Clear filter
-          </Button>
-        </div>
-      )}
+        {state.status === 'success' && state.data.length === 0 && (
+          <div className="flex flex-col gap-4 items-start">
+            <p className="font-body text-text-default">No properties match the current filter.</p>
+            <Button variant="secondary" onClick={() => setOperation(undefined)}>
+              Clear filter
+            </Button>
+          </div>
+        )}
 
-      {state.status === 'success' && state.data.length > 0 && (
-        <ul
-          className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-          aria-label="Properties"
-        >
-          {state.data.map((property) => (
-            <li key={property.id} className="flex w-full">
-              <PropertyCard property={property} />
-            </li>
-          ))}
-        </ul>
-      )}
+        {state.status === 'success' && state.data.length > 0 && (
+          <div className="flex flex-col lg:flex-row lg:items-start gap-6">
+            <ul
+              className="flex flex-col gap-6 pb-[33vh] lg:pb-0 lg:w-96 lg:shrink-0"
+              aria-label="Properties"
+            >
+              {state.data.map((property) => (
+                <li key={property.id} className="flex w-full">
+                  <PropertyCard property={property} />
+                </li>
+              ))}
+            </ul>
+
+            <div className="fixed bottom-0 left-0 right-0 lg:static lg:sticky lg:top-4 lg:flex-1">
+              <PropertyMap properties={properties} className="h-[33vh] lg:h-[calc(100vh-6rem)]" />
+            </div>
+          </div>
+        )}
+      </div>
     </main>
   )
 }

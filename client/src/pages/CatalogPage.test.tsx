@@ -4,6 +4,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import CatalogPage from './CatalogPage'
 import { SYSTEM_ERROR_MESSAGE } from '../lib/http'
 
+vi.mock('../features/property-browsing', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../features/property-browsing')>()
+  return {
+    ...actual,
+    PropertyMap: ({ properties }: { properties: unknown[] }) => (
+      <div role="region" aria-label="Property map">
+        {properties.length} pins
+      </div>
+    ),
+  }
+})
+
 // Shaped as in specs/property-browsing.md, "API"
 const propertiesFromSpec = [
   {
@@ -174,5 +186,26 @@ describe('CatalogPage', () => {
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith('/api/properties?operation=RENT', expect.anything()),
     )
+  })
+
+  it('shows the property map when properties load', async () => {
+    fetchMock.mockReturnValue(Promise.resolve(json(propertiesFromSpec)))
+    renderCatalog()
+    await waitFor(() =>
+      expect(screen.getByRole('region', { name: 'Property map' })).toBeInTheDocument(),
+    )
+  })
+
+  it('does not show the map while loading', () => {
+    fetchMock.mockReturnValue(new Promise(() => {}))
+    renderCatalog()
+    expect(screen.queryByRole('region', { name: 'Property map' })).not.toBeInTheDocument()
+  })
+
+  it('does not show the map when the API returns no properties', async () => {
+    fetchMock.mockReturnValue(Promise.resolve(json([])))
+    renderCatalog()
+    await waitFor(() => screen.getByText('No properties match the current filter.'))
+    expect(screen.queryByRole('region', { name: 'Property map' })).not.toBeInTheDocument()
   })
 })

@@ -54,7 +54,12 @@ function PropertyCard({ property }: PropertyCardProps) {
           </div>
         )}
 
-        <Link to={`/properties/${id}`} variant="button" className="w-full mt-auto">
+        <Link
+          to={`/properties/${id}`}
+          variant="button"
+          className="w-full mt-auto"
+          aria-label={`See the details: ${title}`}
+        >
           See the details
         </Link>
       </div>
