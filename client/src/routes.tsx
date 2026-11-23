@@ -1,7 +1,8 @@
 import type { RouteObject } from 'react-router'
-import { AgencyLayout } from './features/agency-dashboard'
+import { AgencyLayout, RequireAgencySession } from './features/agency-dashboard'
 import AgencyDashboardPage from './pages/AgencyDashboardPage'
 import AgencyPlaceholderPage from './pages/AgencyPlaceholderPage'
+import AgencySignInPage from './pages/AgencySignInPage'
 import AgencyVideoRoomPage from './pages/AgencyVideoRoomPage'
 import HomePage from './pages/HomePage'
 import NotFoundPage from './pages/NotFoundPage'
@@ -17,22 +18,33 @@ export const routes: RouteObject[] = [
   { path: '/visits/room', element: <VideoRoomPage /> },
   // Where the mobile operator sends the person back after the silent check
   { path: '/verification/return', element: <VerificationReturnPage /> },
-  // Outside AgencyLayout on purpose: the call needs the whole screen
-  { path: '/agency/visits/:id/room', element: <AgencyVideoRoomPage /> },
+  // The only agency page open to a signed-out agent
+  { path: '/agency/sign-in', element: <AgencySignInPage /> },
   {
-    path: '/agency',
-    element: <AgencyLayout />,
+    // No path: it only checks the session before any agency page, including the video room
+    element: <RequireAgencySession />,
     children: [
-      { index: true, element: <AgencyDashboardPage /> },
-      { path: 'properties', element: <AgencyPlaceholderPage title="Properties" /> },
-      { path: 'listing-requests', element: <AgencyPlaceholderPage title="Listing requests" /> },
+      // Outside AgencyLayout on purpose: the call needs the whole screen
+      { path: '/agency/visits/:id/room', element: <AgencyVideoRoomPage /> },
       {
-        path: 'listing-requests/:id',
-        element: <AgencyPlaceholderPage title="Request details" />,
+        path: '/agency',
+        element: <AgencyLayout />,
+        children: [
+          { index: true, element: <AgencyDashboardPage /> },
+          { path: 'properties', element: <AgencyPlaceholderPage title="Properties" /> },
+          {
+            path: 'listing-requests',
+            element: <AgencyPlaceholderPage title="Listing requests" />,
+          },
+          {
+            path: 'listing-requests/:id',
+            element: <AgencyPlaceholderPage title="Request details" />,
+          },
+          { path: 'calendar', element: <AgencyPlaceholderPage title="Calendar" /> },
+          { path: 'messages', element: <AgencyPlaceholderPage title="Messages" /> },
+          { path: 'profile', element: <AgencyPlaceholderPage title="Profile" /> },
+        ],
       },
-      { path: 'calendar', element: <AgencyPlaceholderPage title="Calendar" /> },
-      { path: 'messages', element: <AgencyPlaceholderPage title="Messages" /> },
-      { path: 'profile', element: <AgencyPlaceholderPage title="Profile" /> },
     ],
   },
   { path: '*', element: <NotFoundPage /> },

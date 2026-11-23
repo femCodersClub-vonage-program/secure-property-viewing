@@ -1,4 +1,5 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { SYSTEM_ERROR_MESSAGE } from './lib/http'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { routes } from './routes'
@@ -11,6 +12,20 @@ const renderAt = (path: string) => {
   const router = createMemoryRouter(routes, { initialEntries: [path] })
   render(<RouterProvider router={router} />)
 }
+
+const agent = { name: 'Marta', role: 'AGENT' }
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': status < 400 ? 'application/json' : 'application/problem+json' },
+  })
+
+// The agency pages need a signed-in agent: the session answers, every other call never does
+const signedInFetch = () =>
+  vi.fn<typeof fetch>((input) =>
+    String(input) === '/api/agency/session' ? Promise.resolve(json(agent)) : new Promise(() => {}),
+  )
 
 describe('routes', () => {
   it('shows the home page at the root path', () => {
@@ -113,34 +128,37 @@ describe('routes', () => {
     ['/agency/calendar', 'Calendar'],
     ['/agency/messages', 'Messages'],
     ['/agency/profile', 'Profile'],
-  ])('shows %s inside the agency layout', (path, heading) => {
+  ])('shows %s inside the agency layout', async (path, heading) => {
     // D1 asks the server for its summary: the answer never comes, so it stays on its loading heading
-    vi.stubGlobal(
-      'fetch',
-      vi.fn<typeof fetch>(() => new Promise(() => {})),
-    )
+    vi.stubGlobal('fetch', signedInFetch())
     renderAt(path)
 
-    expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Agency' })).toBeInTheDocument()
   })
 
-  it('asks the server for the dashboard summary at /agency', () => {
-    const fetchMock = vi.fn<typeof fetch>(() => new Promise(() => {}))
+  it('asks the server for the dashboard summary at /agency', async () => {
+    const fetchMock = signedInFetch()
     vi.stubGlobal('fetch', fetchMock)
     renderAt('/agency')
 
-    expect(screen.getByRole('status')).toHaveTextContent('Loading the dashboard…')
+    // First the session check shows its own status: wait until it is the dashboard's
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('Loading the dashboard…'),
+    )
     expect(fetchMock).toHaveBeenCalledWith('/api/agency/summary', expect.anything())
   })
 
-  it('shows the agency room outside the agency layout, so the call has the whole screen', () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn<typeof fetch>(() => new Promise(() => {})),
-    )
+  it('shows the agency room outside the agency layout, so the call has the whole screen', async () => {
+    const fetchMock = signedInFetch()
+    vi.stubGlobal('fetch', fetchMock)
+    document.cookie = 'XSRF-TOKEN=test-token; path=/'
     renderAt('/agency/visits/5/room')
 
+    // Waits until the room itself is on screen, so the check below can really fail
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith('/api/agency/visits/5/video-token', expect.anything()),
+    )
     expect(screen.queryByRole('navigation', { name: 'Agency' })).not.toBeInTheDocument()
   })
 
@@ -169,14 +187,17 @@ describe('routes', () => {
     ).toBeInTheDocument()
   })
 
-  it('shows the not found page for an agency room without a valid visit id', () => {
+  it('shows the not found page for an agency room without a valid visit id', async () => {
+    vi.stubGlobal('fetch', signedInFetch())
     renderAt('/agency/visits/abc/room')
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Page not found' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Page not found' }),
+    ).toBeInTheDocument()
   })
 
   it('asks for the agency video token of the visit in the link', async () => {
-    const fetchMock = vi.fn<typeof fetch>(() => new Promise(() => {}))
+    const fetchMock = signedInFetch()
     vi.stubGlobal('fetch', fetchMock)
     document.cookie = 'XSRF-TOKEN=test-token; path=/'
     renderAt('/agency/visits/5/room')
@@ -188,5 +209,88 @@ describe('routes', () => {
         expect.objectContaining({ method: 'POST' }),
       ),
     )
+  })
+
+  it('shows the sign-in page without asking for a session', () => {
+    const fetchMock = vi.fn<typeof fetch>()
+    vi.stubGlobal('fetch', fetchMock)
+    renderAt('/agency/sign-in')
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Sign in' })).toBeInTheDocument()
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('sends a signed-out agent to sign in and back to the room she tried to open', async () => {
+    let signedIn = false
+    // Remembers the sign-in, as the server does with its session cookie
+    const fetchMock = vi.fn<typeof fetch>(async (input, init) => {
+      if (String(input) !== '/api/agency/session') return new Promise(() => {})
+      if (init?.method === 'POST') {
+        signedIn = true
+        return json(agent)
+      }
+      return signedIn
+        ? json(agent)
+        : json(
+            {
+              title: 'Unauthorized',
+              status: 401,
+              detail: 'Sign in.',
+              code: 'AUTHENTICATION_REQUIRED',
+            },
+            401,
+          )
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    document.cookie = 'XSRF-TOKEN=test-token; path=/'
+    const router = createMemoryRouter(routes, { initialEntries: ['/agency/visits/5/room'] })
+    render(<RouterProvider router={router} />)
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Sign in' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/agency/sign-in')
+
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'marta@example.com' } })
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/agency/visits/5/room'))
+  })
+
+  it('says it could not check the session when the server fails, and tries again', async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(null, { status: 500 }))
+      .mockReturnValue(new Promise(() => {}))
+    vi.stubGlobal('fetch', fetchMock)
+    renderAt('/agency')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(SYSTEM_ERROR_MESSAGE)
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+
+    expect(await screen.findByText('Checking your session…')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('sends the agent to sign in again when the room says her session has ended', async () => {
+    const fetchMock = vi.fn<typeof fetch>(async (input) =>
+      String(input) === '/api/agency/session'
+        ? json(agent)
+        : json(
+            {
+              title: 'Unauthorized',
+              status: 401,
+              detail: 'Sign in.',
+              code: 'AUTHENTICATION_REQUIRED',
+            },
+            401,
+          ),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    document.cookie = 'XSRF-TOKEN=test-token; path=/'
+    const router = createMemoryRouter(routes, { initialEntries: ['/agency/visits/5/room'] })
+    render(<RouterProvider router={router} />)
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Sign in' })).toBeInTheDocument()
+    expect(router.state.location.state).toEqual({ from: '/agency/visits/5/room' })
   })
 })

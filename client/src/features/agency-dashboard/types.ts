@@ -41,3 +41,11 @@ export type AgencySummary = {
   activeProperties: number
   nextVisits: UpcomingVisit[]
 }
+
+export type AgencyRole = 'ADMIN' | 'AGENT'
+
+/** POST and GET /api/agency/session */
+export type AgencyUser = {
+  name: string
+  role: AgencyRole
+}
