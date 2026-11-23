@@ -23,8 +23,11 @@ import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -40,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@ExtendWith(OutputCaptureExtension.class)
 @TestPropertySource(
         properties = {
             "app.silent-auth.enabled=true",
@@ -241,6 +245,17 @@ class SilentAuthControllerTest {
         verify(phoneVerifier, never()).moveToSms(any());
     }
 
+    // The silent code has a single attempt, so whatever Vonage answers, a +990 number has nothing left to try
+    @Test
+    void failsAVirtualOperatorVerificationWhenVonageEndsTheSilentCheck() throws Exception {
+        MockHttpSession session = startSilentCheck(VIRTUAL_OPERATOR_PHONE, false);
+        when(phoneVerifier.check(REQUEST_ID, SILENT_CODE)).thenReturn(CodeCheckResult.ENDED);
+
+        silentCheck(session, REQUEST_ID, SILENT_CODE)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("FAILED"));
+    }
+
     // Moving on to the SMS code
 
     @Test
@@ -285,6 +300,41 @@ class SilentAuthControllerTest {
                 .session(new MockHttpSession())
                 .with(csrf())));
         verify(phoneVerifier, never()).moveToSms(any());
+    }
+
+    // Logs: neither phone numbers nor codes, as the acceptance criteria ask
+
+    @Test
+    void neverLogsTheVirtualOperatorNumberOrTheSilentCode(CapturedOutput output) throws Exception {
+        MockHttpSession session = startSilentCheck(VIRTUAL_OPERATOR_PHONE, false);
+        when(phoneVerifier.check(REQUEST_ID, SILENT_CODE)).thenReturn(CodeCheckResult.MATCHED);
+
+        silentCheck(session, REQUEST_ID, SILENT_CODE).andExpect(status().isOk());
+
+        assertThat(output).doesNotContain("990123400").doesNotContain(SILENT_CODE);
+    }
+
+    @Test
+    void neverLogsThePhoneOrTheSilentCodeWhenMovingOnToSms(CapturedOutput output) throws Exception {
+        MockHttpSession session = startSilentCheck(PHONE, true);
+        when(phoneVerifier.check(REQUEST_ID, SILENT_CODE)).thenReturn(CodeCheckResult.WRONG_CODE);
+        when(phoneVerifier.moveToSms(REQUEST_ID)).thenReturn(SmsStepResult.STARTED);
+
+        silentCheck(session, REQUEST_ID, SILENT_CODE).andExpect(status().isUnprocessableContent());
+
+        assertThat(output).doesNotContain("611222333").doesNotContain(SILENT_CODE);
+    }
+
+    // The only log line Silent Authentication writes, when the operator does not support the silent check
+    @Test
+    void neverLogsThePhoneWhenTheOperatorDoesNotSupportTheSilentCheck(CapturedOutput output) throws Exception {
+        when(phoneVerifier.startWithSilentAuth(PHONE, REDIRECT_URL, true))
+                .thenThrow(new SilentAuthUnavailableException());
+        when(phoneVerifier.start(PHONE)).thenReturn("request-id");
+
+        start(new MockHttpSession(), PHONE, true).andExpect(status().isCreated());
+
+        assertThat(output).contains("does not support the silent check").doesNotContain("611222333");
     }
 
     private MockHttpSession startSilentCheck(String phone, boolean smsFallback) throws Exception {
@@ -337,16 +387,5 @@ class SilentAuthControllerTest {
         return jdbcTemplate.queryForMap(
                 "SELECT channel, sms_fallback, status FROM phone_verification WHERE id = ?",
                 session.getAttribute(PhoneVerificationController.SESSION_ATTRIBUTE));
-    }
-
-    // The silent code has a single attempt, so whatever Vonage answers, a +990 number has nothing left to try
-    @Test
-    void failsAVirtualOperatorVerificationWhenVonageEndsTheSilentCheck() throws Exception {
-        MockHttpSession session = startSilentCheck(VIRTUAL_OPERATOR_PHONE, false);
-        when(phoneVerifier.check(REQUEST_ID, SILENT_CODE)).thenReturn(CodeCheckResult.ENDED);
-
-        silentCheck(session, REQUEST_ID, SILENT_CODE)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("FAILED"));
     }
 }
