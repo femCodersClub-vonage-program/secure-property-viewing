@@ -171,6 +171,7 @@ Inter and Space Grotesk are variable fonts, self-hosted as `.woff2` files in `sr
 - Side navigation on the left and the page content on the right, with the page heading (`h1`) at the top of the content
 - Content sections, such as the indicators and the next visits in D1, are cards that follow the common card rules. The next visit card is the one exception, described in [Next visit card](#next-visit-card)
 - On mobile the side navigation collapses into a menu button in a top bar, and the content takes the full width
+- Screens without the navigation, signing in and checking the session, show one centered card on `--color-dashboard-page` with the dashboard fonts (`CenteredScreen`). The card heading is `DashboardHeading`
 
 ### Navigation
 
@@ -225,6 +226,15 @@ D1 shows the next visit, the earliest in `nextVisits`, in its own card (`NextVis
 - A decorative `--color-brand-accent` glow in one corner. Text never goes on top of it
 - "Join visit" is a `HighlightLink`: a pill with a `--color-dashboard-highlight` background, bold `--color-brand-dark` text and a white focus outline. It is only for the dashboard's dark surfaces, because mango on white has 1.54:1 and a white outline would not show. Its accessible name says which visit, like the links in the table
 
+### Password field
+
+The sign-in password uses `PasswordInput`, a dashboard component that wraps the shared `Input` with a button to show the password.
+
+- An eye icon button inside the field, on the right, 44 px wide. The field gets `pr-12`, so the text never runs under the icon
+- A fixed accessible name, "Show password", with `aria-pressed` saying whether the password is shown. The icon is `aria-hidden`
+- The icon in `--color-text-muted` (5.3:1 on `--color-surface-input`), `--color-brand-dark` on hover, and the common focus ring
+- It is a plain `button` because `Button` has no icon-only variant yet
+
 ### Dashboard contrast
 
 Pairs used only in the dashboard, checked against WCAG 2.1 AA:
@@ -257,6 +267,7 @@ Every section that calls the API shows its own state, so one failing call does n
 - **Error:** the message in `--color-error` and a "Try again" button. A business error (a ProblemDetail returned by the server) shows its message.
 - **Unavailable actions:** in D3, when a request is not pending, the approve and reject buttons are disabled and a sentence next to them says why, such as "This request was already approved"
 - **Join visit:** in D1 and D4, only `CONFIRMED` visits get the "Join visit" link. Any other visit shows a disabled "Join visit" button at 40% opacity, like other unavailable buttons, with a sentence saying why, such as "This visit was canceled"
+- **Signed out:** an agency call that answers `401 AUTHENTICATION_REQUIRED` never shows an error. It sends the agent to the sign-in page, which brings her back to the same page after she signs in
 
 ### Tabs
 

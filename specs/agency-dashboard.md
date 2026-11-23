@@ -19,8 +19,8 @@ The agency is the other half of Peephole: it reviews who wants to list a propert
 
 Sign-in:
 
-- [ ] Agents sign in with the email and password of a preloaded user. Every other agency page sends a signed-out visitor to the sign-in page
-- [ ] "Sign out" ends the session
+- [x] Agents sign in with the email and password of a preloaded user. Every other agency page sends a signed-out visitor to the sign-in page
+- [x] "Sign out" ends the session
 
 Layout:
 

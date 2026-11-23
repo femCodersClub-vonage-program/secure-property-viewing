@@ -293,4 +293,57 @@ describe('routes', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Sign in' })).toBeInTheDocument()
     expect(router.state.location.state).toEqual({ from: '/agency/visits/5/room' })
   })
+
+  it.each(['/agency', '/agency/properties', '/agency/calendar'])(
+    'sends a signed-out agent from %s to sign in',
+    async (path) => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn<typeof fetch>(async () =>
+          json(
+            {
+              title: 'Unauthorized',
+              status: 401,
+              detail: 'Sign in.',
+              code: 'AUTHENTICATION_REQUIRED',
+            },
+            401,
+          ),
+        ),
+      )
+      const router = createMemoryRouter(routes, { initialEntries: [path] })
+      render(<RouterProvider router={router} />)
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Sign in' })).toBeInTheDocument()
+      expect(router.state.location.state).toEqual({ from: path })
+    },
+  )
+
+  it('goes to the dashboard home after signing in from the sign-in page itself', async () => {
+    vi.stubGlobal('fetch', signedInFetch())
+    document.cookie = 'XSRF-TOKEN=test-token; path=/'
+    const router = createMemoryRouter(routes, { initialEntries: ['/agency/sign-in'] })
+    render(<RouterProvider router={router} />)
+
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'marta@example.com' } })
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/agency'))
+  })
+
+  it('asks the server for the dashboard summary at /agency', async () => {
+    const fetchMock = signedInFetch()
+    vi.stubGlobal('fetch', fetchMock)
+    renderAt('/agency')
+
+    // First the session check shows its own status: wait until it is the dashboard's
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('Loading the dashboard…'),
+    )
+    // The summary is asked for in an effect, which runs just after the screen is drawn
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith('/api/agency/summary', expect.anything()),
+    )
+  })
 })

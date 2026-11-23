@@ -127,6 +127,12 @@ describe('parseAgencyUser', () => {
   ])('refuses a user with $name', ({ data }) => {
     expect(() => parseAgencyUser(data)).toThrow()
   })
+
+  // The demo seed also has an admin, who must be able to sign in
+  it('reads an admin user', () => {
+    const admin = { name: 'Ana Demo', role: 'ADMIN' }
+    expect(parseAgencyUser(admin)).toEqual(admin)
+  })
 })
 
 describe('agency session', () => {

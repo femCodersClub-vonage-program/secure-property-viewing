@@ -19,7 +19,7 @@ function PasswordInput({ className, ...props }: PasswordInputProps) {
         aria-pressed={shown}
         aria-controls={props.id}
         onClick={() => setShown((current) => !current)}
-        className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-sm text-text-muted hover:text-brand-dark focus-visible:outline-2 focus-visible:outline-brand-primary"
+        className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-sm text-text-muted hover:text-brand-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary"
       >
         {shown ? (
           <EyeOff aria-hidden="true" className="size-5" />

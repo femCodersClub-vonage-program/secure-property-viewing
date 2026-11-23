@@ -4,6 +4,7 @@ import { ApiError, SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
 import { signIn } from '../api'
 import type { AgencyUser } from '../types'
 import PasswordInput from './PasswordInput'
+import DashboardHeading from './DashboardHeading'
 
 type FieldErrors = { email?: string; password?: string }
 
@@ -30,6 +31,7 @@ function SignInForm({ onSignedIn }: SignInFormProps) {
   const [alert, setAlert] = useState<string>()
   const [sending, setSending] = useState(false)
   const emailInput = useRef<HTMLInputElement>(null)
+  const passwordInput = useRef<HTMLInputElement>(null)
 
   async function send(trimmedEmail: string) {
     setSending(true)
@@ -51,16 +53,21 @@ function SignInForm({ onSignedIn }: SignInFormProps) {
     const trimmedEmail = email.trim()
     const errors = validate(trimmedEmail, password)
     setFieldErrors(errors)
-    if (errors.email || errors.password) return
+    if (errors.email) {
+      emailInput.current?.focus()
+      return
+    }
+    if (errors.password) {
+      passwordInput.current?.focus()
+      return
+    }
     void send(trimmedEmail)
   }
 
   return (
     <Card className="flex flex-col gap-8 px-6 py-8 sm:px-10">
       <header className="flex flex-col gap-2 text-center">
-        <h1 className="font-dashboard-display text-3xl font-bold tracking-tight text-brand-dark">
-          Sign in
-        </h1>
+        <DashboardHeading>Sign in</DashboardHeading>
         <p className="text-text-muted">Agency staff only.</p>
       </header>
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
@@ -80,6 +87,7 @@ function SignInForm({ onSignedIn }: SignInFormProps) {
           {(props) => (
             <PasswordInput
               {...props}
+              ref={passwordInput}
               autoComplete="current-password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}

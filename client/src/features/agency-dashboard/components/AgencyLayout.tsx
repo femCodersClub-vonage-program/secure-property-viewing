@@ -22,7 +22,7 @@ function AgencyLayout() {
     try {
       await signOut()
     } catch (error) {
-      // A 401 means the session had already ended, so she is gisned out anyway
+      // A 401 means the session had already ended, so she is signed out anyway
       if (!isSignedOut(error)) {
         // The session may still be open: she stays here and can try again
         setSignOutError(error instanceof ApiError ? error.message : SYSTEM_ERROR_MESSAGE)

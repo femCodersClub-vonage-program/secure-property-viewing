@@ -13,7 +13,7 @@ type Load =
   | { status: 'ready'; summary: AgencySummary }
   | { status: 'signed-out' }
 
-// A business error, such as 401 AUTHENTICATION_REQUIRED, shows the server's message (docs/design-system.md → States)
+// A business error shows the server's message (docs/design-system.md → States)
 function errorMessage(error: unknown): string {
   return error instanceof ApiError ? error.message : SYSTEM_ERROR_MESSAGE
 }

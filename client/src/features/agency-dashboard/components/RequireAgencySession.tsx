@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router'
 import { Alert, Button } from '../../../components/ui'
 import { ApiError, SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
-import { getSession } from '../api'
+import { getSession, isSignedOut } from '../api'
 import CenteredScreen from './CenteredScreen'
 import SignInRedirect from './SignInRedirect'
 
@@ -12,11 +12,6 @@ type Check =
   | { status: 'signed-in' }
   | { status: 'signed-out' }
   | { status: 'error'; message: string }
-
-/** True when the server says there is no signed-in agent. */
-function isSignedOut(error: unknown): boolean {
-  return error instanceof ApiError && error.code === 'AUTHENTICATION_REQUIRED'
-}
 
 /** Shows the agency pages only to a signed-in agent, and sends anyone else to the sign-in page. */
 function RequireAgencySession() {
@@ -51,27 +46,34 @@ function RequireAgencySession() {
     return <SignInRedirect />
   }
 
+  // Its own landmark and tab title: the error can stay on screen while the server is unreachable
   return (
-    <CenteredScreen>
-      {check.status === 'checking' ? (
-        <p role="status" className="text-center text-text-muted">
-          Checking your session…
-        </p>
-      ) : (
-        <div className="flex flex-col items-start gap-4">
-          <Alert variant="error">{check.message}</Alert>
-          <Button
-            variant="secondary"
-            onClick={() => {
-              setCheck({ status: 'checking' })
-              setAttempt((count) => count + 1)
-            }}
-          >
-            Try again
-          </Button>
-        </div>
-      )}
-    </CenteredScreen>
+    <main>
+      <CenteredScreen>
+        {check.status === 'checking' ? (
+          <>
+            <title>Checking your session · Peephole</title>
+            <p role="status" className="text-center text-text-muted">
+              Checking your session…
+            </p>
+          </>
+        ) : (
+          <div className="flex flex-col items-start gap-4">
+            <title>Something went wrong · Peephole</title>
+            <Alert variant="error">{check.message}</Alert>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setCheck({ status: 'checking' })
+                setAttempt((count) => count + 1)
+              }}
+            >
+              Try again
+            </Button>
+          </div>
+        )}
+      </CenteredScreen>
+    </main>
   )
 }
 

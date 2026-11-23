@@ -38,7 +38,16 @@ describe('SignInForm', () => {
 
     expect(screen.getByText('Enter your email address.')).toBeInTheDocument()
     expect(screen.getByText('Enter your password.')).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Email' })).toHaveFocus()
     expect(signIn).not.toHaveBeenCalled()
+  })
+
+  it('takes the focus to the password when only the password is missing', () => {
+    render(<SignInForm onSignedIn={vi.fn()} />)
+
+    fillAndSubmit('marta@example.com', '')
+
+    expect(screen.getByLabelText('Password')).toHaveFocus()
   })
 
   it('signs in with the email without spaces and hands over the user', async () => {
