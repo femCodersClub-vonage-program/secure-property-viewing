@@ -126,7 +126,7 @@ Cada API de Vonage funciona con la aplicación de Vonage de una persona del equi
 | Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY`, `VONAGE_MESSAGES_SIGNATURE_SECRET` | Damaris |
 | Silent Authentication | `VONAGE_SILENT_AUTH_APPLICATION_ID`, `VONAGE_SILENT_AUTH_PRIVATE_KEY`, `VONAGE_SILENT_AUTH_SIGNATURE_SECRET` | Mayleth |
 
-En local, todas rellenan los grupos de Verify y de Video, porque el servidor no arranca sin ellos:
+En local, todas rellenan el grupo de Video, y el de Verify mientras Silent Authentication está apagado, porque el servidor no arranca sin ellos:
 
 - **Verify:** tu propia aplicación de Vonage. Verify no necesita ninguna capacidad, así que sirve cualquiera de tus aplicaciones
 - **Video:** la aplicación de Viviana, con los valores de la carpeta compartida del equipo en Drive, como decide la [spec de la videovisita](../specs/video-visit.md)
@@ -138,10 +138,12 @@ Rellena el grupo de Messages solo si es tuyo, y si no, déjalo con sus valores d
 | Variable | Valor |
 | :---- | :---- |
 | `SILENT_AUTH_ENABLED` | `true`. Así todas las verificaciones usan la aplicación de Silent Authentication, y el servidor no arranca sin su grupo |
-| `SILENT_AUTH_VIRTUAL_OPERATOR` | `true` para aceptar los números de prueba `+990`, que responde el Virtual Operator de Vonage. Solo mientras se prueba, nunca para visitantes reales |
+| `SILENT_AUTH_VIRTUAL_OPERATOR` | `true` para aceptar los números de prueba `+990`, que responde el Virtual Operator de Vonage. Solo funciona junto con `SILENT_AUTH_ENABLED=true`. Solo mientras se prueba, nunca para visitantes reales |
 | `SILENT_AUTH_REDIRECT_URL` | `http://localhost:5173/verification/return`, la página del cliente a la que vuelve la comprobación silenciosa |
 
 En Railway, `SILENT_AUTH_REDIRECT_URL` es la misma ruta en el dominio público del cliente, y `SILENT_AUTH_VIRTUAL_OPERATOR` solo es `true` mientras el equipo prueba allí.
+
+**El callback de estado de Verify.** Vonage avisa al servidor de cómo terminó una comprobación silenciosa con el webhook de estado, como describe la [spec de Silent Authentication](../specs/silent-authentication.md). En la aplicación de Mayleth, en el dashboard de Vonage, el callback de estado de Verify apunta a `/api/webhooks/verify/status` en el dominio público del servidor en Railway, y solo Mayleth lo cambia. En local, los callbacks no llegan a tu ordenador sin un túnel, y el flujo funciona igual: el cliente pide pasar al SMS, y Verify pasa al SMS por su cuenta a los 60 segundos. Nunca apuntes la aplicación compartida a tu propio túnel sin avisar al equipo, porque mientras tanto Railway deja de recibir los callbacks.
 
 **La clave privada en base64.** Cada clave privada va en una sola línea, así el mismo valor funciona en `server/.env` y en Railway. Para copiar la tuya:
 
@@ -206,6 +208,6 @@ Abre `http://localhost:5173`. Para pararlo, pulsa `Ctrl+C`.
 | `Connection refused` en el puerto `5432` | PostgreSQL no está arrancado | Windows: arranca el servicio `postgresql-x64-17`. macOS: `brew services start postgresql@17` |
 | `PHONE_HASH_SECRET is not set`, `VONAGE_VERIFY_… is not set` o `VONAGE_VIDEO_… is not set` | Esa variable está vacía en `server/.env` | Rellénala: el secreto del hash como en el paso 4, el grupo de Verify con tu propia aplicación de Vonage y el de Video con los valores de Viviana del Drive, como en [Variables de Vonage](#variables-de-vonage) |
 | `VONAGE_SILENT_AUTH_… is not set` o `SILENT_AUTH_REDIRECT_URL is not set` | `SILENT_AUTH_ENABLED` es `true` y esa variable está vacía en `server/.env` | Rellénala como en [Variables de Vonage](#variables-de-vonage), o pon `SILENT_AUTH_ENABLED=false` para volver a solo SMS |
-| `VONAGE_VERIFY_PRIVATE_KEY does not match VONAGE_VERIFY_APPLICATION_ID`, o lo mismo con `VONAGE_VIDEO_…` | La clave y el ID son de aplicaciones distintas, o la clave no se copió entera | Vuelve a copiar las dos de la misma aplicación, con la clave en base64 en una sola línea |
-| `VONAGE_VERIFY_APPLICATION_ID is not a valid application ID`, o lo mismo con `VONAGE_VIDEO_…` | El valor no es un Application ID, que tiene esta forma: `aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee` | Vuelve a copiarlo: el de Verify de tu aplicación en el dashboard de Vonage, y el de Video del Drive |
-| `VONAGE_VERIFY_PRIVATE_KEY is not valid base64`, o lo mismo con `VONAGE_VIDEO_…` | La clave se pegó tal cual, o con espacios o saltos de línea | Vuelve a convertirla con el comando de [Variables de Vonage](#variables-de-vonage) y pega la línea entera |
+| `VONAGE_VERIFY_PRIVATE_KEY does not match VONAGE_VERIFY_APPLICATION_ID`, o lo mismo con `VONAGE_VIDEO_…` o `VONAGE_SILENT_AUTH_…` | La clave y el ID son de aplicaciones distintas, o la clave no se copió entera | Vuelve a copiar las dos de la misma aplicación, con la clave en base64 en una sola línea |
+| `VONAGE_VERIFY_APPLICATION_ID is not a valid application ID`, o lo mismo con `VONAGE_VIDEO_…` o `VONAGE_SILENT_AUTH_…` | El valor no es un Application ID, que tiene esta forma: `aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee` | Vuelve a copiarlo: el de Verify de tu aplicación en el dashboard de Vonage, y los de Video y Silent Authentication del Drive |
+| `VONAGE_VERIFY_PRIVATE_KEY is not valid base64`, o lo mismo con `VONAGE_VIDEO_…` o `VONAGE_SILENT_AUTH_…` | La clave se pegó tal cual, o con espacios o saltos de línea | Vuelve a convertirla con el comando de [Variables de Vonage](#variables-de-vonage) y pega la línea entera |

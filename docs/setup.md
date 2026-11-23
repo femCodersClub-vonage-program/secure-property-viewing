@@ -126,7 +126,7 @@ Each Vonage API runs on the Vonage application of one person on the team, so the
 | Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY`, `VONAGE_MESSAGES_SIGNATURE_SECRET` | Damaris |
 | Silent Authentication | `VONAGE_SILENT_AUTH_APPLICATION_ID`, `VONAGE_SILENT_AUTH_PRIVATE_KEY`, `VONAGE_SILENT_AUTH_SIGNATURE_SECRET` | Mayleth |
 
-Locally, everyone fills in the Verify and Video groups, because the server does not start without them:
+Locally, everyone fills in the Video group, and the Verify group while Silent Authentication is off, because the server does not start without them:
 
 - **Verify:** your own Vonage application. Verify needs no capability, so any of your applications works
 - **Video:** Viviana's application, with the values from the team's shared Drive folder, as the [video visit spec](../specs/video-visit.md) decides
@@ -138,10 +138,12 @@ Fill in the Messages group only if it is yours, and leave it with its placeholde
 | Variable | Value |
 | :---- | :---- |
 | `SILENT_AUTH_ENABLED` | `true`. Every verification then uses the Silent Authentication application, and the server does not start without its group |
-| `SILENT_AUTH_VIRTUAL_OPERATOR` | `true` to accept the `+990` test numbers that Vonage's Virtual Operator answers for. Only while testing, never for real visitors |
+| `SILENT_AUTH_VIRTUAL_OPERATOR` | `true` to accept the `+990` test numbers that Vonage's Virtual Operator answers for. It only works together with `SILENT_AUTH_ENABLED=true`. Only while testing, never for real visitors |
 | `SILENT_AUTH_REDIRECT_URL` | `http://localhost:5173/verification/return`, the client page the silent check comes back to |
 
 On Railway, `SILENT_AUTH_REDIRECT_URL` is the same route on the client's public domain, and `SILENT_AUTH_VIRTUAL_OPERATOR` is `true` only while the team tests there.
+
+**The Verify status callback.** Vonage tells the server how a silent check ended through the status webhook, as the [Silent Authentication spec](../specs/silent-authentication.md) describes. In Mayleth's application, in the Vonage dashboard, the Verify status callback points to `/api/webhooks/verify/status` on the server's public domain on Railway, and only Mayleth changes it. Locally the callbacks never reach your computer without a tunnel, and the flow still works: the client asks for the SMS fallback, and Verify moves on to SMS by itself after 60 seconds. Never point the shared application at your own tunnel without telling the team, because Railway stops getting the callbacks while it does.
 
 **The private key in base64.** Each private key goes on a single line, so the same value works in `server/.env` and on Railway. To copy yours:
 
@@ -206,6 +208,6 @@ Open `http://localhost:5173`. Stop it with `Ctrl+C`.
 | `Connection refused` on port `5432` | PostgreSQL is not running | Windows: start the `postgresql-x64-17` service. macOS: `brew services start postgresql@17` |
 | `PHONE_HASH_SECRET is not set`, `VONAGE_VERIFY_… is not set` or `VONAGE_VIDEO_… is not set` | That variable is empty in `server/.env` | Fill it in: the hash secret as in step 4, the Verify group with your own Vonage application and the Video group with Viviana's values from the Drive folder, as in [Vonage variables](#vonage-variables) |
 | `VONAGE_SILENT_AUTH_… is not set` or `SILENT_AUTH_REDIRECT_URL is not set` | `SILENT_AUTH_ENABLED` is `true` and that variable is empty in `server/.env` | Fill it in as in [Vonage variables](#vonage-variables), or set `SILENT_AUTH_ENABLED=false` to go back to SMS only |
-| `VONAGE_VERIFY_PRIVATE_KEY does not match VONAGE_VERIFY_APPLICATION_ID`, or the same for `VONAGE_VIDEO_…` | The key and the ID come from different applications, or the key was not copied whole | Copy both again from the same application, with the key in base64 on a single line |
-| `VONAGE_VERIFY_APPLICATION_ID is not a valid application ID`, or the same for `VONAGE_VIDEO_…` | The value is not an application ID, which looks like `aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee` | Copy it again: Verify from your application in the Vonage dashboard, Video from the Drive folder |
-| `VONAGE_VERIFY_PRIVATE_KEY is not valid base64`, or the same for `VONAGE_VIDEO_…` | The key was pasted as it is, or with spaces or line breaks | Convert it again with the command in [Vonage variables](#vonage-variables) and paste the single line |
+| `VONAGE_VERIFY_PRIVATE_KEY does not match VONAGE_VERIFY_APPLICATION_ID`, or the same for `VONAGE_VIDEO_…` or `VONAGE_SILENT_AUTH_…` | The key and the ID come from different applications, or the key was not copied whole | Copy both again from the same application, with the key in base64 on a single line |
+| `VONAGE_VERIFY_APPLICATION_ID is not a valid application ID`, or the same for `VONAGE_VIDEO_…` or `VONAGE_SILENT_AUTH_…` | The value is not an application ID, which looks like `aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee` | Copy it again: Verify from your application in the Vonage dashboard, Video and Silent Authentication from the Drive folder |
+| `VONAGE_VERIFY_PRIVATE_KEY is not valid base64`, or the same for `VONAGE_VIDEO_…` or `VONAGE_SILENT_AUTH_…` | The key was pasted as it is, or with spaces or line breaks | Convert it again with the command in [Vonage variables](#vonage-variables) and paste the single line |

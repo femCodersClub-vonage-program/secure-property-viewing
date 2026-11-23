@@ -43,12 +43,13 @@ sequenceDiagram
     VY-->>S: Phone verified
   else Otherwise, or when the silent check fails
     opt After a silent check that failed
-      alt The browser comes back with an error or without a result
-        C->>S: Asks for the SMS fallback
+      alt The browser comes back with a rejected code, an error or no result
+        C->>S: Sends the silent code, or asks for the SMS fallback
+        S->>VY: Moves on to the SMS step
       else The browser never comes back
         VY--)S: Status webhook with how the silent step ended
+        Note over S,VY: The server moves on to the SMS step, unless the silent step expired and Verify already did
       end
-      S->>VY: Moves on to the SMS step
     end
     VY-->>V: OTP code by SMS
     V->>C: Enters the code
