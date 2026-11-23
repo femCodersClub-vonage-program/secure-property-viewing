@@ -9,7 +9,11 @@ import java.util.Optional;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
-/** Checks and reads the Verify status webhook, as VoiceWebhookReader does for the voice calls. */
+/**
+ * Checks and reads the Verify status webhook. It follows VoiceWebhookReader in #115, with one difference: Voice always
+ * sends the payload_hash claim, so that reader rejects a token without it, while this one accepts it, because the
+ * Vonage documentation does not say whether Verify adds it.
+ */
 public class VerifyWebhookReader {
 
     private static final String BEARER = "Bearer ";
@@ -33,9 +37,8 @@ public class VerifyWebhookReader {
         return VerifyStatusCallback.fromJson(body);
     }
 
-    // The Vonage documentation does not say whether Verify adds payload_hash, so without the claim the signature is
-    // enough. The claim is signed too, so nobody can remove it without the secret. With it, the hash is the SHA-256 of
-    // the body as compact JSON, compared with the body as it arrived and, in case it came with spaces, as compact JSON
+    // The claim is signed too, so nobody can remove it without the secret. The hash is the SHA-256 of the body as
+    // compact JSON, so the body is compared as it arrived and, in case it came with spaces, as compact JSON
     private static boolean bodyMatchesItsHash(String authorization, String body) {
         try {
             String[] parts = authorization.substring(BEARER.length()).strip().split("\\.");

@@ -50,6 +50,7 @@ sequenceDiagram
         VY--)S: Status webhook with how the silent step ended
         Note over S,VY: The server moves on to the SMS step, unless the silent step expired and Verify already did
       end
+      Note over C,S: A +990 number has no SMS step and ends FAILED, so the screen offers to start again. A request Verify has already ended gives 422 VERIFICATION_EXPIRED, and the screen offers a new code
     end
     VY-->>V: OTP code by SMS
     V->>C: Enters the code
