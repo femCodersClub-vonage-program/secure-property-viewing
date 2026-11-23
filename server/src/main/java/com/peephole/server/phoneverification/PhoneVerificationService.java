@@ -32,7 +32,6 @@ public class PhoneVerificationService {
     // says a cancel is only allowed after 30 seconds. A real test on 2026-11-16 accepted one at about 10 seconds,
     // but the margin keeps the server safe if Verify starts enforcing it
     private static final Duration RESEND_WAIT = Duration.ofSeconds(32);
-    private static final Duration EXPIRY = Duration.ofMinutes(5);
     private static final int MAX_WRONG_CODES = 3;
     private static final int MAX_PER_PHONE_PER_HOUR = 5;
     private static final int MAX_PER_HOUR = 30;
@@ -109,7 +108,7 @@ public class PhoneVerificationService {
             throw new VerificationTooManyAttemptsException();
         }
         // An expired code never costs a call to Vonage
-        if (verification.getStatus() == PhoneVerificationStatus.EXPIRED || hasExpired(verification, now)) {
+        if (verification.getStatus() == PhoneVerificationStatus.EXPIRED || verification.hasExpiredAt(now)) {
             verification.markExpired();
             throw new VerificationExpiredException();
         }
@@ -154,13 +153,14 @@ public class PhoneVerificationService {
             verification.markVerified(OffsetDateTime.now(clock));
             return toResponse(verification);
         }
-        if (result == CodeCheckResult.ENDED) {
-            verification.markExpired();
-            throw new VerificationExpiredException();
-        }
+        // The silent code has a single attempt, so a +990 number ends FAILED whatever Vonage answers
         if (!verification.hasSmsFallback()) {
             verification.markFailed();
             return toResponse(verification);
+        }
+        if (result == CodeCheckResult.ENDED) {
+            verification.markExpired();
+            throw new VerificationExpiredException();
         }
         moveOnToSms(verification);
         throw new VerificationCodeInvalidException();
@@ -214,7 +214,7 @@ public class PhoneVerificationService {
             return Optional.of(toResponse(verification));
         }
         if (verification.getStatus() == PhoneVerificationStatus.EXPIRED
-                || hasExpired(verification, OffsetDateTime.now(clock))) {
+                || verification.hasExpiredAt(OffsetDateTime.now(clock))) {
             verification.markExpired();
             throw new VerificationExpiredException();
         }
@@ -244,7 +244,7 @@ public class PhoneVerificationService {
         // A new code only once the SMS step has started, as the phone verification rules say
         if (previous.getStatus() == PhoneVerificationStatus.PENDING
                 && previous.getChannel() == PhoneVerificationChannel.SILENT_AUTH
-                && !hasExpired(previous, now)) {
+                && !previous.hasExpiredAt(now)) {
             throw new VerificationResendTooSoonException();
         }
         // Vonage may still have it open, even when it is already FAILED or EXPIRED here
@@ -283,10 +283,6 @@ public class PhoneVerificationService {
         return start.checkUrl()
                 .map(checkUrl -> new Started(start.requestId(), PhoneVerificationChannel.SILENT_AUTH, checkUrl))
                 .orElseGet(() -> new Started(start.requestId(), PhoneVerificationChannel.SMS, null));
-    }
-
-    private static boolean hasExpired(PhoneVerification verification, OffsetDateTime now) {
-        return !now.isBefore(verification.getCreatedAt().plus(EXPIRY));
     }
 
     private static PhoneVerificationResponse toResponse(PhoneVerification verification) {

@@ -338,4 +338,15 @@ class SilentAuthControllerTest {
                 "SELECT channel, sms_fallback, status FROM phone_verification WHERE id = ?",
                 session.getAttribute(PhoneVerificationController.SESSION_ATTRIBUTE));
     }
+
+    // The silent code has a single attempt, so whatever Vonage answers, a +990 number has nothing left to try
+    @Test
+    void failsAVirtualOperatorVerificationWhenVonageEndsTheSilentCheck() throws Exception {
+        MockHttpSession session = startSilentCheck(VIRTUAL_OPERATOR_PHONE, false);
+        when(phoneVerifier.check(REQUEST_ID, SILENT_CODE)).thenReturn(CodeCheckResult.ENDED);
+
+        silentCheck(session, REQUEST_ID, SILENT_CODE)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("FAILED"));
+    }
 }

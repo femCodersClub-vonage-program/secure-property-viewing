@@ -54,20 +54,20 @@ class VerifyWebhookControllerTest {
 
     @Test
     void acceptsACallbackSignedWithTheSecret() throws Exception {
-        callback("Bearer " + TestWebhookTokens.signedWith(SECRET), body("action_pending"))
+        callback("Bearer " + TestWebhookTokens.signedWith(SECRET), silentEvent("action_pending"))
                 .andExpect(status().isOk());
     }
 
     @Test
     void rejectsACallbackSignedWithAnotherSecret() throws Exception {
         expectSignatureInvalid(
-                callback("Bearer " + TestWebhookTokens.signedWith("another-secret"), body("action_pending")));
+                callback("Bearer " + TestWebhookTokens.signedWith("another-secret"), silentEvent("action_pending")));
     }
 
     @Test
     void rejectsACallbackWithoutASignature() throws Exception {
         expectSignatureInvalid(mockMvc.perform(
-                post(PATH).contentType(MediaType.APPLICATION_JSON).content(body("action_pending"))));
+                post(PATH).contentType(MediaType.APPLICATION_JSON).content(silentEvent("action_pending"))));
     }
 
     @Test
@@ -75,10 +75,21 @@ class VerifyWebhookControllerTest {
         long id = insertSilentVerification();
         when(phoneVerifier.moveToSms(REQUEST_ID)).thenReturn(SmsStepResult.STARTED);
 
-        callback("Bearer " + TestWebhookTokens.signedWith(SECRET), body("user_rejected"))
+        callback("Bearer " + TestWebhookTokens.signedWith(SECRET), silentEvent("user_rejected"))
                 .andExpect(status().isOk());
 
         assertThat(stored(id)).containsEntry("channel", "SMS").containsEntry("status", "PENDING");
+    }
+
+    @Test
+    void doesNotChangeAVerificationWhenTheSignatureIsWrong() throws Exception {
+        long id = insertSilentVerification();
+
+        expectSignatureInvalid(
+                callback("Bearer " + TestWebhookTokens.signedWith("another-secret"), silentEvent("user_rejected")));
+
+        assertThat(stored(id)).containsEntry("channel", "SILENT_AUTH").containsEntry("status", "PENDING");
+        verify(phoneVerifier, never()).moveToSms(any());
     }
 
     @Test
@@ -98,8 +109,10 @@ class VerifyWebhookControllerTest {
                 .content(body));
     }
 
-    private static String body(String status) {
-        return "{\"request_id\":\"" + REQUEST_ID + "\",\"status\":\"" + status + "\"}";
+    // The shape of an event callback about the silent step, as in Vonage's Verify documentation
+    private static String silentEvent(String status) {
+        return "{\"request_id\":\"" + REQUEST_ID + "\",\"triggered_at\":\"2026-11-23T10:00:00.000Z\","
+                + "\"type\":\"event\",\"channel\":\"silent_auth\",\"status\":\"" + status + "\"}";
     }
 
     private static void expectSignatureInvalid(ResultActions result) throws Exception {

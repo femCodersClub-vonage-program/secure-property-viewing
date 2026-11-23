@@ -8,11 +8,16 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "phone_verification")
 class PhoneVerification {
+
+    // A code lasts 5 minutes, as decided in specs/phone-verification.md
+    private static final Duration EXPIRY = Duration.ofMinutes(5);
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -132,5 +137,9 @@ class PhoneVerification {
 
     boolean hasSmsFallback() {
         return smsFallback;
+    }
+
+    boolean hasExpiredAt(OffsetDateTime now) {
+        return !now.isBefore(createdAt.plus(EXPIRY));
     }
 }

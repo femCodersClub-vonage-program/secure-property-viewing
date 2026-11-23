@@ -13,15 +13,35 @@ class VerifyStatusCallbackTest {
     private static final String REQUEST_ID = "c11236f4-00bf-4b89-84ba-88b25df97315";
 
     @Test
-    void readsTheRequestIdAndTheStatus() {
-        assertThat(VerifyStatusCallback.fromJson(body("user_rejected")))
-                .contains(new VerifyStatusCallback(REQUEST_ID, VerifyCallbackStatus.USER_REJECTED));
+    void readsAnEventAboutTheSilentStep() {
+        assertThat(VerifyStatusCallback.fromJson(event("silent_auth", "user_rejected")))
+                .contains(new VerifyStatusCallback(
+                        REQUEST_ID, VerifyCallbackType.EVENT, "silent_auth", VerifyCallbackStatus.USER_REJECTED));
+    }
+
+    @Test
+    void tellsAnEventAboutTheSilentStepFromOneAboutSms() {
+        assertThat(VerifyStatusCallback.fromJson(event("silent_auth", "expired")))
+                .hasValueSatisfying(
+                        callback -> assertThat(callback.isSilentAuthEvent()).isTrue());
+        assertThat(VerifyStatusCallback.fromJson(event("sms", "expired")))
+                .hasValueSatisfying(
+                        callback -> assertThat(callback.isSilentAuthEvent()).isFalse());
+    }
+
+    @Test
+    void readsASummaryOfTheWholeRequest() {
+        assertThat(VerifyStatusCallback.fromJson(summary("expired"))).hasValueSatisfying(callback -> {
+            assertThat(callback.type()).isEqualTo(VerifyCallbackType.SUMMARY);
+            assertThat(callback.status()).isEqualTo(VerifyCallbackStatus.EXPIRED);
+            assertThat(callback.isSilentAuthEvent()).isFalse();
+        });
     }
 
     @ParameterizedTest
     @CsvSource({"completed, COMPLETED", "failed, FAILED", "expired, EXPIRED", "action_pending, OTHER"})
     void readsEachStatus(String status, VerifyCallbackStatus expected) {
-        assertThat(VerifyStatusCallback.fromJson(body(status)))
+        assertThat(VerifyStatusCallback.fromJson(event("silent_auth", status)))
                 .map(VerifyStatusCallback::status)
                 .contains(expected);
     }
@@ -33,7 +53,15 @@ class VerifyStatusCallbackTest {
         assertThat(VerifyStatusCallback.fromJson(body)).isEmpty();
     }
 
-    private static String body(String status) {
-        return "{\"request_id\":\"" + REQUEST_ID + "\",\"status\":\"" + status + "\"}";
+    // The shape of the event callback in Vonage's Verify documentation
+    private static String event(String channel, String status) {
+        return "{\"request_id\":\"" + REQUEST_ID + "\",\"triggered_at\":\"2026-11-23T10:00:00.000Z\","
+                + "\"type\":\"event\",\"channel\":\"" + channel + "\",\"status\":\"" + status + "\"}";
+    }
+
+    // The shape of the summary callback, without its workflow list
+    private static String summary(String status) {
+        return "{\"request_id\":\"" + REQUEST_ID + "\",\"submitted_at\":\"2026-11-23T10:00:00.000Z\","
+                + "\"type\":\"summary\",\"status\":\"" + status + "\"}";
     }
 }
