@@ -37,7 +37,7 @@ src/test/java/com/peephole/server/
 └── visit/                     Tests mirror the main packages
 ```
 
-Packages are created when the first class needs them: most feature packages do not exist yet.
+Packages are created when the first class needs them.
 
 Always:
 

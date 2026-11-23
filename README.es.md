@@ -13,7 +13,7 @@
 
 Plataforma web de visitas de pisos en remoto con verificación antiestafa, desarrollada con las APIs de Vonage dentro del programa de proyectos y mentorías de **FemCoders Club con Vonage**.
 
-> Estado: borrador inicial. Las APIs de Vonage están decididas y el stack tecnológico está decidido en el [ADR 0001](docs/adr/0001-tech-stack.md).
+> Estado: en desarrollo. Lo que ya funciona está en el [estado de construcción](docs/user-journeys.md#build-status) (en inglés), y el stack tecnológico está decidido en el [ADR 0001](docs/adr/0001-tech-stack.md).
 
 ## Índice
 
@@ -44,15 +44,17 @@ El programa dura seis semanas, así que el MVP se centra en lo que da sentido al
 
 - Los tres [recorridos de la aplicación](docs/user-journeys.md): visitante, propietaria y panel de la agencia  
 - Catálogo de inmuebles en venta y en alquiler, cargado con datos de ejemplo (seed)  
-- Verificación del teléfono mediante OTP por SMS  
-- Visita guiada por vídeo one-to-one y videollamada entre la propietaria y la agencia  
+- Verificación del teléfono mediante OTP por SMS, y Silent Authentication cuando el operador móvil lo permite  
+- Visita guiada por vídeo one-to-one  
 - Visita multiparte, para que pueda sumarse una segunda persona interesada o la propietaria  
-- Confirmaciones, recordatorios y avisos por SMS  
+- Confirmación de la visita por SMS  
+- Una llamada de seguridad a la persona visitante después de la visita  
 - Gestión de solicitudes y calendario de visitas en el panel de la agencia
 
 **Queda como evolución**
 
-- Silent Authentication  
+- Videollamada entre la propietaria y la agencia  
+- Recordatorios por SMS y avisos sobre las solicitudes  
 - Notificaciones por WhatsApp Business  
 - Firma o ratificación por vídeo con la gestora y verificación en dos pasos de todas las partes  
 - Grabación de las sesiones de vídeo  
@@ -67,7 +69,7 @@ El programa dura seis semanas, así que el MVP se centra en lo que da sentido al
 
 | Vector de fraude | Riesgo | Módulo de Vonage que lo mitiga |
 | :---- | :---- | :---- |
-| **Anuncio fantasma o identidad falsa**: anunciante con número desechable o bot | Anunciante no verificado: no se sabe si la persona es real o usa un número temporal | **Verify API**: OTP por SMS para verificar el teléfono del anunciante, con Silent Authentication como evolución |
+| **Anuncio fantasma o identidad falsa**: anunciante con número desechable o bot | Anunciante no verificado: no se sabe si la persona es real o usa un número temporal | **Verify API**: OTP por SMS para verificar el teléfono del anunciante, con Silent Authentication cuando el operador móvil lo permite |
 | **Piso inexistente o fotos robadas**: la vivienda no corresponde con el anuncio | Vivienda mal representada: las fotos son falsas o de otra propiedad | **Video API**: visita interactiva en directo para comprobar que la vivienda existe y coincide con el anuncio |
 | **Phishing o derivación a canales externos**: enlaces trampa o cobros por canales opacos | Enlaces y pagos fraudulentos fuera de los canales oficiales | **Messages API**: notificaciones enviadas siempre desde el canal oficial de la plataforma, para que la comunicación sea segura y trazable |
 | **Venta múltiple o arras ficticias** *(evolución)*: falta de trazabilidad y dobles reservas | La misma vivienda se reserva o se vende a varias personas, con pagos iniciales sin garantías | **Video API + Verify API**: firma o ratificación con la gestora por vídeo y verificación en dos pasos de todas las partes antes de cualquier orden de pago |
