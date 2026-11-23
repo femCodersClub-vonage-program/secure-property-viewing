@@ -102,6 +102,8 @@ No new tables: `listing_request` from the [data model](data-model-and-api-contra
 }
 ```
 
+The server trims the text fields and also checks these limits, so the form can apply the same ones: `ownerName` up to 100 characters, `title` and `address` up to 255, `area` up to 100, `description` up to 5,000, `bedrooms` from 0 to 50 and `floor` from -5 to 100.
+
 Response `201`:
 
 ```json
