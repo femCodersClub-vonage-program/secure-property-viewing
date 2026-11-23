@@ -1,11 +1,19 @@
 import { Building2, CalendarDays, ClipboardList } from 'lucide-react'
+import type { Ref } from 'react'
 import { Card, Link } from '../../../components/ui'
 import type { AgencySummary, UpcomingVisit } from '../types'
 import { visitTime } from '../visitTime'
+import DashboardHeading from './DashboardHeading'
 import DataTable, { type Column } from './DataTable'
 import NextLabel from './NextLabel'
 import NextVisitCard from './NextVisitCard'
 import StatCard from './StatCard'
+
+type Props = {
+  summary: AgencySummary
+  /** So DashboardHome can move the focus to the greeting after "Try again" */
+  headingRef?: Ref<HTMLHeadingElement>
+}
 
 function buildColumns(nextVisitId: number): Column<UpcomingVisit>[] {
   return [
@@ -41,18 +49,18 @@ function byStartTime(a: UpcomingVisit, b: UpcomingVisit) {
   return Date.parse(a.startsAt) - Date.parse(b.startsAt)
 }
 
-function DashboardOverview({ summary }: { summary: AgencySummary }) {
+function DashboardOverview({ summary, headingRef }: Props) {
   const nextVisits = [...summary.nextVisits].sort(byStartTime)
   const nextVisit = nextVisits[0]
 
   return (
     <div className="flex flex-col gap-7">
-      <h1 className="font-dashboard-display text-4xl font-bold tracking-tight text-balance text-brand-dark">
+      <DashboardHeading ref={headingRef}>
         Hello,{' '}
         <span className="box-decoration-clone bg-linear-to-t from-dashboard-highlight from-35% to-transparent to-35% px-1">
           {summary.agentName}
         </span>
-      </h1>
+      </DashboardHeading>
 
       {nextVisit && <NextVisitCard visit={nextVisit} />}
 
