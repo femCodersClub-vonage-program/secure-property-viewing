@@ -1,18 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Alert, Button } from '../../../components/ui'
 import { ApiError, SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
 import { getAgencySummary } from '../api'
 import type { AgencySummary } from '../types'
+import DashboardHeading from './DashboardHeading'
 import DashboardOverview from './DashboardOverview'
 
 type Load =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'ready'; summary: AgencySummary }
-
-// The same look as the greeting in DashboardOverview, so the heading does not jump when the data arrives
-const headingClasses =
-  'font-dashboard-display text-4xl font-bold tracking-tight text-balance text-brand-dark'
 
 // A business error, such as 401 AUTHENTICATION_REQUIRED, shows the server's message (docs/design-system.md → States)
 function errorMessage(error: unknown): string {
@@ -24,6 +21,7 @@ function DashboardHome() {
   const [load, setLoad] = useState<Load>({ status: 'loading' })
   // Each "Try again" adds one, so the effect asks the server again
   const [attempt, setAttempt] = useState(0)
+  const headingRef = useRef<HTMLHeadingElement>(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -37,14 +35,23 @@ function DashboardHome() {
     return () => controller.abort()
   }, [attempt])
 
+  // "Try again" removes the button that had the focus, so after a retry the focus goes to the page heading:
+  // "Dashboard" while it loads or fails, and the greeting once the summary arrives (WCAG 2.4.3).
+  // The first load leaves the focus alone
+  useEffect(() => {
+    if (attempt > 0) {
+      headingRef.current?.focus()
+    }
+  }, [attempt, load.status])
+
   if (load.status === 'ready') {
-    return <DashboardOverview summary={load.summary} />
+    return <DashboardOverview summary={load.summary} headingRef={headingRef} />
   }
 
   // Until the agent's name arrives there is no greeting, so the page keeps an h1 with its name
   return (
     <div className="flex flex-col items-start gap-4">
-      <h1 className={headingClasses}>Dashboard</h1>
+      <DashboardHeading ref={headingRef}>Dashboard</DashboardHeading>
       {load.status === 'loading' ? (
         <p role="status" className="text-text-muted">
           Loading the dashboard…
