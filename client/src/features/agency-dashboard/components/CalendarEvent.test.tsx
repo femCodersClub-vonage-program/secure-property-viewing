@@ -31,6 +31,13 @@ describe('CalendarEvent', () => {
     expect(screen.getByText('Apartment in Gràcia')).toBeInTheDocument()
   })
 
+  it('shows the time in Madrid also in summer, when Madrid is two hours ahead of UTC', () => {
+    renderEvent({ ...visit, startsAt: '2026-07-14T09:00:00Z', endsAt: '2026-07-14T09:30:00Z' })
+
+    expect(screen.getByText('11:00')).toBeInTheDocument()
+    expect(screen.getByText('11:30')).toBeInTheDocument()
+  })
+
   it('links to the agent room of the visit, named with its day and time as in D1', () => {
     renderEvent(visit)
 
