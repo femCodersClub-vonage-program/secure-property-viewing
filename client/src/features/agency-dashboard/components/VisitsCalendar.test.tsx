@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
@@ -174,6 +174,37 @@ describe('VisitsCalendar', () => {
 
     expect(fetchMock.mock.calls[1]?.[1]?.signal?.aborted).toBe(true)
     expect(consoleError).not.toHaveBeenCalled()
+  })
+
+  it('ignores a late answer from the week the agent left', async () => {
+    // Unlike a real fetch, this mock ignores the signal, so the first week's answer can arrive after leaving it
+    let answerFirstWeek: (response: Response) => void = () => {}
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockReturnValueOnce(
+        new Promise<Response>((resolve) => {
+          answerFirstWeek = resolve
+        }),
+      )
+      .mockResolvedValueOnce(json([]))
+    vi.stubGlobal('fetch', fetchMock)
+    renderCalendar()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next week' }))
+    expect(await screen.findByText('No visits this week')).toBeInTheDocument()
+
+    // act waits until React has applied whatever the late answer changes
+    await act(async () => {
+      answerFirstWeek(json([confirmedVisit]))
+      await new Promise((wait) => setTimeout(wait, 0))
+    })
+
+    expect(
+      screen.getByRole('heading', { level: 2, name: '30 November – 6 December 2026' }),
+    ).toBeInTheDocument()
+    // Without the guard, the old week's list would replace the empty state and draw the seven days
+    expect(screen.getByText('No visits this week')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { level: 3 })).not.toBeInTheDocument()
   })
 
   it('shows the message of a business error, and loads again on request', async () => {
