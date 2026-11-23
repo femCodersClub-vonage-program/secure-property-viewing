@@ -59,7 +59,7 @@ Messages and notifications (D5):
 All screens:
 
 - [ ] Loading, empty and error states, using the API client
-- [ ] Design system components and tokens only, and the accessibility rules in the root `AGENTS.md`
+- [ ] Design system components and tokens only, including the dashboard's own tokens and fonts in [`docs/design-system.md`](../docs/design-system.md#agency-dashboard), and the accessibility rules in the root `AGENTS.md`
 - [ ] Sample data in one file per screen while its endpoint is not in `dev`
 
 ## Out of scope
