@@ -18,6 +18,8 @@ Wants to visit a property. No sign-up needed: verifying their phone number is en
 6. Confirmation  
 7. Video visit
 
+After the visit, Peephole calls the visitor with one safety question. It is a phone call, not a screen, and it is described in the [post-visit call spec](../specs/post-visit-call.md).
+
 ## Journey B · Property owner
 
 Wants to list their property. Verifies their phone number and validates the request in a video call with the agency.

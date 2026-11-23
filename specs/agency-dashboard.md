@@ -95,6 +95,8 @@ No new tables: `listing_request`, `property`, `visit` and `message` from the [da
 
 `upcomingVisits` counts the confirmed visits that have not ended yet and start in the next 7 days, and `nextVisits` lists the first five confirmed visits that have not ended yet, by start time. A visit in progress stays until it ends, so an agent who signs in late can still join it.
 
+The response also carries `alerts`, the visits where the visitor reported being asked for money after the visit, as the [post-visit call spec](post-visit-call.md) describes, with the "Visits to review" card it adds to D1.
+
 `GET /api/agency/listing-requests?status=PENDING`, with an optional status of `PENDING`, `APPROVED` or `REJECTED`:
 
 ```json
@@ -185,7 +187,7 @@ The agency signs in with a server session managed by Spring Security, as decided
 
 ### Vonage
 
-None directly. The dashboard shows what Messages and Video produce: message statuses from the messages feature and the "Join visit" link from the video feature.
+None directly. The dashboard shows what Messages, Video and Voice produce: message statuses from the messages feature, the "Join visit" link from the video feature and the alerts from the [post-visit call](post-visit-call.md).
 
 ### Client
 
