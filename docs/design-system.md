@@ -239,6 +239,7 @@ Pairs used only in the dashboard, checked against WCAG 2.1 AA:
 | `#0F0F0F` | `#FFF7E2` | 17.94:1 | Text on the tinted next visit row |
 | `#666666` | `#FFF7E2` | 5.37:1 | Mobile labels on the tinted row |
 | `#666666` | `#FBF8FC` | 5.45:1 | Muted text on the dashboard page background |
+| `#B91C1C` | `#FBF8FC` | 6.14:1 | Error message of a section that could not load, such as D1 |
 
 Pairs that must never be used:
 
@@ -251,7 +252,7 @@ Pairs that must never be used:
 
 Every section that calls the API shows its own state, so one failing call does not leave the whole screen blank.
 
-- **Loading:** a short sentence in `--color-text-muted` in the place of the content, such as "Loading requests…", with no animation
+- **Loading:** a short sentence in `--color-text-muted` in the place of the content, such as "Loading requests…", with no animation. When the whole screen comes from one call, as D1 does with `GET /api/agency/summary`, the page heading is the screen's name ("Dashboard") while it loads or fails, and the greeting replaces it when the data arrives, so the page always has an `h1`
 - **Empty:** one short sentence in the place of the table or list, in `--color-text-muted`, such as "No pending requests". No illustrations
 - **Error:** the message in `--color-error` and a "Try again" button. A business error (a ProblemDetail returned by the server) shows its message.
 - **Unavailable actions:** in D3, when a request is not pending, the approve and reject buttons are disabled and a sentence next to them says why, such as "This request was already approved"
