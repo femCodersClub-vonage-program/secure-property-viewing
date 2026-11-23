@@ -17,6 +17,7 @@ import com.peephole.server.vonage.PhoneNumberRejectedException;
 import com.peephole.server.vonage.PhoneVerifier;
 import com.peephole.server.vonage.SilentAuthStart;
 import com.peephole.server.vonage.SilentAuthUnavailableException;
+import com.peephole.server.vonage.SmsStepResult;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -291,6 +292,140 @@ class PhoneVerificationServiceTest {
         assertThatThrownBy(() -> service.start(PHONE, PhoneVerificationPurpose.VISIT, 1L, false))
                 .isInstanceOf(VerificationResendTooSoonException.class);
         verify(phoneVerifier, never()).cancel(any());
+    }
+
+    // Checking the code of the silent check
+
+    @Test
+    void verifiesWithTheSilentCode() {
+        PhoneVerification verification = silentVerification(true);
+        when(repository.findWithLockById(1L)).thenReturn(Optional.of(verification));
+        when(phoneVerifier.check("request-1", "si9sfG")).thenReturn(CodeCheckResult.MATCHED);
+
+        PhoneVerificationResponse response = service.silentCheck(1L, "request-1", "si9sfG");
+
+        assertThat(response.status()).isEqualTo("VERIFIED");
+        assertThat(verification.getChannel()).isEqualTo(PhoneVerificationChannel.SILENT_AUTH);
+        assertThat(verification.getCheckAttempts()).isZero();
+    }
+
+    @Test
+    void rejectsARequestIdThatIsNotTheStoredOne() {
+        when(repository.findWithLockById(1L)).thenReturn(Optional.of(silentVerification(true)));
+
+        assertThatThrownBy(() -> service.silentCheck(1L, "another-request", "si9sfG"))
+                .isInstanceOf(VerificationNotFoundException.class);
+        verify(phoneVerifier, never()).check(any(), any());
+    }
+
+    @Test
+    void answersUnavailableWhenTheVerificationIsAlreadyOnSms() {
+        when(repository.findWithLockById(1L))
+                .thenReturn(Optional.of(new PhoneVerification(
+                        PhoneVerificationPurpose.VISIT, "phone-hash", "request-1", NOW.minusMinutes(1))));
+
+        assertThatThrownBy(() -> service.silentCheck(1L, "request-1", "si9sfG"))
+                .isInstanceOf(VerificationSilentCheckUnavailableException.class);
+        verify(phoneVerifier, never()).check(any(), any());
+    }
+
+    @Test
+    void movesOnToSmsWhenTheSilentCodeIsRejected() {
+        PhoneVerification verification = silentVerification(true);
+        when(repository.findWithLockById(1L)).thenReturn(Optional.of(verification));
+        when(phoneVerifier.check("request-1", "si9sfG")).thenReturn(CodeCheckResult.WRONG_CODE);
+        when(phoneVerifier.moveToSms("request-1")).thenReturn(SmsStepResult.STARTED);
+
+        assertThatThrownBy(() -> service.silentCheck(1L, "request-1", "si9sfG"))
+                .isInstanceOf(VerificationCodeInvalidException.class);
+        assertThat(verification.getChannel()).isEqualTo(PhoneVerificationChannel.SMS);
+        assertThat(verification.getStatus()).isEqualTo(PhoneVerificationStatus.PENDING);
+        assertThat(verification.getCheckAttempts()).isZero();
+    }
+
+    @Test
+    void failsAVerificationWithoutAnSmsStepWhenTheSilentCodeIsRejected() {
+        PhoneVerification verification = silentVerification(false);
+        when(repository.findWithLockById(1L)).thenReturn(Optional.of(verification));
+        when(phoneVerifier.check("request-1", "si9sfG")).thenReturn(CodeCheckResult.WRONG_CODE);
+
+        PhoneVerificationResponse response = service.silentCheck(1L, "request-1", "si9sfG");
+
+        assertThat(response.status()).isEqualTo("FAILED");
+        verify(phoneVerifier, never()).moveToSms(any());
+    }
+
+    @Test
+    void expiresTheSilentCheckAfterFiveMinutesWithoutCallingVonage() {
+        PhoneVerification verification = new PhoneVerification(
+                PhoneVerificationPurpose.VISIT,
+                "phone-hash",
+                "request-1",
+                NOW.minusMinutes(5),
+                PhoneVerificationChannel.SILENT_AUTH,
+                true);
+        when(repository.findWithLockById(1L)).thenReturn(Optional.of(verification));
+
+        assertThatThrownBy(() -> service.silentCheck(1L, "request-1", "si9sfG"))
+                .isInstanceOf(VerificationExpiredException.class);
+        assertThat(verification.getStatus()).isEqualTo(PhoneVerificationStatus.EXPIRED);
+        verify(phoneVerifier, never()).check(any(), any());
+    }
+
+    // Moving on to the SMS code
+
+    @Test
+    void movesOnToSmsAndStaysPending() {
+        PhoneVerification verification = silentVerification(true);
+        when(repository.findWithLockById(1L)).thenReturn(Optional.of(verification));
+        when(phoneVerifier.moveToSms("request-1")).thenReturn(SmsStepResult.STARTED);
+
+        PhoneVerificationResponse response = service.smsFallback(1L);
+
+        assertThat(response.status()).isEqualTo("PENDING");
+        assertThat(verification.getChannel()).isEqualTo(PhoneVerificationChannel.SMS);
+    }
+
+    @Test
+    void failsAVerificationWithoutAnSmsStepInsteadOfMovingOn() {
+        PhoneVerification verification = silentVerification(false);
+        when(repository.findWithLockById(1L)).thenReturn(Optional.of(verification));
+
+        PhoneVerificationResponse response = service.smsFallback(1L);
+
+        assertThat(response.status()).isEqualTo("FAILED");
+        verify(phoneVerifier, never()).moveToSms(any());
+    }
+
+    @Test
+    void expiresWhenVonageHasAlreadyEndedTheRequest() {
+        PhoneVerification verification = silentVerification(true);
+        when(repository.findWithLockById(1L)).thenReturn(Optional.of(verification));
+        when(phoneVerifier.moveToSms("request-1")).thenReturn(SmsStepResult.ENDED);
+
+        assertThatThrownBy(() -> service.smsFallback(1L)).isInstanceOf(VerificationExpiredException.class);
+        assertThat(verification.getStatus()).isEqualTo(PhoneVerificationStatus.EXPIRED);
+    }
+
+    @Test
+    void answersUnavailableToAFallbackWhenTheVerificationIsAlreadyOnSms() {
+        when(repository.findWithLockById(1L))
+                .thenReturn(Optional.of(new PhoneVerification(
+                        PhoneVerificationPurpose.VISIT, "phone-hash", "request-1", NOW.minusMinutes(1))));
+
+        assertThatThrownBy(() -> service.smsFallback(1L))
+                .isInstanceOf(VerificationSilentCheckUnavailableException.class);
+        verify(phoneVerifier, never()).moveToSms(any());
+    }
+
+    private static PhoneVerification silentVerification(boolean smsFallback) {
+        return new PhoneVerification(
+                PhoneVerificationPurpose.VISIT,
+                "phone-hash",
+                "request-1",
+                NOW.minusMinutes(1),
+                PhoneVerificationChannel.SILENT_AUTH,
+                smsFallback);
     }
 
     // Checking a code

@@ -3,6 +3,7 @@ package com.peephole.server.phoneverification;
 import com.peephole.server.common.ProblemResponse;
 import com.peephole.server.phoneverification.dto.CheckPhoneVerificationRequest;
 import com.peephole.server.phoneverification.dto.PhoneVerificationResponse;
+import com.peephole.server.phoneverification.dto.SilentCheckRequest;
 import com.peephole.server.phoneverification.dto.StartPhoneVerificationRequest;
 import com.peephole.server.phoneverification.dto.StartPhoneVerificationResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -132,11 +133,94 @@ class PhoneVerificationController {
                             schema = @Schema(implementation = ProblemResponse.class)))
     PhoneVerificationResponse check(
             @PathVariable long id, @Valid @RequestBody CheckPhoneVerificationRequest request, HttpSession session) {
-        // Knowing an id is not enough: it has to be the one this browser started
+        checkBrowser(id, session);
+        return service.check(id, request.code());
+    }
+
+    @PostMapping("/{id}/silent-check")
+    @Operation(
+            summary = "Check the code of the silent check",
+            description = "Checks the requestId and code that the redirect of the silent check brings back. Only the"
+                    + " browser that started the verification can check it. A rejected code moves a real number on"
+                    + " to SMS, and ends a +990 one FAILED. Needs the X-XSRF-TOKEN header.")
+    @ApiResponse(responseCode = "200", description = "VERIFIED, or FAILED for a +990 number whose code was rejected")
+    @ApiResponse(
+            responseCode = "400",
+            description = "VALIDATION_FAILED: requestId is missing, or code is not 4 to 10 letters and digits",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemResponse.class)))
+    @ApiResponse(
+            responseCode = "404",
+            description = "VERIFICATION_NOT_FOUND: this browser did not start this verification, or requestId is not"
+                    + " the one stored",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemResponse.class)))
+    @ApiResponse(
+            responseCode = "409",
+            description = "VERIFICATION_SILENT_CHECK_UNAVAILABLE: the verification never tried the silent check, or it"
+                    + " has already moved on to SMS",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemResponse.class)))
+    @ApiResponse(
+            responseCode = "422",
+            description = "VERIFICATION_CODE_INVALID: the code was rejected and the verification moved on to SMS."
+                    + " VERIFICATION_EXPIRED: 5 minutes have passed",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemResponse.class)))
+    PhoneVerificationResponse silentCheck(
+            @PathVariable long id, @Valid @RequestBody SilentCheckRequest request, HttpSession session) {
+        checkBrowser(id, session);
+        return service.silentCheck(id, request.requestId(), request.code());
+    }
+
+    @PostMapping("/{id}/sms-fallback")
+    @Operation(
+            summary = "Move on to the SMS code",
+            description = "When the silent check fails or the person comes back without a result. A real number moves"
+                    + " on to SMS and stays PENDING, and a +990 one, which has no SMS step, ends FAILED. Needs the"
+                    + " X-XSRF-TOKEN header.")
+    @ApiResponse(
+            responseCode = "200",
+            description = "PENDING with the SMS code on its way, or FAILED for a +990 number")
+    @ApiResponse(
+            responseCode = "404",
+            description = "VERIFICATION_NOT_FOUND: this browser did not start this verification",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemResponse.class)))
+    @ApiResponse(
+            responseCode = "409",
+            description = "VERIFICATION_SILENT_CHECK_UNAVAILABLE: the verification never tried the silent check, or it"
+                    + " has already moved on to SMS",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemResponse.class)))
+    @ApiResponse(
+            responseCode = "422",
+            description = "VERIFICATION_EXPIRED: 5 minutes have passed",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemResponse.class)))
+    PhoneVerificationResponse smsFallback(@PathVariable long id, HttpSession session) {
+        checkBrowser(id, session);
+        return service.smsFallback(id);
+    }
+
+    // Knowing an id is not enough: it has to be the one this browser started
+    private static void checkBrowser(long id, HttpSession session) {
         if (!Long.valueOf(id).equals(session.getAttribute(SESSION_ATTRIBUTE))) {
             throw new VerificationNotFoundException();
         }
-
-        return service.check(id, request.code());
     }
 }

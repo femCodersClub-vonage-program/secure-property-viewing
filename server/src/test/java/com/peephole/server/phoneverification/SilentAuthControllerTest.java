@@ -11,9 +11,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.peephole.server.vonage.CodeCheckResult;
 import com.peephole.server.vonage.PhoneVerifier;
 import com.peephole.server.vonage.SilentAuthStart;
 import com.peephole.server.vonage.SilentAuthUnavailableException;
+import com.peephole.server.vonage.SmsStepResult;
+import jakarta.persistence.EntityManager;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -50,6 +53,8 @@ class SilentAuthControllerTest {
     private static final String PATH = "/api/phone-verifications";
     private static final String PHONE = "+34611222333";
     private static final String VIRTUAL_OPERATOR_PHONE = "+990123400";
+    private static final String REQUEST_ID = "c11236f4-00bf-4b89-84ba-88b25df97315";
+    private static final String SILENT_CODE = "si9sfG";
     private static final String CHECK_URL =
             "https://api.nexmo.com/v2/verify/c11236f4-00bf-4b89-84ba-88b25df97315/silent-auth/redirect";
 
@@ -58,6 +63,9 @@ class SilentAuthControllerTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @MockitoBean
     private PhoneVerifier phoneVerifier;
@@ -153,6 +161,166 @@ class SilentAuthControllerTest {
         verify(phoneVerifier, never()).cancel(any());
     }
 
+    // Checking the code of the silent check
+
+    @Test
+    void verifiesWithTheCodeOfTheSilentCheck() throws Exception {
+        MockHttpSession session = startSilentCheck(PHONE, true);
+        when(phoneVerifier.check(REQUEST_ID, SILENT_CODE)).thenReturn(CodeCheckResult.MATCHED);
+
+        silentCheck(session, REQUEST_ID, SILENT_CODE)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(idOf(session)))
+                .andExpect(jsonPath("$.status").value("VERIFIED"));
+
+        assertThat(stored(session)).containsEntry("channel", "SILENT_AUTH");
+    }
+
+    @Test
+    void rejectsARequestIdThatIsNotTheStoredOne() throws Exception {
+        MockHttpSession session = startSilentCheck(PHONE, true);
+
+        expectNotFound(silentCheck(session, "a5c3f6a1-0000-4000-8000-000000000000", SILENT_CODE));
+        verify(phoneVerifier, never()).check(any(), any());
+    }
+
+    @Test
+    void rejectsTheSilentCheckFromAnotherBrowser() throws Exception {
+        MockHttpSession session = startSilentCheck(PHONE, true);
+        MockHttpSession otherBrowser = new MockHttpSession();
+
+        expectNotFound(mockMvc.perform(post(PATH + "/" + idOf(session) + "/silent-check")
+                .session(otherBrowser)
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(silentCheckBody(REQUEST_ID, SILENT_CODE))));
+    }
+
+    @Test
+    void rejectsACodeThatIsNotFourToTenLettersAndDigits() throws Exception {
+        MockHttpSession session = startSilentCheck(PHONE, true);
+
+        silentCheck(session, REQUEST_ID, "si9-")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors.code").isNotEmpty());
+    }
+
+    @Test
+    void answersUnavailableWhenTheVerificationIsOnSms() throws Exception {
+        when(phoneVerifier.start(PHONE)).thenReturn(REQUEST_ID);
+        MockHttpSession session = new MockHttpSession();
+        start(session, PHONE, null).andExpect(status().isCreated());
+
+        silentCheck(session, REQUEST_ID, SILENT_CODE)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("VERIFICATION_SILENT_CHECK_UNAVAILABLE"));
+    }
+
+    @Test
+    void movesOnToSmsWhenTheSilentCodeIsRejected() throws Exception {
+        MockHttpSession session = startSilentCheck(PHONE, true);
+        when(phoneVerifier.check(REQUEST_ID, SILENT_CODE)).thenReturn(CodeCheckResult.WRONG_CODE);
+        when(phoneVerifier.moveToSms(REQUEST_ID)).thenReturn(SmsStepResult.STARTED);
+
+        silentCheck(session, REQUEST_ID, SILENT_CODE)
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.code").value("VERIFICATION_CODE_INVALID"));
+
+        assertThat(stored(session)).containsEntry("channel", "SMS").containsEntry("status", "PENDING");
+    }
+
+    @Test
+    void failsAVirtualOperatorVerificationWhenTheSilentCodeIsRejected() throws Exception {
+        MockHttpSession session = startSilentCheck(VIRTUAL_OPERATOR_PHONE, false);
+        when(phoneVerifier.check(REQUEST_ID, SILENT_CODE)).thenReturn(CodeCheckResult.WRONG_CODE);
+
+        silentCheck(session, REQUEST_ID, SILENT_CODE)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("FAILED"));
+        verify(phoneVerifier, never()).moveToSms(any());
+    }
+
+    // Moving on to the SMS code
+
+    @Test
+    void movesOnToSmsAndStaysPending() throws Exception {
+        MockHttpSession session = startSilentCheck(PHONE, true);
+        when(phoneVerifier.moveToSms(REQUEST_ID)).thenReturn(SmsStepResult.STARTED);
+
+        smsFallback(session)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(idOf(session)))
+                .andExpect(jsonPath("$.status").value("PENDING"));
+
+        assertThat(stored(session)).containsEntry("channel", "SMS");
+    }
+
+    @Test
+    void failsAVirtualOperatorVerificationInsteadOfMovingOn() throws Exception {
+        MockHttpSession session = startSilentCheck(VIRTUAL_OPERATOR_PHONE, false);
+
+        smsFallback(session)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("FAILED"));
+        verify(phoneVerifier, never()).moveToSms(any());
+    }
+
+    @Test
+    void answersUnavailableToASecondFallback() throws Exception {
+        MockHttpSession session = startSilentCheck(PHONE, true);
+        when(phoneVerifier.moveToSms(REQUEST_ID)).thenReturn(SmsStepResult.STARTED);
+        smsFallback(session).andExpect(status().isOk());
+
+        smsFallback(session)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("VERIFICATION_SILENT_CHECK_UNAVAILABLE"));
+    }
+
+    @Test
+    void rejectsAFallbackFromAnotherBrowser() throws Exception {
+        MockHttpSession session = startSilentCheck(PHONE, true);
+
+        expectNotFound(mockMvc.perform(post(PATH + "/" + idOf(session) + "/sms-fallback")
+                .session(new MockHttpSession())
+                .with(csrf())));
+        verify(phoneVerifier, never()).moveToSms(any());
+    }
+
+    private MockHttpSession startSilentCheck(String phone, boolean smsFallback) throws Exception {
+        when(phoneVerifier.startWithSilentAuth(phone, REDIRECT_URL, smsFallback))
+                .thenReturn(new SilentAuthStart(REQUEST_ID, Optional.of(CHECK_URL)));
+        MockHttpSession session = new MockHttpSession();
+        start(session, phone, true).andExpect(status().isCreated());
+        return session;
+    }
+
+    private ResultActions silentCheck(MockHttpSession session, String requestId, String code) throws Exception {
+        return mockMvc.perform(post(PATH + "/" + idOf(session) + "/silent-check")
+                .session(session)
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(silentCheckBody(requestId, code)));
+    }
+
+    private ResultActions smsFallback(MockHttpSession session) throws Exception {
+        return mockMvc.perform(post(PATH + "/" + idOf(session) + "/sms-fallback")
+                .session(session)
+                .with(csrf()));
+    }
+
+    private static String silentCheckBody(String requestId, String code) {
+        return "{\"requestId\":\"" + requestId + "\",\"code\":\"" + code + "\"}";
+    }
+
+    private static void expectNotFound(ResultActions result) throws Exception {
+        result.andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("VERIFICATION_NOT_FOUND"));
+    }
+
+    private static long idOf(MockHttpSession session) {
+        return (Long) session.getAttribute(PhoneVerificationController.SESSION_ATTRIBUTE);
+    }
+
     private ResultActions start(MockHttpSession session, String phone, Boolean silentAuth) throws Exception {
         String silentAuthField = silentAuth == null ? "" : ",\"silentAuth\":" + silentAuth;
         return mockMvc.perform(post(PATH)
@@ -162,9 +330,12 @@ class SilentAuthControllerTest {
                 .content("{\"phone\":\"" + phone + "\",\"purpose\":\"VISIT\"" + silentAuthField + "}"));
     }
 
+    // The test runs in one transaction, so Hibernate has not written the changes yet: flushing them lets the query
+    // read what the endpoint left in the database
     private Map<String, Object> stored(MockHttpSession session) {
+        entityManager.flush();
         return jdbcTemplate.queryForMap(
-                "SELECT channel, sms_fallback FROM phone_verification WHERE id = ?",
+                "SELECT channel, sms_fallback, status FROM phone_verification WHERE id = ?",
                 session.getAttribute(PhoneVerificationController.SESSION_ATTRIBUTE));
     }
 }

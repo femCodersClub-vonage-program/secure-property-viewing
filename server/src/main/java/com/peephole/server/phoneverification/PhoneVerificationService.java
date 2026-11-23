@@ -11,10 +11,12 @@ import com.peephole.server.vonage.PhoneVerifier;
 import com.peephole.server.vonage.PhoneVerifierException;
 import com.peephole.server.vonage.SilentAuthStart;
 import com.peephole.server.vonage.SilentAuthUnavailableException;
+import com.peephole.server.vonage.SmsStepResult;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Objects;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -128,6 +130,62 @@ public class PhoneVerificationService {
         throw new VerificationCodeInvalidException();
     }
 
+    // The code the redirect of the silent check brings back. A rejected code does not count toward the 3 wrong SMS
+    // codes: a real number moves on to SMS, and a +990 number, which has no SMS step, ends FAILED.
+    // Business errors keep the changes, so a move to SMS is kept with its 422
+    @Transactional(noRollbackFor = BusinessException.class)
+    PhoneVerificationResponse silentCheck(long id, String requestId, String code) {
+        PhoneVerification verification =
+                repository.findWithLockById(id).orElseThrow(VerificationNotFoundException::new);
+        // Knowing the verification id is not enough: the request id has to be the one Vonage gave it
+        if (!verification.getVonageRequestId().equals(requestId)) {
+            throw new VerificationNotFoundException();
+        }
+        Optional<PhoneVerificationResponse> finished = finishedOrExpired(verification);
+        if (finished.isPresent()) {
+            return finished.get();
+        }
+        if (verification.getChannel() != PhoneVerificationChannel.SILENT_AUTH) {
+            throw new VerificationSilentCheckUnavailableException();
+        }
+
+        CodeCheckResult result = phoneVerifier.check(requestId, code);
+        if (result == CodeCheckResult.MATCHED) {
+            verification.markVerified(OffsetDateTime.now(clock));
+            return toResponse(verification);
+        }
+        if (result == CodeCheckResult.ENDED) {
+            verification.markExpired();
+            throw new VerificationExpiredException();
+        }
+        if (!verification.hasSmsFallback()) {
+            verification.markFailed();
+            return toResponse(verification);
+        }
+        moveOnToSms(verification);
+        throw new VerificationCodeInvalidException();
+    }
+
+    // When the redirect brings an error_description, or the person came back without a result
+    @Transactional(noRollbackFor = BusinessException.class)
+    PhoneVerificationResponse smsFallback(long id) {
+        PhoneVerification verification =
+                repository.findWithLockById(id).orElseThrow(VerificationNotFoundException::new);
+        Optional<PhoneVerificationResponse> finished = finishedOrExpired(verification);
+        if (finished.isPresent()) {
+            return finished.get();
+        }
+        if (verification.getChannel() != PhoneVerificationChannel.SILENT_AUTH) {
+            throw new VerificationSilentCheckUnavailableException();
+        }
+        if (!verification.hasSmsFallback()) {
+            verification.markFailed();
+            return toResponse(verification);
+        }
+        moveOnToSms(verification);
+        return toResponse(verification);
+    }
+
     @Transactional(propagation = Propagation.MANDATORY)
     public OffsetDateTime validateForVisit(long id, String phone, Long sessionVerificationId) {
         if (!Objects.equals(id, sessionVerificationId)) {
@@ -145,6 +203,28 @@ public class PhoneVerificationService {
             throw new PhoneVerificationInvalidException();
         }
         return verifiedAt;
+    }
+
+    // A verified or failed verification answers with its status as it is. An expired one never costs a call to Vonage
+    private Optional<PhoneVerificationResponse> finishedOrExpired(PhoneVerification verification) {
+        if (verification.getStatus() == PhoneVerificationStatus.VERIFIED
+                || verification.getStatus() == PhoneVerificationStatus.FAILED) {
+            return Optional.of(toResponse(verification));
+        }
+        if (verification.getStatus() == PhoneVerificationStatus.EXPIRED
+                || hasExpired(verification, OffsetDateTime.now(clock))) {
+            verification.markExpired();
+            throw new VerificationExpiredException();
+        }
+        return Optional.empty();
+    }
+
+    private void moveOnToSms(PhoneVerification verification) {
+        if (phoneVerifier.moveToSms(verification.getVonageRequestId()) == SmsStepResult.ENDED) {
+            verification.markExpired();
+            throw new VerificationExpiredException();
+        }
+        verification.moveOnToSms();
     }
 
     private void checkLimits(String phoneHash, OffsetDateTime now) {

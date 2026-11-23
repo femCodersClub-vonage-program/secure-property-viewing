@@ -89,6 +89,11 @@ class PhoneVerification {
         status = PhoneVerificationStatus.EXPIRED;
     }
 
+    // After the silent check failed or never came back, the verification goes on with the SMS code
+    void moveOnToSms() {
+        channel = PhoneVerificationChannel.SMS;
+    }
+
     Long getId() {
         return id;
     }
