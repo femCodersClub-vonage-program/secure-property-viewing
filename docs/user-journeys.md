@@ -47,6 +47,6 @@ What works in `dev` on November 23, 2026. Each spec in `specs/` describes the fu
 
 | Journey | Built | Not built yet |
 | :---- | :---- | :---- |
-| A · Visitor | Screens 1 to 7: catalog with map, details, calendar, phone verification by SMS code, confirmation and video visit. The post-visit call's server and its alerts on the dashboard, off until `VOICE_CALLS_ENABLED=true` | Silent Authentication: the client is built, the server side is not (#106). The post-visit call is built, and waits for the Spanish Vonage number to place real calls. The confirmation SMS (#87) |
+| A · Visitor | Screens 1 to 7: catalog with map, details, calendar, phone verification by SMS code, confirmation and video visit. The post-visit call's server and its alerts on the dashboard, off until `VOICE_CALLS_ENABLED=true` | Silent Authentication: the client is built, the server side is not (#106). Real post-visit calls, which wait for the Spanish Vonage number. The confirmation SMS (#87) |
 | B · Property owner | The server receives listing requests (`POST /api/listing-requests`) | Screens 1 to 5 (#29). Step 6, the video call with the agency, has no spec yet |
 | Agency dashboard | Screen 1, the dashboard, and the server for the calendar (`GET /api/agency/visits`) and the session | The sign-in page (#114) and the calendar page (#111), both in review. Screens 2, 3 and 5 |
