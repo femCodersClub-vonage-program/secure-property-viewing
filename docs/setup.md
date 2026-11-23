@@ -131,7 +131,7 @@ Locally, everyone fills in the Verify and Video groups, because the server does 
 - **Verify:** your own Vonage application. Verify needs no capability, so any of your applications works
 - **Video:** Viviana's application, with the values from the team's shared Drive folder, as the [video visit spec](../specs/video-visit.md) decides
 
-Fill in the Messages group only if it is yours, and leave it with its placeholders otherwise.
+No code reads the Messages group yet: it is kept for the messages feature (#87), so leave it with its placeholders.
 
 **The post-visit call.** The [post-visit call](../specs/post-visit-call.md) is off by default, with `VOICE_CALLS_ENABLED=false`, so the server starts without the Voice group and never places a call. To try it, set these and fill in the Voice group with Irina's values from the Drive folder:
 

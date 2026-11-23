@@ -13,7 +13,7 @@
 
 A web platform for remote property visits with anti-fraud verification, built with Vonage APIs as part of the **FemCoders Club with Vonage** projects and mentoring program.
 
-> Status: initial draft. The Vonage APIs have been chosen, and the tech stack is decided in [ADR 0001](docs/adr/0001-tech-stack.md).
+> Status: in development. What already works is listed in the [build status](docs/user-journeys.md#build-status), and the tech stack is decided in [ADR 0001](docs/adr/0001-tech-stack.md).
 
 ## Table of contents
 
@@ -44,15 +44,17 @@ The program lasts six weeks, so the MVP focuses on what gives the project its pu
 
 - The three [user journeys](docs/user-journeys.md): visitor, owner and agency dashboard  
 - Catalog of properties for sale and for rent, loaded from seed data  
-- Phone verification via SMS OTP  
-- One-to-one guided video visit, and a video call between the owner and the agency  
+- Phone verification via SMS OTP, and Silent Authentication where the mobile operator supports it  
+- One-to-one guided video visit  
 - Multi-party visit, so a second interested person or the owner can join  
-- Confirmations, reminders and notifications by SMS  
+- Visit confirmation by SMS  
+- A safety call to the visitor after the visit  
 - Request management and visit calendar in the agency dashboard
 
 **Planned for later**
 
-- Silent Authentication  
+- Video call between the owner and the agency  
+- SMS reminders and listing request updates  
 - WhatsApp Business notifications  
 - Signing or ratification by video with the property manager, and two-step verification of all parties  
 - Recording of video sessions  
@@ -68,7 +70,7 @@ The program lasts six weeks, so the MVP focuses on what gives the project its pu
 
 | Fraud vector | Risk | Vonage module that mitigates it |
 | :---- | :---- | :---- |
-| **Ghost listing or fake identity**: advertiser using a disposable number or a bot | Unverified advertiser: there is no way to know whether the person is real or using a temporary number | **Verify API**: SMS OTP to verify the advertiser's phone number, with Silent Authentication as a later step |
+| **Ghost listing or fake identity**: advertiser using a disposable number or a bot | Unverified advertiser: there is no way to know whether the person is real or using a temporary number | **Verify API**: SMS OTP to verify the advertiser's phone number, with Silent Authentication where the mobile operator supports it |
 | **Non-existent apartment or stolen photos**: the property does not match the listing | Misrepresented property: the photos are fake or belong to another property | **Video API**: live interactive visit to confirm that the property exists and matches the listing |
 | **Phishing or diversion to external channels**: malicious links or payments through opaque channels | Fraudulent links and payments outside official channels | **Messages API**: notifications always sent from the platform's official channel, so communication is secure and traceable |
 | **Asking for money before signing**: a deposit to "hold" the property or a fee to see it, right after the visit | The visitor pays before any contract exists, and the agency never finds out | **Voice API**: after the video visit, an automated call asks the visitor whether anyone asked for money, and a "yes" raises an alert on the agency dashboard |

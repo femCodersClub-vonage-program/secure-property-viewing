@@ -37,6 +37,16 @@ describe('VisitConfirmation', () => {
     ).toBeInTheDocument()
   })
 
+  it('tells the visitor about the safety call after the visit', () => {
+    render(<VisitConfirmation visit={bookedFromSpec} />)
+
+    expect(
+      screen.getByText(
+        "After the visit, Peephole will call you with one safety question. Answer with your phone's keypad.",
+      ),
+    ).toBeInTheDocument()
+  })
+
   it('does not mention the SMS confirmation until the messages feature sends it', () => {
     render(<VisitConfirmation visit={bookedFromSpec} />)
 

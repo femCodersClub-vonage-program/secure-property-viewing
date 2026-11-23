@@ -131,7 +131,7 @@ En local, todas rellenan los grupos de Verify y de Video, porque el servidor no 
 - **Verify:** tu propia aplicación de Vonage. Verify no necesita ninguna capacidad, así que sirve cualquiera de tus aplicaciones
 - **Video:** la aplicación de Viviana, con los valores de la carpeta compartida del equipo en Drive, como decide la [spec de la videovisita](../specs/video-visit.md)
 
-Rellena el grupo de Messages solo si es tuyo, y si no, déjalo con sus valores de ejemplo.
+Todavía no hay código que lea el grupo de Messages: está reservado para la funcionalidad de mensajes (#87), así que déjalo con sus valores de ejemplo.
 
 **La llamada después de la visita.** La [llamada después de la visita](../specs/post-visit-call.md) está apagada por defecto, con `VOICE_CALLS_ENABLED=false`, así que el servidor arranca sin el grupo de Voice y nunca llama. Para probarla, pon estas variables y rellena el grupo de Voice con los valores de Irina del Drive:
 
