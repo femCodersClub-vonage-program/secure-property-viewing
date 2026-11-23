@@ -52,23 +52,23 @@ Checked in the Vonage Documentation MCP Server on 2026-11-17:
 - **The Java Server SDK.** The 9.15.1 already in `pom.xml` has `SilentAuthWorkflow.builder(to).redirectUrl(…)` and `VerificationResponse.getCheckUrl()`. Its `sandbox` option is retired, and a request with it gets a `422`, so it is never used
 - **The status webhook.** Verify signs its callbacks with a JWT in the `Authorization` header, signed with the signature secret of the Vonage account that owns the application. Its states are `action_pending`, `completed`, `user_rejected`, `failed` and `expired`. For a real number, a `user_rejected` or `failed` on the silent step only moves the verification on to SMS, as the fallback endpoint does, and never marks it `FAILED`. For a `+990` number it marks it `FAILED`, as described above. An `expired` marks it `EXPIRED`. The webhook covers the case where the browser never comes back
 - **Keeping the form across the redirect.** Opening the check URL reloads the page, so the slot and name of a visit, or the owner's details of a listing request, would be lost. Before leaving, the page that hosts the verification saves its form in `sessionStorage` together with the verification id and the purpose, restores it when the person comes back, and deletes it once used. It validates what it reads back before restoring it, as `client/AGENTS.md` asks for any stored value, because it could be an old or broken entry, and the saved form never includes the SMS code. As agreed with Viviana in [#84](https://github.com/femCodersClub-vonage-program/secure-property-viewing/pull/84), it needs no ADR: it is one key in one tab, deleted once used, and the owner listing spec links to this one in its build
+- **One Vonage application.** When Silent Authentication is on, every verification uses the Silent Authentication application, including SMS-only ones, so the server keeps a single Verify client. Off, the Verify group works as before. The checkpoint on November 23–24 in #66 decides whether it goes into the demo, and `SILENT_AUTH_ENABLED=false` keeps today's SMS-only flow
+- **A separate endpoint for the silent code.** The silent code is checked once and is not 6 digits, and wrong SMS codes have their own limit of 3, so it is checked at `POST /api/phone-verifications/{id}/silent-check`, as described below
+- **The step and the channel.** Agreed with Irina in #106: two columns in `phone_verification` instead of `verified_channel`. `channel` is `SMS` or `SILENT_AUTH`: the step a pending verification is on, and the channel that verified it once it is `VERIFIED`, so the agency and the demo can tell them apart. `sms_fallback` is `false` for `+990` numbers, which have no SMS step, since the table only keeps the phone hash. The defaults, `SMS` and `true`, keep every earlier verification as SMS
+- **The webhook in Java.** Checked in #66 with a real callback through a tunnel: `Jwt.verifySignature` from the `com.vonage:jwt` library validates the signature with the account's signature secret, and the SDK's `VerificationCallback.fromJson` reads the body. The server answers `200` to every signed callback, even one that changes nothing or cannot be read, so Vonage does not send it again
 - **The phone verification rules with two steps.** A start that tries the silent check counts toward the 5-per-hour limit like any other. A new code is only offered once the SMS step has started, and it starts an SMS-only verification. `resendAvailableAt` is still 32 seconds after the start, so by the time the SMS screen appears part of the countdown has already passed
 
 ## Open questions
 
-None of these blocks the build. Each one has a proposal, which the build follows unless its issue settles it otherwise.
+The server build (#106) settled the others, which are now under Decisions. This one belongs to the screen (#107).
 
-- **Which application sends an SMS-only verification.** Proposal: when Silent Authentication is on, every verification uses the Silent Authentication application, so the server keeps a single Verify client. Until the server build, the current Verify group keeps working. The checkpoint on November 23–24 decides whether Silent Authentication goes into the demo. If it does not, `SILENT_AUTH_ENABLED=false` keeps today's SMS-only flow
 - **How the client tells a phone's browser.** Proposal: `navigator.userAgentData.mobile` when the browser has it, and the `(pointer: coarse)` media query otherwise
-- **Where the silent code is checked.** The silent code is checked once and is not 6 digits, and wrong SMS codes have their own limit of 3. Proposal: a separate endpoint, `POST /api/phone-verifications/{id}/silent-check`, as described below
-- **Recording the channel.** Proposal: a `verified_channel` column in `phone_verification`, `VARCHAR(20)` with `SMS` or `SILENT_AUTH`, empty until the verification is `VERIFIED`, so the agency and the demo can tell them apart
-- **Verifying the webhook signature in Java.** The `com.vonage:jwt` library that comes with the SDK has `Jwt.verifySignature(jwt, secret)`, and the SDK has `VerificationCallback.fromJson`, which the documentation does not mention. The first build step tests both
 
 ## Technical plan
 
 ### Data
 
-If the open question on recording the channel is accepted, a Flyway migration adds `verified_channel` to `phone_verification`. The [data model](data-model-and-api-contract.md) gets these changes in the server build pull request, together with the code, as [`specs/README.md`](README.md) describes for spec changes: that column, the `silentAuth` field and the `checkUrl` field, the `silent-check` and `sms-fallback` endpoints, the status webhook and the `VERIFICATION_SILENT_CHECK_UNAVAILABLE` error. They wait for the build because some of them come from the open questions, which the build settles.
+A Flyway migration adds `channel` (`SMS` or `SILENT_AUTH`, `SMS` by default) and `sms_fallback` (`true` by default) to `phone_verification`, as decided above. The [data model](data-model-and-api-contract.md) has them, together with the `silent-check` and `sms-fallback` endpoints and the status webhook.
 
 ### API
 
@@ -113,7 +113,7 @@ A rejected silent code does not count toward the 3 wrong SMS codes. For a `+990`
 
 `POST /api/phone-verifications/{id}/sms-fallback` moves the request on to the SMS step when the redirect brings an `error_description`, or when the page loads with a saved form and nothing in the fragment. It answers `200` with the verification, and the same `404` and `409` as above. For a `+990` number there is no SMS step, so it marks the verification `FAILED` and answers `200` with that status.
 
-`POST /api/webhooks/verify/status` receives Vonage's event and summary callbacks. It is under `/api/webhooks/**`, so it needs no CSRF token and is checked with the signed JWT instead, as the [data model spec](data-model-and-api-contract.md#endpoints) describes for every webhook. An invalid signature answers `401 WEBHOOK_SIGNATURE_INVALID`.
+`POST /api/webhooks/verify/status` receives Vonage's event and summary callbacks. It is under `/api/webhooks/**`, so it needs no CSRF token and is checked with the signed JWT instead, as the [data model spec](data-model-and-api-contract.md#endpoints) describes for every webhook. An invalid signature answers `401 WEBHOOK_SIGNATURE_INVALID`. Every signed callback answers `200`, even one that changes nothing or cannot be read, so Vonage does not send it again.
 
 ### Vonage
 
