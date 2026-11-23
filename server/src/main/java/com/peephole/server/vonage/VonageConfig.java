@@ -27,6 +27,39 @@ class VonageConfig {
         return new VonageVideoProvider(client.getVideoClient(), applicationId.strip());
     }
 
+    // Off by default, so local development and the tests need no Vonage number. The scheduled check that calls is
+    // off too, so this caller is never used while calls are off
+    @Bean
+    VoiceCaller voiceCaller(
+            @Value("${app.voice.calls-enabled}") boolean callsEnabled,
+            @Value("${app.vonage.voice.application-id}") String applicationId,
+            @Value("${app.vonage.voice.private-key}") String privateKey,
+            @Value("${app.vonage.voice.from-number}") String fromNumber) {
+        if (!callsEnabled) {
+            return (phone, question, keyUrl, eventUrl) -> {
+                throw new VoiceCallException("Voice calls are off. Set VOICE_CALLS_ENABLED=true to place them");
+            };
+        }
+        if (fromNumber.isBlank()) {
+            throw new IllegalStateException(
+                    "VONAGE_VOICE_FROM_NUMBER is not set. Add it to server/.env as explained in docs/setup.md");
+        }
+        VonageClient client = buildClient("VONAGE_VOICE", applicationId, privateKey);
+        return new VonageVoiceCaller(client.getVoiceClient(), fromNumber.strip());
+    }
+
+    // With calls off, an empty secret still rejects every voice webhook
+    @Bean
+    VoiceWebhookReader voiceWebhookReader(
+            @Value("${app.voice.calls-enabled}") boolean callsEnabled,
+            @Value("${app.vonage.voice.signature-secret}") String signatureSecret) {
+        if (callsEnabled && signatureSecret.isBlank()) {
+            throw new IllegalStateException("VONAGE_VOICE_SIGNATURE_SECRET is not set. Add it to server/.env"
+                    + " as explained in docs/setup.md");
+        }
+        return new VoiceWebhookReader(new WebhookSignatureVerifier(signatureSecret));
+    }
+
     private static VonageClient buildClient(String variablePrefix, String applicationId, String privateKey) {
         UUID id = parseApplicationId(variablePrefix + "_APPLICATION_ID", applicationId);
         byte[] key = decodePrivateKey(variablePrefix + "_PRIVATE_KEY", privateKey);

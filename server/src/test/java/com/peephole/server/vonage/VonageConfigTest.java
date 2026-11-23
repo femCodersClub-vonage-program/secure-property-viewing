@@ -3,6 +3,7 @@ package com.peephole.server.vonage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPairGenerator;
 import java.util.Base64;
@@ -60,6 +61,53 @@ class VonageConfigTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageStartingWith("VONAGE_VIDEO_PRIVATE_KEY does not match VONAGE_VIDEO_APPLICATION_ID")
                 .hasNoCause();
+    }
+
+    // Post-visit call
+
+    @Test
+    void refusesToCallWhileCallsAreOffAndNeedsNoVoiceVariables() {
+        VoiceCaller caller = config.voiceCaller(false, "", "", "");
+
+        assertThatThrownBy(() -> caller.callAndAskForOneKey(
+                        "+34600000001",
+                        "¿Pregunta?",
+                        URI.create("https://peephole.example/key"),
+                        URI.create("https://peephole.example/event")))
+                .isInstanceOf(VoiceCallException.class)
+                .hasMessageContaining("VOICE_CALLS_ENABLED");
+    }
+
+    @Test
+    void buildsTheVoiceCallerWithValidCredentialsWhenCallsAreOn() throws Exception {
+        assertThat(config.voiceCaller(true, APPLICATION_ID, privateKey(), "34911067298"))
+                .isInstanceOf(VonageVoiceCaller.class);
+    }
+
+    @Test
+    void namesEachMissingVoiceVariableWhenCallsAreOn() throws Exception {
+        assertThatThrownBy(() -> config.voiceCaller(true, APPLICATION_ID, privateKey(), " "))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageStartingWith("VONAGE_VOICE_FROM_NUMBER is not set");
+        assertThatThrownBy(() -> config.voiceCaller(true, "", privateKey(), "34911067298"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageStartingWith("VONAGE_VOICE_APPLICATION_ID is not set");
+        assertThatThrownBy(() -> config.voiceCaller(true, APPLICATION_ID, "", "34911067298"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageStartingWith("VONAGE_VOICE_PRIVATE_KEY is not set");
+        assertThatThrownBy(() -> config.voiceWebhookReader(true, ""))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageStartingWith("VONAGE_VOICE_SIGNATURE_SECRET is not set");
+    }
+
+    @Test
+    void rejectsEveryVoiceWebhookWhileTheSecretIsMissing() {
+        VoiceWebhookReader reader = config.voiceWebhookReader(false, "");
+
+        String body = "{\"status\":\"busy\"}";
+
+        assertThat(reader.isSignedByVonage(TestVoiceWebhookTokens.authorizationFor("any-secret", body), body))
+                .isFalse();
     }
 
     private static String privateKey() throws Exception {

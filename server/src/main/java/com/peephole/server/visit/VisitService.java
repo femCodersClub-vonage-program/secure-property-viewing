@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -166,6 +167,33 @@ public class VisitService {
     @Transactional(readOnly = true)
     public List<AgencyVisit> visitsBetween(long agencyId, OffsetDateTime from, OffsetDateTime to) {
         return queries.findBetween(agencyId, from, to);
+    }
+
+    /** The visits among {@code visitIds} that belong to the agency, in any status. */
+    @Transactional(readOnly = true)
+    public List<AgencyVisit> agencyVisitsAmong(long agencyId, Collection<Long> visitIds) {
+        return queries.findAmong(agencyId, visitIds);
+    }
+
+    /**
+     * Records that the visitor entered the room. Call {@link #lock} first in the same transaction. Only the first
+     * entry is kept.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void markVisitorJoined(long visitId) {
+        repository
+                .findWithLockById(visitId)
+                .orElseThrow(() -> new IllegalStateException("Visit " + visitId + " was not found"))
+                .markVisitorJoined(OffsetDateTime.now(clock));
+    }
+
+    /**
+     * The confirmed visits whose visitor joined and that ended after {@code after}, excluded, and up to {@code upTo},
+     * included, by end time.
+     */
+    @Transactional(readOnly = true)
+    public List<EndedVisit> joinedVisitsEndedBetween(OffsetDateTime after, OffsetDateTime upTo) {
+        return queries.findJoinedEndedBetween(after, upTo);
     }
 
     private BookedVisit toBookedVisit(Visit visit) {

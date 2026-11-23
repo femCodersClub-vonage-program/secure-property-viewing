@@ -48,6 +48,9 @@ class Visit {
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
+    @Column(name = "visitor_joined_at")
+    private OffsetDateTime visitorJoinedAt;
+
     protected Visit() {}
 
     Visit(
@@ -68,6 +71,13 @@ class Visit {
 
     void assignVideoSession(String sessionId) {
         videoSessionId = sessionId;
+    }
+
+    // Only the first time counts, so a visitor who enters again keeps her first entry
+    void markVisitorJoined(OffsetDateTime joinedAt) {
+        if (visitorJoinedAt == null) {
+            visitorJoinedAt = joinedAt;
+        }
     }
 
     Long getId() {

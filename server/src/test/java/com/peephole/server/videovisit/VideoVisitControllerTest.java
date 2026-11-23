@@ -259,6 +259,33 @@ class VideoVisitControllerTest {
         videoTokenForRoomLink(token).andExpect(status().isOk());
     }
 
+    // The post-visit call only goes to visitors who entered the room (specs/post-visit-call.md)
+
+    @Test
+    void recordsWhenTheVisitorFirstEntersTheRoom() throws Exception {
+        videoTokenForRoomLink(roomLinkToken(visitId, "VISITOR")).andExpect(status().isOk());
+
+        assertThat(visitorJoinedAt()).isAtSameInstantAs(OffsetDateTime.parse("2026-11-23T09:55:00Z"));
+    }
+
+    @Test
+    void keepsTheFirstEntryWhenTheVisitorEntersAgain() throws Exception {
+        OffsetDateTime firstEntry = OffsetDateTime.parse("2026-11-23T09:51:00Z");
+        jdbcTemplate.update("UPDATE visit SET visitor_joined_at = ? WHERE id = ?", firstEntry, visitId);
+
+        videoTokenForRoomLink(roomLinkToken(visitId, "VISITOR")).andExpect(status().isOk());
+
+        assertThat(visitorJoinedAt()).isAtSameInstantAs(firstEntry);
+    }
+
+    @Test
+    void guestsAndTheAgencyEnteringDoNotCountAsTheVisitor() throws Exception {
+        videoTokenForRoomLink(roomLinkToken(visitId, "GUEST")).andExpect(status().isOk());
+        videoTokenForAgency(signedInAgent(agencyId), visitId).andExpect(status().isOk());
+
+        assertThat(visitorJoinedAt()).isNull();
+    }
+
     @Test
     void refusesALinkThatDoesNotExist() throws Exception {
         expectProblem(videoTokenForRoomLink(RoomToken.generate()), 404, "NOT_FOUND");
@@ -400,6 +427,13 @@ class VideoVisitControllerTest {
     }
 
     // Helpers
+
+    // The test transaction never commits, so the change is written by hand before reading it with SQL
+    private OffsetDateTime visitorJoinedAt() {
+        entityManager.flush();
+        return jdbcTemplate.queryForObject(
+                "SELECT visitor_joined_at FROM visit WHERE id = ?", OffsetDateTime.class, visitId);
+    }
 
     private ResultActions createRoomLink(MockHttpSession session, long visit, String role) throws Exception {
         return mockMvc.perform(post("/api/visits/{id}/room-links", visit)
