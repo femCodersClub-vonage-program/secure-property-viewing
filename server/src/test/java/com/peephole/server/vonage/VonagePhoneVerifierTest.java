@@ -90,6 +90,21 @@ class VonagePhoneVerifierTest {
                 .hasNoCause();
     }
 
+    // A 412 only means something for the silent check, so an SMS-only start answers it as before Silent
+    // Authentication
+    @Test
+    void turnsA412OnAnSmsOnlyStartIntoAPhoneVerifierException() {
+        VerifyResponseException preconditionFailed = apiError(412);
+        when(verify2Client.sendVerification(any())).thenThrow(preconditionFailed);
+
+        assertThatThrownBy(() -> verifier.start(PHONE))
+                .isInstanceOf(PhoneVerifierException.class)
+                .isNotInstanceOf(SilentAuthUnavailableException.class)
+                .hasMessageContaining("412")
+                .hasMessageNotContaining(PHONE)
+                .hasNoCause();
+    }
+
     @Test
     void reportsAVerificationInProgressWhenVonageAnswers409() {
         VerifyResponseException concurrent = apiError(409);
