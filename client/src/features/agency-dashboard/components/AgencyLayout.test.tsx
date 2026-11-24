@@ -1,12 +1,13 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
 import AgencyLayout from './AgencyLayout'
 
 function renderAt(path: string) {
   const router = createMemoryRouter(
     [
-      { path: '/', element: <h1>Home page</h1> },
+      { path: '/agency/sign-in', element: <h1>Sign-in page</h1> },
       {
         path: '/agency',
         element: <AgencyLayout />,
@@ -20,6 +21,10 @@ function renderAt(path: string) {
   )
   render(<RouterProvider router={router} />)
 }
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
 
 describe('AgencyLayout', () => {
   it('shows the side navigation next to the current page', () => {
@@ -54,11 +59,60 @@ describe('AgencyLayout', () => {
     expect(screen.getByRole('button', { name: 'Menu' })).toHaveAttribute('aria-expanded', 'false')
   })
 
-  it('goes back to the home page after signing out', async () => {
+  it('ends the session and goes to the sign-in page after signing out', async () => {
+    const fetchMock = vi.fn<typeof fetch>(async () => new Response(null, { status: 204 }))
+    vi.stubGlobal('fetch', fetchMock)
+    document.cookie = 'XSRF-TOKEN=test-token; path=/'
     renderAt('/agency')
 
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Home page' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Sign-in page' }),
+    ).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/agency/session',
+      expect.objectContaining({ method: 'DELETE' }),
+    )
+  })
+
+  it('goes to the sign-in page when the session had already ended', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(
+        async () =>
+          new Response(
+            JSON.stringify({
+              title: 'Unauthorized',
+              status: 401,
+              detail: 'Sign in.',
+              code: 'AUTHENTICATION_REQUIRED',
+            }),
+            { status: 401, headers: { 'Content-Type': 'application/problem+json' } },
+          ),
+      ),
+    )
+    document.cookie = 'XSRF-TOKEN=test-token; path=/'
+    renderAt('/agency')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Sign-in page' }),
+    ).toBeInTheDocument()
+  })
+
+  it('stays on the page and says so when signing out fails', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(async () => new Response(null, { status: 500 })),
+    )
+    document.cookie = 'XSRF-TOKEN=test-token; path=/'
+    renderAt('/agency')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(SYSTEM_ERROR_MESSAGE)
+    expect(screen.getByRole('heading', { level: 1, name: 'Dashboard page' })).toBeInTheDocument()
   })
 })

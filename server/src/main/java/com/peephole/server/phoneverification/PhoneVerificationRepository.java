@@ -15,4 +15,8 @@ interface PhoneVerificationRepository extends JpaRepository<PhoneVerification, L
     // Locks the row until the transaction ends, so two requests never change the same verification at once
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<PhoneVerification> findWithLockById(long id);
+
+    // The status webhook only knows Vonage's request id. Locked for the same reason as above
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<PhoneVerification> findWithLockByVonageRequestId(String vonageRequestId);
 }

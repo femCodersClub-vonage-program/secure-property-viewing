@@ -1,14 +1,23 @@
 import { useEffect, useRef, useState } from 'react'
 import { Alert, Button } from '../../../components/ui'
 import { errorMessage, getAgencySummary } from '../api'
+import { ApiError, SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
+import { getAgencySummary, isSignedOut } from '../api'
 import type { AgencySummary } from '../types'
 import DashboardHeading from './DashboardHeading'
 import DashboardOverview from './DashboardOverview'
+import SignInRedirect from './SignInRedirect'
 
 type Load =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'ready'; summary: AgencySummary }
+  | { status: 'signed-out' }
+
+// A business error shows the server's message (docs/design-system.md → States)
+function errorMessage(error: unknown): string {
+  return error instanceof ApiError ? error.message : SYSTEM_ERROR_MESSAGE
+}
 
 /** D1: loads the summary and shows it, or says it is loading or could not load. */
 function DashboardHome() {
@@ -24,6 +33,10 @@ function DashboardHome() {
       .catch((error: unknown) => {
         // Leaving the page cancels the call: that is not an error to show
         if (controller.signal.aborted) return
+        if (isSignedOut(error)) {
+          setLoad({ status: 'signed-out' })
+          return
+        }
         setLoad({ status: 'error', message: errorMessage(error) })
       })
     return () => controller.abort()
@@ -37,6 +50,10 @@ function DashboardHome() {
       headingRef.current?.focus()
     }
   }, [attempt, load.status])
+
+  if (load.status === 'signed-out') {
+    return <SignInRedirect />
+  }
 
   if (load.status === 'ready') {
     return <DashboardOverview summary={load.summary} headingRef={headingRef} />
