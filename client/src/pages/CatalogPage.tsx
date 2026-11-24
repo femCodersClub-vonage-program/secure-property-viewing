@@ -58,8 +58,8 @@ function CatalogPage() {
 
   return (
     <main>
-      <div className="sticky top-0 z-10 bg-surface-page border-b border-border px-4 py-4 flex flex-col gap-3">
-        <div className="mx-auto w-full max-w-7xl flex flex-col gap-3">
+      <div className="sticky top-0 z-10 bg-surface-page border-b border-border py-4 flex flex-col gap-3">
+        <div className="mx-auto w-full max-w-7xl px-4 flex flex-col gap-3 sm:px-10">
           <h1 className="font-display text-3xl font-bold text-brand-dark text-balance">
             Properties in Barcelona
           </h1>
@@ -79,7 +79,7 @@ function CatalogPage() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 flex flex-col gap-section">
+      <div className="mx-auto max-w-7xl px-4 py-8 flex flex-col gap-section sm:px-10">
         {state.status === 'loading' && (
           <p className="font-body text-text-muted" aria-live="polite">
             Loading properties…
@@ -112,10 +112,7 @@ function CatalogPage() {
 
         {state.status === 'success' && state.data.length > 0 && (
           <div className="flex flex-col lg:flex-row lg:items-start gap-6">
-            <ul
-              className="flex flex-col gap-6 pb-[33vh] lg:pb-0 lg:w-96 lg:shrink-0"
-              aria-label="Properties"
-            >
+            <ul className="flex flex-col gap-6 lg:w-96 lg:shrink-0" aria-label="Properties">
               {state.data.map((property) => (
                 <li key={property.id} className="flex w-full">
                   <PropertyCard property={property} />
@@ -123,8 +120,8 @@ function CatalogPage() {
               ))}
             </ul>
 
-            <div className="fixed bottom-0 left-0 right-0 lg:static lg:sticky lg:top-4 lg:flex-1">
-              <PropertyMap properties={properties} className="h-[33vh] lg:h-[calc(100vh-6rem)]" />
+            <div className="sticky bottom-0 -mx-4 sm:-mx-10 lg:top-36 lg:bottom-auto lg:mx-0 lg:flex-1">
+              <PropertyMap properties={properties} className="h-[33vh] lg:h-[calc(100vh-10rem)]" />
             </div>
           </div>
         )}

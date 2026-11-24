@@ -17,7 +17,10 @@ function VisitCalendarPage() {
       return
     }
     // `replace`, so neither "back" nor a reload sends the single-use code again
-    void navigate({ pathname: location.pathname, search: location.search }, { replace: true })
+    void navigate(
+      { pathname: location.pathname, search: location.search },
+      { replace: true, preventScrollReset: true },
+    )
   }, [location.hash, location.pathname, location.search, navigate])
 
   if (!Number.isInteger(propertyId) || propertyId <= 0) {

@@ -59,7 +59,7 @@ function FeaturedProperties() {
         </div>
 
         {state.status === 'loading' && (
-          <p className="font-body text-text-muted" role="status">
+          <p className="min-h-96 font-body text-text-muted" role="status">
             Loading properties…
           </p>
         )}

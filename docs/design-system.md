@@ -138,10 +138,10 @@ The catalog map (`PropertyMap` in the `property-browsing` feature) uses Leaflet 
 
 ## Public site on dark surfaces
 
-The header, the footer and the four steps of the home page (`SiteHeader`, `SiteFooter` and `HowItWorks` in the `public-site` feature) are on `--color-brand-dark`.
+The header and the footer of the public site, and the four steps of the home page (`SiteHeader`, `SiteFooter` and `HowItWorks` in the `public-site` feature) are on `--color-brand-dark`. `PublicLayout` puts the header and the footer on every public page, except the video room, where the call needs the whole screen.
 
 - The navigation links of the header and the footer (`SiteNavLink`) are white, and `--color-brand-accent` and underlined on hover and on the current page, which also has `aria-current="page"`
-- Each person of the team is a `TeamLink` to LinkedIn: the initials in white, bold and `text-xl`, on the same gradient circle as the steps, the name in white and the role under it. The name turns `--color-brand-accent` and underlined on hover. No photo is loaded from another site, so no visitor's IP is sent there
+- Each person of the team is a `TeamLink` to LinkedIn: the name in `--color-brand-accent`, underlined on hover, and the role under it in white. No photo is loaded from another site, so no visitor's IP is sent there
 - `--color-brand-accent` has 4.74:1 on `--color-brand-dark`, so it passes AA for text there. These links are its only use as text. Both components have a white focus outline and are only for dark surfaces. Links on white keep `--color-brand-primary`
 - Each of the four steps is a card with a `--color-text-light` border at 20% on `--color-brand-dark` at 70%, with white text. Its number is white, bold and `text-2xl`, on a circle with a gradient from `--color-brand-primary` (7.38:1) to `--color-brand-accent` (3.71:1, enough for large text). The shield icon next to the scam it stops is decorative, in `--color-brand-accent`
 - Behind the steps there is a photo under `--color-brand-dark` at 85%. Over pure white, the worst case, the text has at least 9.4:1 without counting the card's own background

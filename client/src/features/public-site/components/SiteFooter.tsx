@@ -41,7 +41,7 @@ function SiteFooter() {
     <footer className="bg-brand-dark font-body text-text-light">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-10 sm:px-10">
         <div className="flex flex-wrap items-center justify-between gap-x-12 gap-y-4">
-          <div className="flex max-w-lg flex-col gap-2">
+          <div className="flex max-w-2xl flex-col gap-2">
             <p className="flex items-center gap-3">
               <ShieldCheck className="size-6 text-brand-accent" aria-hidden="true" />
               <span className="font-display text-lg font-bold">Peephole</span>
@@ -57,7 +57,7 @@ function SiteFooter() {
                 <SiteNavLink to="/properties">Properties</SiteNavLink>
               </li>
               <li>
-                <SiteNavLink href="#how-it-works">How it works</SiteNavLink>
+                <SiteNavLink to="/#how-it-works">How it works</SiteNavLink>
               </li>
               <li>
                 <SiteNavLink to={LIST_PROPERTY_PATH}>List my property</SiteNavLink>
@@ -76,7 +76,7 @@ function SiteFooter() {
           <h2 id="team-heading" className="font-display text-lg font-semibold">
             Meet the team on LinkedIn
           </h2>
-          <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:auto-cols-max md:grid-flow-col md:grid-cols-none md:grid-rows-2 md:justify-between xl:grid-rows-1">
             {TEAM.map((person) => (
               <li key={person.href}>
                 <TeamLink {...person} />

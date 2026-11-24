@@ -21,7 +21,7 @@ function VisitConfirmationPage() {
   const markRoomLinksCreated = useCallback(() => {
     if (!visit) return
     const state: VisitConfirmationState = { visit, roomLinksCreated: true }
-    void navigate(location.pathname, { replace: true, state })
+    void navigate(location.pathname, { replace: true, state, preventScrollReset: true })
   }, [navigate, location.pathname, visit])
 
   if (!visit || String(visit.visitId) !== id) {

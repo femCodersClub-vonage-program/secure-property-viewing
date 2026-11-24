@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { SYSTEM_ERROR_MESSAGE } from './lib/http'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -120,6 +120,70 @@ describe('routes', () => {
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'See other properties' })).toHaveAttribute('href', '/')
     expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    '/',
+    '/properties',
+    '/properties/7',
+    '/properties/7/visit',
+    '/visits/18/confirmation',
+    '/verification/return',
+    '/does-not-exist',
+  ])('shows %s between the header and the footer of the public site', (path) => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(() => new Promise(() => {})),
+    )
+    renderAt(path)
+
+    expect(screen.getByRole('banner')).toBeInTheDocument()
+    expect(screen.getByRole('main')).toBeInTheDocument()
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument()
+  })
+
+  it.each(['/visits/room', '/agency/sign-in'])('shows %s without them', (path) => {
+    renderAt(path)
+
+    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument()
+    expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
+  })
+
+  it('opens the next page at the top', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(() => new Promise(() => {})),
+    )
+    const scrollTo = vi.spyOn(window, 'scrollTo')
+    renderAt('/')
+    scrollTo.mockClear()
+
+    const footer = within(screen.getByRole('contentinfo'))
+    fireEvent.click(footer.getByRole('link', { name: 'Properties' }))
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Properties in Barcelona' }),
+    ).toBeInTheDocument()
+    expect(scrollTo).toHaveBeenCalledWith(0, 0)
+    scrollTo.mockRestore()
+  })
+
+  it('opens the home page at the four steps from any other page', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(() => new Promise(() => {})),
+    )
+    const scrolledIds: string[] = []
+    // jsdom does not implement it
+    Element.prototype.scrollIntoView = function (this: Element) {
+      scrolledIds.push(this.id)
+    }
+    renderAt('/properties')
+
+    const header = within(screen.getByRole('banner'))
+    fireEvent.click(header.getByRole('link', { name: 'How it works' }))
+
+    await waitFor(() => expect(scrolledIds).toEqual(['how-it-works']))
   })
 
   it('shows the not found page for an unknown path', () => {

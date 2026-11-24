@@ -64,11 +64,10 @@ describe('HomePage', () => {
     )
   })
 
-  it('links to the agency sign-up from the hero, the section for owners and the footer', () => {
+  it('links to the agency sign-up from the hero and the section for owners', () => {
     renderHome()
     const links = screen.getAllByRole('link', { name: 'List my property' })
     expect(links.map((link) => link.getAttribute('href'))).toEqual([
-      '/agencies/sign-up',
       '/agencies/sign-up',
       '/agencies/sign-up',
     ])
@@ -81,19 +80,11 @@ describe('HomePage', () => {
     expect(screen.getByRole('heading', { name: 'Secure communication' })).toBeInTheDocument()
   })
 
-  it('has a main navigation, whose "How it works" leads to that section', () => {
+  it('gives the four steps the id that "How it works" leads to', () => {
     renderHome()
-    const nav = within(screen.getByRole('navigation', { name: 'Main' }))
-    const section = screen.getByRole('region', { name: STEPS_HEADING })
-
-    expect(nav.getByRole('link', { name: 'Properties' })).toHaveAttribute('href', '/properties')
-    expect(nav.getByRole('link', { name: 'How it works' })).toHaveAttribute(
-      'href',
-      `#${section.id}`,
-    )
-    expect(nav.getByRole('link', { name: 'Agency sign in' })).toHaveAttribute(
-      'href',
-      '/agency/sign-in',
+    expect(screen.getByRole('region', { name: STEPS_HEADING })).toHaveAttribute(
+      'id',
+      'how-it-works',
     )
   })
 
@@ -105,28 +96,6 @@ describe('HomePage', () => {
       steps.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent),
     ).toEqual(['Choose a property', 'Verify your phone', 'Visit it live', 'Answer one call'])
     expect(steps.getAllByText(/^Stops /)).toHaveLength(4)
-  })
-
-  it('says that the properties are fictional and links the team to LinkedIn', () => {
-    renderHome()
-    expect(screen.getByText(/The properties and the agency are fictional/)).toBeInTheDocument()
-
-    const team = within(screen.getByRole('region', { name: 'Meet the team on LinkedIn' }))
-    const people = [
-      [
-        'Irina Ichim Tech lead and mentor',
-        'https://www.linkedin.com/in/irina-ichim-desarrolladora/',
-      ],
-      ['Cande Zamora Full Stack Developer', 'https://www.linkedin.com/in/cande-zamora-125301349/'],
-      ['Mayleth Carrascal Backend Developer', 'https://www.linkedin.com/in/maylethcarrascal/'],
-      ['Kat Leverton Accessibility, QA & Full Stack', 'https://www.linkedin.com/in/kat-leverton/'],
-      ['Viviana Andrango Full Stack Developer', 'https://www.linkedin.com/in/viviana-andrango/'],
-      ['Damaris Castro Full Stack Developer', 'https://www.linkedin.com/in/damariscastro/'],
-    ]
-    expect(team.getAllByRole('link')).toHaveLength(people.length)
-    people.forEach(([name, href]) =>
-      expect(team.getByRole('link', { name })).toHaveAttribute('href', href),
-    )
   })
 })
 

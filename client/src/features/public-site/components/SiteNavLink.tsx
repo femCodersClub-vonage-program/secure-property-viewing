@@ -1,7 +1,5 @@
 import type { ReactNode } from 'react'
-import { NavLink } from 'react-router'
-
-type SiteNavLinkProps = { children: ReactNode } & ({ to: string } | { href: string })
+import { Link, NavLink } from 'react-router'
 
 const itemClasses =
   'inline-flex min-h-11 items-center font-body underline-offset-8 transition-colors hover:text-brand-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-text-light'
@@ -11,18 +9,19 @@ const activeClasses = 'text-brand-accent underline'
 const inactiveClasses = 'text-text-light no-underline'
 
 // Only on brand-dark surfaces: white and pink text, and a white focus outline
-function SiteNavLink({ children, ...target }: SiteNavLinkProps) {
-  if ('href' in target) {
+function SiteNavLink({ to, children }: { to: string; children: ReactNode }) {
+  // A section is never the current page: NavLink ignores the hash and would mark it on its page
+  if (to.includes('#')) {
     return (
-      <a href={target.href} className={`${itemClasses} ${inactiveClasses}`}>
+      <Link to={to} className={`${itemClasses} ${inactiveClasses}`}>
         {children}
-      </a>
+      </Link>
     )
   }
 
   return (
     <NavLink
-      to={target.to}
+      to={to}
       className={({ isActive }) => `${itemClasses} ${isActive ? activeClasses : inactiveClasses}`}
     >
       {children}

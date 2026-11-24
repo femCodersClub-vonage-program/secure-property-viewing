@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import SiteHeader from './SiteHeader'
@@ -12,6 +12,20 @@ function renderAt(path: string) {
 }
 
 describe('SiteHeader', () => {
+  it('links to the home page, the catalog, the four steps and the agency sign-in', () => {
+    renderAt('/')
+
+    expect(screen.getByRole('link', { name: 'Peephole, home page' })).toHaveAttribute('href', '/')
+    const nav = within(screen.getByRole('navigation', { name: 'Main' }))
+    expect(
+      nav.getAllByRole('link').map((link) => [link.textContent, link.getAttribute('href')]),
+    ).toEqual([
+      ['Properties', '/properties'],
+      ['How it works', '/#how-it-works'],
+      ['Agency sign in', '/agency/sign-in'],
+    ])
+  })
+
   it('marks the page the visitor is on', () => {
     renderAt('/properties')
 
