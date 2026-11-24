@@ -51,3 +51,11 @@ export type AgencySummary = {
   nextVisits: UpcomingVisit[]
   alerts: VisitAlert[]
 }
+
+export type AgencyRole = 'ADMIN' | 'AGENT'
+
+/** POST and GET /api/agency/session */
+export type AgencyUser = {
+  name: string
+  role: AgencyRole
+}

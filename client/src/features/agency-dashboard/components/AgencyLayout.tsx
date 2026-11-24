@@ -1,6 +1,10 @@
 import { Menu } from 'lucide-react'
 import { useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router'
+import { Alert } from '../../../components/ui'
+import { ApiError, SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
+import { isSignedOut, signOut } from '../api'
+import { SIGN_IN_PATH } from '../returnPath'
 import SideNav from './SideNav'
 
 const NAVIGATION_ID = 'agency-navigation'
@@ -11,6 +15,26 @@ function AgencyLayout() {
   // The menu stays open only on the page where it was opened, so following a link closes it
   const [openOn, setOpenOn] = useState<string | null>(null)
   const isMenuOpen = openOn === pathname
+  const [signOutError, setSignOutError] = useState<{ message: string; on: string }>()
+  const signOutMessage = signOutError?.on === pathname ? signOutError.message : undefined
+
+  async function handleSignOut() {
+    setSignOutError(undefined)
+    try {
+      await signOut()
+    } catch (error) {
+      // A 401 means the session had already ended, so she is signed out anyway
+      if (!isSignedOut(error)) {
+        // The session may still be open: she stays here and can try again
+        setSignOutError({
+          message: error instanceof ApiError ? error.message : SYSTEM_ERROR_MESSAGE,
+          on: pathname,
+        })
+        return
+      }
+    }
+    void navigate(SIGN_IN_PATH, { replace: true })
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-dashboard-page font-dashboard-body text-text-default md:flex-row">
@@ -31,10 +55,14 @@ function AgencyLayout() {
         id={NAVIGATION_ID}
         className={`${isMenuOpen ? 'block' : 'hidden'} md:block md:w-64 md:shrink-0`}
       >
-        {/* TEMPORARY: until the agency session exists, signing out goes back to the home page */}
-        <SideNav onSignOut={() => void navigate('/')} />
+        <SideNav onSignOut={() => void handleSignOut()} />
       </div>
       <main className="min-w-0 flex-1 px-4 py-8 md:px-12 md:py-10">
+        {signOutMessage ? (
+          <Alert variant="error" className="mb-6">
+            {signOutMessage}
+          </Alert>
+        ) : null}
         <Outlet />
       </main>
     </div>

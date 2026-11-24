@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
 import DashboardHome from './DashboardHome'
@@ -119,7 +119,7 @@ describe('DashboardHome', () => {
     let answerRetry: (response: Response) => void = () => {}
     const fetchMock = vi
       .fn<typeof fetch>()
-      .mockResolvedValueOnce(problem(401, 'AUTHENTICATION_REQUIRED', 'Sign in to continue.'))
+      .mockResolvedValueOnce(problem(404, 'NOT_FOUND', 'The agency was not found'))
       .mockReturnValueOnce(
         new Promise<Response>((resolve) => {
           answerRetry = resolve
@@ -128,7 +128,7 @@ describe('DashboardHome', () => {
     vi.stubGlobal('fetch', fetchMock)
     renderHome()
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Sign in to continue.')
+    expect(await screen.findByRole('alert')).toHaveTextContent('The agency was not found')
 
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
 
@@ -185,5 +185,28 @@ describe('DashboardHome', () => {
 
     expect(fetchMock.mock.calls[0]?.[1]?.signal?.aborted).toBe(true)
     expect(consoleError).not.toHaveBeenCalled()
+  })
+
+  it('sends the agent to sign in again when her session has ended, to come back here', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(async () => problem(401, 'AUTHENTICATION_REQUIRED', 'Sign in.')),
+    )
+    // Shows where the redirect landed and what it remembered
+    function SignInSpy() {
+      const location = useLocation()
+      return <p>Sign-in page, from {JSON.stringify(location.state)}</p>
+    }
+    render(
+      <MemoryRouter initialEntries={['/agency']}>
+        <Routes>
+          <Route path="/agency" element={<DashboardHome />} />
+          <Route path="/agency/sign-in" element={<SignInSpy />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText('Sign-in page, from {"from":"/agency"}')).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 })

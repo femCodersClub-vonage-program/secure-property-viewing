@@ -1,5 +1,13 @@
-import { request } from '../../lib/http'
-import type { AgencySummary, AgencyVisit, UpcomingVisit, VisitAlert, VisitStatus } from './types'
+import { ApiError, request } from '../../lib/http'
+import type {
+  AgencyRole,
+  AgencySummary,
+  AgencyUser,
+  AgencyVisit,
+  UpcomingVisit,
+  VisitAlert,
+  VisitStatus,
+} from './types'
 
 // Checks the server's answer before using it, as client/AGENTS.md asks.
 // Contracts: specs/agency-dashboard.md → "API" → GET /api/agency/summary and GET /api/agency/visits
@@ -99,6 +107,44 @@ export function parseAgencySummary(data: unknown): AgencySummary {
 /** The D1 summary of the signed-in agent. Without a session the server answers 401 AUTHENTICATION_REQUIRED. */
 export function getAgencySummary(signal?: AbortSignal): Promise<AgencySummary> {
   return request('/api/agency/summary', parseAgencySummary, { signal })
+}
+
+const AGENCY_ROLES = new Set(['ADMIN', 'AGENT'])
+
+// Type guard: if it returns true, TypeScript knows value is an AgencyRole, so no `as` is needed
+function isAgencyRole(value: unknown): value is AgencyRole {
+  return typeof value === 'string' && AGENCY_ROLES.has(value)
+}
+
+// Checks the answer before using it, as parseAgencySummary does
+export function parseAgencyUser(data: unknown): AgencyUser {
+  if (isObject(data) && typeof data.name === 'string' && isAgencyRole(data.role)) {
+    return { name: data.name, role: data.role }
+  }
+  throw new Error('Unexpected /api/agency/session response')
+}
+
+/** A wrong email or password answers 401 INVALID_CREDENTIALS, without saying which one. */
+export function signIn(email: string, password: string): Promise<AgencyUser> {
+  return request('/api/agency/session', parseAgencyUser, {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  })
+}
+
+/** The signed-in agent. Without a session the server answers 401 AUTHENTICATION_REQUIRED. */
+export function getSession(signal?: AbortSignal): Promise<AgencyUser> {
+  return request('/api/agency/session', parseAgencyUser, { signal })
+}
+
+/** True when the server says there is no signed-in agent, from any agency call. */
+export function isSignedOut(error: unknown): boolean {
+  return error instanceof ApiError && error.code === 'AUTHENTICATION_REQUIRED'
+}
+
+// 204 has no body, so there is nothing to check
+export function signOut(): Promise<void> {
+  return request('/api/agency/session', () => undefined, { method: 'DELETE' })
 }
 
 export function parseAgencyVisit(value: unknown): AgencyVisit {
