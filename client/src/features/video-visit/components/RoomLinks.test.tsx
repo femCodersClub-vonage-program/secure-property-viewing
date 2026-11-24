@@ -173,7 +173,7 @@ describe('RoomLinks', () => {
     const field = await screen.findByRole('textbox', { name: 'Link to share' })
     expect(field).toHaveValue(`${ROOM}guest-token-1`)
     // The link replaces the button that was pressed, so the focus moves to it
-    expect(field).toHaveFocus()
+    await waitFor(() => expect(field).toHaveFocus())
     expect(screen.getByRole('button', { name: 'Copy the link to share' })).toBeInTheDocument()
     expect(rolesRequested()).toEqual(['VISITOR', 'GUEST'])
   })
@@ -196,7 +196,7 @@ describe('RoomLinks', () => {
 
     const field = await screen.findByRole('textbox', { name: 'Your link' })
     expect(field).toHaveValue(`${ROOM}visitor-token-2`)
-    expect(field).toHaveFocus()
+    await waitFor(() => expect(field).toHaveFocus())
     expect(onFirstVisitorLink).not.toHaveBeenCalled()
   })
 
@@ -236,7 +236,9 @@ describe('RoomLinks', () => {
       'You have asked for the most links to share that one visit can have. The links you already shared still work.',
     )
     // The button was disabled while loading, so it gets the focus back
-    expect(screen.getByRole('button', { name: 'Get a link to share' })).toHaveFocus()
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Get a link to share' })).toHaveFocus(),
+    )
   })
 
   it('explains that links only come from the browser that booked the visit', async () => {

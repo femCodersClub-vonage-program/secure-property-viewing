@@ -11,10 +11,18 @@ Phone verification for visitors and owners using a one-time passcode (OTP) sent 
 - Each request uses the brand `Peephole`, one `sms` step, a 6-digit code and a `channel_timeout` of 300 seconds
 - A new code cancels the previous request first, which Verify allows from 30 seconds after the start
 - A `410` on a check means Verify has ended the request: the server marks it `EXPIRED` when the 5 minutes are up and `FAILED` otherwise
-- The Verify application needs no capability, so locally each person uses her own
+- The Verify application needs no capability, so locally each person uses her own. With `SILENT_AUTH_ENABLED=true`, everyone uses Mayleth's Silent Authentication application instead, for every verification
 - The server reaches Verify only through the `PhoneVerifier` interface in `vonage/`, and the tests use a test double
 
 Silent Authentication, with the SMS code as the fallback, is specified in [`specs/silent-authentication.md`](../specs/silent-authentication.md). It is tested with Vonage's Virtual Operator, which answers for `+990` numbers. The Virtual Operator only accepts `silent_auth` as the single step, so `+990` numbers get no SMS fallback. Live checks, such as the one for the demo, need mobile data, a supported operator, such as Orange, Telefónica or Vodafone in Spain, and either a registration in the Network Registry or one of up to 5 numbers allowlisted in the Playground.
+
+In `server/`, for Silent Authentication:
+
+- **Start:** a workflow with a `silent_auth` step, with the `redirect_url`, followed by an `sms` step to the same number. For a `+990` number, only the `silent_auth` step. Without a `check_url` in the answer, Verify has already moved on to the SMS by itself. A `412` means the operator has not accepted Peephole's profile, and the server starts an SMS-only verification instead
+- **Moving on to SMS:** the next workflow call, `nextWorkflow` in the SDK. A `409` means it is too early, and the server tries again up to 3 times, 1 second apart. A `404` or `410` means Verify has already ended the request, so the verification is marked `EXPIRED`. The documentation says nothing about other answers, so they become a `500`
+- **Checking the silent code:** the same check call as an SMS code, with a single attempt
+- **Status webhook:** `POST /api/webhooks/verify/status`, with a JWT signed with the signature secret of the Vonage account that owns the application. The server checks the signature with `Jwt.verifySignature` and, when the token carries a `payload_hash`, that the body matches it. It reads the body with Jackson, not with the SDK's `VerificationCallback`, which has no value for `blocked`, `cancelled` or `rejected`
+- `VonagePhoneVerifier` and `VerifyWebhookReader` in `vonage/` are the only classes that talk to Verify or read its webhook, and the tests use a test double of `PhoneVerifier`
 
 In `client/`, for Silent Authentication:
 
@@ -66,7 +74,7 @@ The [post-visit call](../specs/post-visit-call.md): after a video visit, the ser
 - **One Spanish Vonage number** in Irina's account, in its own application with the Voice capability
 - **No answer URL.** The NCCO goes inside the create-call request: a `talk` action in `es-ES` and an `input` action for one DTMF digit, with its own webhook for the key
 - **Voicemail never hears the question.** The call uses `machine_detection: hangup`, which hangs up before the first action
-- **Signed webhooks.** Vonage signs the key and status webhooks with the account's signature secret, and the server rejects any webhook without a valid signature. They travel over HTTPS, so the server doesn't need to check the hash of the body as well
+- **Signed webhooks.** Vonage signs the key and status webhooks with the account's signature secret, and the server rejects any webhook without a valid signature. It also checks that the body matches the token's `payload_hash`, and rejects a token without it
 - **Off by default.** With `VOICE_CALLS_ENABLED=false`, local development and the tests need no number and place no call
 
 ## Vonage developer tools

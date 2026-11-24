@@ -9,6 +9,6 @@ class VerificationResendTooSoonException extends BusinessException {
         super(
                 HttpStatus.TOO_MANY_REQUESTS,
                 "VERIFICATION_RESEND_TOO_SOON",
-                "Wait until you can ask for a new code, as the countdown on the screen shows.");
+                "Wait a moment before asking for a new code.");
     }
 }

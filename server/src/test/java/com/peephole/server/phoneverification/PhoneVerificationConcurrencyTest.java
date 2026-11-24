@@ -70,7 +70,7 @@ class PhoneVerificationConcurrencyTest {
             results.add(executor.submit(() -> {
                 startTogether.await();
                 try {
-                    service.start(PHONE, PhoneVerificationPurpose.VISIT, null);
+                    service.start(PHONE, PhoneVerificationPurpose.VISIT, null, false);
                     return true;
                 } catch (VerificationLimitReachedException exception) {
                     return false;
@@ -93,7 +93,8 @@ class PhoneVerificationConcurrencyTest {
     @Test
     void neverLosesAVerifiedCodeWhenTwoChecksArriveAtTheSameTime() throws Exception {
         when(phoneVerifier.start(PHONE)).thenReturn("request-id");
-        long id = service.start(PHONE, PhoneVerificationPurpose.VISIT, null).id();
+        long id = service.start(PHONE, PhoneVerificationPurpose.VISIT, null, false)
+                .id();
         // A slow Vonage, so without the row lock both checks would read the row before either one saves it
         when(phoneVerifier.check("request-id", "111111")).thenAnswer(invocation -> {
             Thread.sleep(200);

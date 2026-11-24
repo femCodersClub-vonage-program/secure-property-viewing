@@ -2,6 +2,7 @@ package com.peephole.server.phoneverification;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -220,6 +221,29 @@ class PhoneVerificationControllerTest {
                 .andExpect(jsonPath("$.errors.phone").isNotEmpty())
                 .andExpect(jsonPath("$.errors.purpose").isNotEmpty());
         verify(phoneVerifier, never()).start(any());
+    }
+
+    @Test
+    void returnsNoCheckUrlAndIgnoresSilentAuthWhileItIsOff() throws Exception {
+        mockMvc.perform(post(PATH)
+                        .session(new MockHttpSession())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"phone\":\"" + PHONE + "\",\"purpose\":\"VISIT\",\"silentAuth\":true}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.checkUrl").doesNotExist());
+        verify(phoneVerifier).start(PHONE);
+        verify(phoneVerifier, never()).startWithSilentAuth(any(), any(), anyBoolean());
+    }
+
+    @Test
+    void rejectsAVirtualOperatorNumberWhileTheyAreNotAccepted() throws Exception {
+        start(new MockHttpSession(), "+990123400")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors.phone").isNotEmpty());
+        verify(phoneVerifier, never()).start(any());
+        verify(phoneVerifier, never()).startWithSilentAuth(any(), any(), anyBoolean());
     }
 
     @Test

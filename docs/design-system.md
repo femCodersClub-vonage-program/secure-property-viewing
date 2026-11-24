@@ -171,6 +171,7 @@ Inter and Space Grotesk are variable fonts, self-hosted as `.woff2` files in `sr
 - Side navigation on the left and the page content on the right, with the page heading (`h1`) at the top of the content
 - Content sections, such as the indicators and the next visits in D1, are cards that follow the common card rules. The next visit card is the one exception, described in [Next visit card](#next-visit-card)
 - On mobile the side navigation collapses into a menu button in a top bar, and the content takes the full width
+- Screens without the navigation, signing in and checking the session, show one centered card on `--color-dashboard-page` with the dashboard fonts (`CenteredScreen`). The card heading is `DashboardHeading`
 
 ### Navigation
 
@@ -233,6 +234,15 @@ D1 shows the next visit, the earliest in `nextVisits`, in its own card (`NextVis
 - A decorative `--color-brand-accent` glow in one corner. Text never goes on top of it
 - "Join visit" is a `HighlightLink`: a pill with a `--color-dashboard-highlight` background, bold `--color-brand-dark` text and a white focus outline. It is only for the dashboard's dark surfaces, because mango on white has 1.54:1 and a white outline would not show. Its accessible name says which visit, like the links in the table
 
+### Password field
+
+The sign-in password uses `PasswordInput`, a dashboard component that wraps the shared `Input` with a button to show the password.
+
+- An eye icon button inside the field, on the right, 44 px wide. The field gets `pr-12`, so the text never runs under the icon
+- A fixed accessible name, "Show password", with `aria-pressed` saying whether the password is shown. The icon is `aria-hidden`
+- The icon in `--color-text-muted` (5.3:1 on `--color-surface-input`), `--color-brand-dark` on hover, and the common focus ring
+- It is a plain `button` because `Button` has no icon-only variant yet
+
 ### Dashboard contrast
 
 Pairs used only in the dashboard, checked against WCAG 2.1 AA:
@@ -256,6 +266,18 @@ Pairs that must never be used:
 | `#FFC93C` text on `#FFFFFF` | 1.54:1 | Far below 3:1. Mango is never text on white |
 | `#FFFFFF` text on `#FF0090` | 3.71:1 | Below 4.5:1. The pink glow is decorative only |
 
+### Calendar
+
+D4 shows the visits of one week, from Monday to Sunday in `Europe/Madrid`, and opens on the current week.
+
+- Under the page heading, the week is an `h2` in `--font-dashboard-display`, such as "23 November – 29 November 2026", next to "Previous week" and "Next week" `secondary` buttons. Each button has a text label, and its chevron icon is decorative. The buttons stay on screen while the week loads or fails, so the agent can always change week
+- The whole week is one default `Card`. Visits are split by `--color-border` lines, as table rows are, with no card or shadow per visit
+- Each day starts with a header band: an `h3` on `--color-dashboard-page` with a `--color-border` line under it, with the weekday in `text-sm` and `--color-text-muted` (5.45:1) and the day number in `text-2xl`, bold, in `--font-dashboard-display` and `--color-brand-dark`. Its accessible name is always the full date, such as "Tuesday 24 November"
+- Below `xl`, the days are stacked, and each band shows the date first ("1 December") with the weekday on the right, so the dates line up from day to day. Each visit has its details on the left and "Join visit" always on the right, so long details wrap instead of moving the button. The reason for a disabled button goes on its own line under the visit. From `xl` up, the days are seven columns split by vertical lines, so the bands make one header row with the weekday above the number, and the month is visually hidden because the week heading already says it. The columns start at `xl` because below it, with the side navigation, a column is too narrow for a visit
+- Every day is shown, and a day with no visits says "No visits"
+- Each visit (`CalendarEvent`) shows the start and end times in `tabular-nums`, the visitor in semibold, the property in `--color-text-muted`, and "Join visit" as described in [States](#states). Its accessible name says which visit and on which day, as in D1
+- While loading, the sentence names the week, such as "Loading the visits of 23 November – 29 November 2026…". An empty week says "No visits this week"
+
 ### States
 
 Every section that calls the API shows its own state, so one failing call does not leave the whole screen blank.
@@ -265,6 +287,7 @@ Every section that calls the API shows its own state, so one failing call does n
 - **Error:** the message in `--color-error` and a "Try again" button. A business error (a ProblemDetail returned by the server) shows its message.
 - **Unavailable actions:** in D3, when a request is not pending, the approve and reject buttons are disabled and a sentence next to them says why, such as "This request was already approved"
 - **Join visit:** in D1 and D4, only `CONFIRMED` visits get the "Join visit" link. Any other visit shows a disabled "Join visit" button at 40% opacity, like other unavailable buttons, with a sentence saying why, such as "This visit was canceled"
+- **Signed out:** an agency call that answers `401 AUTHENTICATION_REQUIRED` never shows an error. It sends the agent to the sign-in page, which brings her back to the same page after she signs in
 
 ### Tabs
 

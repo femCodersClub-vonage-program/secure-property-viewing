@@ -13,13 +13,17 @@ const visit: AgencyVisit = {
   status: 'CONFIRMED',
 }
 
+function renderEvent(shown: AgencyVisit) {
+  render(
+    <MemoryRouter>
+      <CalendarEvent visit={shown} />
+    </MemoryRouter>,
+  )
+}
+
 describe('CalendarEvent', () => {
   it('shows the time in Madrid, the visitor and the property', () => {
-    render(
-      <MemoryRouter>
-        <CalendarEvent visit={visit} />
-      </MemoryRouter>,
-    )
+    renderEvent(visit)
 
     expect(screen.getByText('11:00')).toBeInTheDocument()
     expect(screen.getByText('11:30')).toBeInTheDocument()
@@ -27,28 +31,34 @@ describe('CalendarEvent', () => {
     expect(screen.getByText('Apartment in Gràcia')).toBeInTheDocument()
   })
 
-  it('links to the agent room of the visit', () => {
-    render(
-      <MemoryRouter>
-        <CalendarEvent visit={visit} />
-      </MemoryRouter>,
-    )
+  it('shows the time in Madrid also in summer, when Madrid is two hours ahead of UTC', () => {
+    renderEvent({ ...visit, startsAt: '2026-07-14T09:00:00Z', endsAt: '2026-07-14T09:30:00Z' })
+
+    expect(screen.getByText('11:00')).toBeInTheDocument()
+    expect(screen.getByText('11:30')).toBeInTheDocument()
+  })
+
+  it('links to the agent room of the visit, named with its day and time as in D1', () => {
+    renderEvent(visit)
 
     expect(
-      screen.getByRole('link', { name: 'Join visit with Laura Gómez at 11:00' }),
+      screen.getByRole('link', {
+        name: 'Join visit with Laura Gómez on Tuesday 12 January, 11:00',
+      }),
     ).toHaveAttribute('href', '/agency/visits/31/room')
   })
 
-  it('shows a disabled button and says why when the visit is canceled', () => {
-    render(
-      <MemoryRouter>
-        <CalendarEvent visit={{ ...visit, status: 'CANCELED' }} />
-      </MemoryRouter>,
-    )
+  it.each([
+    ['CANCELED', 'This visit was canceled'],
+    ['COMPLETED', 'This visit has ended'],
+  ] as const)('shows a disabled button and says why when the visit is %s', (status, reason) => {
+    renderEvent({ ...visit, status })
 
     expect(screen.queryByRole('link', { name: /Join visit/ })).not.toBeInTheDocument()
-    const button = screen.getByRole('button', { name: 'Join visit with Laura Gómez at 11:00' })
+    const button = screen.getByRole('button', {
+      name: 'Join visit with Laura Gómez on Tuesday 12 January, 11:00',
+    })
     expect(button).toBeDisabled()
-    expect(button).toHaveAccessibleDescription('This visit was canceled')
+    expect(button).toHaveAccessibleDescription(reason)
   })
 })

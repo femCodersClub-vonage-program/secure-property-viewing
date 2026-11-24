@@ -74,7 +74,7 @@ erDiagram
 | `video_access` | id, visit_id, role (`VISITOR`, `GUEST`), token_hash (unique), created_at | The room links of a visit: one for the visitor and up to 4 to share with guests. Only the hash of each token is stored. Detailed in the [video visit spec](video-visit.md) |
 | `post_visit_call` | id, visit_id (unique), vonage_call_uuid (unique, nullable), status (`CALLING`, `ANSWERED`, `NOT_REACHED`, `FAILED`, `SKIPPED`), answer (`ASKED_FOR_MONEY`, `NOT_ASKED`, nullable), created_at, answered_at (nullable) | At most one call per visit, after its video visit. Only the answer is stored, never the audio. Detailed in the [post-visit call spec](post-visit-call.md) |
 | `listing_request` | id, phone_verification_id, owner_full_name, owner_phone, title, description, property_type, operation, area, address, price_euros, bedrooms, size_m2, floor (nullable), status (`PENDING`, `APPROVED`, `REJECTED`), reviewed_by (nullable), rejection_reason (nullable), created_at, reviewed_at (nullable) | Approving it creates an `ACTIVE` property with its data, no coordinates and a generic image |
-| `phone_verification` | id, purpose (`VISIT`, `LISTING_REQUEST`), phone_hash, vonage_request_id, status (`PENDING`, `VERIFIED`, `FAILED`, `EXPIRED`), check_attempts, created_at, verified_at (nullable) | Detailed in the [phone verification spec](phone-verification.md). The code is never stored, and the phone is kept only as a hash |
+| `phone_verification` | id, purpose (`VISIT`, `LISTING_REQUEST`), phone_hash, vonage_request_id, status (`PENDING`, `VERIFIED`, `FAILED`, `EXPIRED`), check_attempts, created_at, verified_at (nullable), channel (`SMS`, `SILENT_AUTH`), sms_fallback | Detailed in the [phone verification spec](phone-verification.md). The code is never stored, and the phone is kept only as a hash. `channel` is the step a pending verification is on and the channel that verified it, and `sms_fallback` is `false` for the `+990` test numbers, as the [Silent Authentication spec](silent-authentication.md) describes |
 | `message` | id, visit_id (nullable), listing_request_id (nullable), type (`CONFIRMATION`, `REMINDER`, `STATUS_UPDATE`), channel (`SMS`), vonage_message_id (nullable), status (`SCHEDULED`, `SUBMITTED`, `DELIVERED`, `FAILED`), scheduled_at, updated_at | Filled in by the messages feature in weeks 3 and 4 |
 
 Phone numbers are personal data: they are stored in E.164 format, used only to contact the person, and never written to logs.
@@ -91,6 +91,8 @@ Public:
 | `GET /api/properties/{id}/slots?from=&to=` | Available visit slots | [Visit booking](visit-booking.md) |
 | `POST /api/phone-verifications` | Start a phone verification | [Phone verification](phone-verification.md) |
 | `POST /api/phone-verifications/{id}/check` | Check the code | [Phone verification](phone-verification.md) |
+| `POST /api/phone-verifications/{id}/silent-check` | Check the code the silent check brings back | [Silent Authentication](silent-authentication.md) |
+| `POST /api/phone-verifications/{id}/sms-fallback` | Move on to the SMS code when the silent check fails | [Silent Authentication](silent-authentication.md) |
 | `POST /api/visits` | Book a visit with a verified phone | [Visit booking](visit-booking.md) |
 | `POST /api/visits/{id}/room-links` | Create the visitor's room link or a guest link, right after booking | [Video visit](video-visit.md) |
 | `POST /api/room-links/video-token` | Enter the video visit with a room link | [Video visit](video-visit.md) |
@@ -116,6 +118,7 @@ Vonage webhooks, called by Vonage with a signed JWT that the server verifies, so
 | :---- | :---- | :---- |
 | `POST /api/webhooks/messages/inbound` | Messages sent to our number. The MVP does not process replies, so it only answers `200` | [Messages](messages.md) |
 | `POST /api/webhooks/messages/status` | Delivery status of each message, which updates `message.status` | [Messages](messages.md) |
+| `POST /api/webhooks/verify/status` | Status of a verification with Silent Authentication, which can move it on to SMS or end it | [Silent Authentication](silent-authentication.md) |
 | `POST /api/webhooks/voice/input?callId=` | The key the visitor pressed in the post-visit call. Answers with the closing sentence as an NCCO | [Post-visit call](post-visit-call.md) |
 | `POST /api/webhooks/voice/event?callId=` | Status changes of the post-visit call, which mark it `NOT_REACHED` when it never reached the visitor | [Post-visit call](post-visit-call.md) |
 

@@ -8,11 +8,16 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "phone_verification")
 class PhoneVerification {
+
+    // A code lasts 5 minutes, as decided in specs/phone-verification.md
+    private static final Duration EXPIRY = Duration.ofMinutes(5);
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -40,16 +45,36 @@ class PhoneVerification {
     @Column(name = "verified_at")
     private OffsetDateTime verifiedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PhoneVerificationChannel channel;
+
+    @Column(name = "sms_fallback", nullable = false)
+    private boolean smsFallback;
+
     protected PhoneVerification() {}
 
+    // An SMS-only verification, as before Silent Authentication
     PhoneVerification(
             PhoneVerificationPurpose purpose, String phoneHash, String vonageRequestId, OffsetDateTime createdAt) {
+        this(purpose, phoneHash, vonageRequestId, createdAt, PhoneVerificationChannel.SMS, true);
+    }
+
+    PhoneVerification(
+            PhoneVerificationPurpose purpose,
+            String phoneHash,
+            String vonageRequestId,
+            OffsetDateTime createdAt,
+            PhoneVerificationChannel channel,
+            boolean smsFallback) {
         this.purpose = purpose;
         this.phoneHash = phoneHash;
         this.vonageRequestId = vonageRequestId;
         this.status = PhoneVerificationStatus.PENDING;
         this.checkAttempts = 0;
         this.createdAt = createdAt;
+        this.channel = channel;
+        this.smsFallback = smsFallback;
     }
 
     void recordCheckAttempt() {
@@ -67,6 +92,11 @@ class PhoneVerification {
 
     void markExpired() {
         status = PhoneVerificationStatus.EXPIRED;
+    }
+
+    // After the silent check failed or never came back, the verification goes on with the SMS code
+    void moveOnToSms() {
+        channel = PhoneVerificationChannel.SMS;
     }
 
     Long getId() {
@@ -99,5 +129,17 @@ class PhoneVerification {
 
     OffsetDateTime getVerifiedAt() {
         return verifiedAt;
+    }
+
+    PhoneVerificationChannel getChannel() {
+        return channel;
+    }
+
+    boolean hasSmsFallback() {
+        return smsFallback;
+    }
+
+    boolean hasExpiredAt(OffsetDateTime now) {
+        return !now.isBefore(createdAt.plus(EXPIRY));
     }
 }

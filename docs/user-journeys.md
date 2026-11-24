@@ -35,6 +35,8 @@ Wants to list their property. Verifies their phone number and validates the requ
 
 Manages properties, requests and visits.
 
+Every agency screen needs a signed-in agent; a signed-out agent goes to the sign-in page first.
+
 1. Dashboard  
 2. Listing requests  
 3. Request details  
@@ -43,10 +45,10 @@ Manages properties, requests and visits.
 
 ## Build status
 
-What works in `dev` on November 23, 2026. Each spec in `specs/` describes the full feature; this table says how much of it is built.
+What works in `dev` on November 24, 2026. Each spec in `specs/` describes the full feature; this table says how much of it is built.
 
 | Journey | Built | Not built yet |
 | :---- | :---- | :---- |
-| A · Visitor | Screens 1 to 7: catalog with map, details, calendar, phone verification by SMS code, confirmation and video visit. The post-visit call's server and its alerts on the dashboard, off until `VOICE_CALLS_ENABLED=true` | Silent Authentication: the client is built, the server side is not (#106). Real post-visit calls, which wait for the Spanish Vonage number. The confirmation SMS (#87) |
+| A · Visitor | Screens 1 to 7: catalog with map, details, calendar, phone verification by SMS code, confirmation and video visit. Silent Authentication, off until `SILENT_AUTH_ENABLED=true`. The post-visit call's server and its alerts on the dashboard, off until `VOICE_CALLS_ENABLED=true` | Silent Authentication with a real number, still to be tested. Real post-visit calls, which wait for the Spanish Vonage number. The confirmation SMS (#87) |
 | B · Property owner | The server receives listing requests (`POST /api/listing-requests`) | Screens 1 to 5 (#29). Step 6, the video call with the agency, has no spec yet |
-| Agency dashboard | Screen 1, the dashboard, and the server for the calendar (`GET /api/agency/visits`) and the session | The sign-in page (#114) and the calendar page (#111), both in review. Screens 2, 3 and 5 |
+| Agency dashboard | Sign-in, screen 1 (the dashboard) and screen 4 (the visits calendar) | Screens 2 and 3 (#58) and their server (#57). Screen 5 |

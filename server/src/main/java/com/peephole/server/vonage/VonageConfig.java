@@ -11,12 +11,34 @@ import org.springframework.context.annotation.Configuration;
 // Fails at startup with the variable to check, and never puts the private key in a message or a log
 @Configuration
 class VonageConfig {
+
+    // With Silent Authentication on, every verification uses its application, so the server keeps a single Verify
+    // client, as specs/silent-authentication.md proposes. Off, the Verify group works as before
     @Bean
     PhoneVerifier phoneVerifier(
-            @Value("${app.vonage.verify.application-id}") String applicationId,
-            @Value("${app.vonage.verify.private-key}") String privateKey) {
-        VonageClient client = buildClient("VONAGE_VERIFY", applicationId, privateKey);
+            @Value("${app.silent-auth.enabled}") boolean silentAuthEnabled,
+            @Value("${app.vonage.verify.application-id}") String verifyApplicationId,
+            @Value("${app.vonage.verify.private-key}") String verifyPrivateKey,
+            @Value("${app.vonage.silent-auth.application-id}") String silentAuthApplicationId,
+            @Value("${app.vonage.silent-auth.private-key}") String silentAuthPrivateKey) {
+        VonageClient client = silentAuthEnabled
+                ? buildClient("VONAGE_SILENT_AUTH", silentAuthApplicationId, silentAuthPrivateKey)
+                : buildClient("VONAGE_VERIFY", verifyApplicationId, verifyPrivateKey);
         return new VonagePhoneVerifier(client.getVerify2Client());
+    }
+
+    // Checks and reads the Verify status webhook. With Silent Authentication on, the server does not start without
+    // the secret, as with the other variables. Off, a missing secret rejects every call. The signature verifier stays
+    // inside the reader instead of being a bean, so it never clashes with the one of another webhook
+    @Bean
+    VerifyWebhookReader verifyWebhookReader(
+            @Value("${app.silent-auth.enabled}") boolean silentAuthEnabled,
+            @Value("${app.vonage.silent-auth.signature-secret}") String signatureSecret) {
+        if (silentAuthEnabled && signatureSecret.isBlank()) {
+            throw new IllegalStateException("VONAGE_SILENT_AUTH_SIGNATURE_SECRET is not set. Add it to server/.env"
+                    + " as explained in docs/setup.md");
+        }
+        return new VerifyWebhookReader(new WebhookSignatureVerifier(signatureSecret));
     }
 
     @Bean
