@@ -82,6 +82,28 @@ class VonageConfig {
         return new VoiceWebhookReader(new WebhookSignatureVerifier(signatureSecret));
     }
 
+    // Off by default, so local servers and the tests never send real SMS and need no Messages variables, as with
+    // Voice. The scheduled task that sends is off too, so this sender is never used while sending is off
+    @Bean
+    MessageSender messageSender(
+            @Value("${app.messages.sending-enabled}") boolean sendingEnabled,
+            @Value("${app.vonage.messages.application-id}") String applicationId,
+            @Value("${app.vonage.messages.private-key}") String privateKey,
+            @Value("${app.vonage.messages.from}") String from) {
+        if (!sendingEnabled) {
+            return (phone, text, clientRef) -> {
+                throw new MessageSendException(
+                        "Sending messages is off. Set MESSAGES_SENDING_ENABLED=true to send them", true);
+            };
+        }
+        if (from.isBlank()) {
+            throw new IllegalStateException(
+                    "VONAGE_MESSAGES_FROM is not set. Add it to server/.env as explained in docs/setup.md");
+        }
+        VonageClient client = buildClient("VONAGE_MESSAGES", applicationId, privateKey);
+        return new VonageMessageSender(client.getMessagesClient(), from.strip());
+    }
+
     private static VonageClient buildClient(String variablePrefix, String applicationId, String privateKey) {
         UUID id = parseApplicationId(variablePrefix + "_APPLICATION_ID", applicationId);
         byte[] key = decodePrivateKey(variablePrefix + "_PRIVATE_KEY", privateKey);
