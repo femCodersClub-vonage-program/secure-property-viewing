@@ -29,6 +29,7 @@ Catalog (A2):
 - [ ] It lists the active properties from `GET /api/properties`, each card with photo, title, neighborhood, price, bedrooms, size and the verified agency badge
 - [ ] The visitor can filter by all, rent or sale, and the filter is kept in the URL so a filtered catalog can be shared
 - [ ] The filters and the number of properties found stay on screen while the visitor scrolls
+- [ ] It shows 8 properties, and "Show more" adds 8 more each time. The map always has them all
 - [ ] A map of Barcelona next to the list shows one pin per property with coordinates. Selecting a pin shows the title and price, with a link to the details
 - [ ] It shows a loading state, an empty state with a way to clear the filters, and an error state with a way to try again
 

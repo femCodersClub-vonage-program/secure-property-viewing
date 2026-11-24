@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { Alert, Button, ParallaxImage } from '../components/ui'
 import {
-  PropertyCard,
+  PropertyList,
   PropertyMap,
   getProperties,
   type Operation,
@@ -125,16 +125,7 @@ function CatalogPage() {
 
         {state.status === 'success' && state.data.length > 0 && (
           <div className="flex flex-col lg:flex-row lg:items-start gap-6">
-            <ul
-              className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:w-96 lg:shrink-0 lg:grid-cols-1 xl:w-160 xl:grid-cols-2"
-              aria-label="Properties"
-            >
-              {state.data.map((property) => (
-                <li key={property.id} className="reveal flex w-full">
-                  <PropertyCard property={property} />
-                </li>
-              ))}
-            </ul>
+            <PropertyList key={operation ?? 'ALL'} properties={properties} />
 
             <div className="sticky bottom-0 -mx-4 sm:-mx-10 lg:top-24 lg:bottom-auto lg:mx-0 lg:flex-1">
               <PropertyMap properties={properties} className="h-[33vh] lg:h-[calc(100vh-7rem)]" />
