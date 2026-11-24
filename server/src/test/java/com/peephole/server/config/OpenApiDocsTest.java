@@ -89,6 +89,15 @@ class OpenApiDocsTest {
     }
 
     @Test
+    void documentsTheAgencyMessagesEndpoint() throws Exception {
+        String messages = "$.paths['/api/agency/messages'].get";
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(jsonPath(messages + ".responses['200']").exists())
+                .andExpect(jsonPath(messages + ".responses['401']").exists())
+                .andExpect(jsonPath(messages + ".security[0].agencySession").exists());
+    }
+
+    @Test
     void listsOnlyTheErrorsEachEndpointCanReturn() throws Exception {
         // With springdoc.override-with-generic-response=false, the handlers in RestExceptionHandler are not added to
         // every endpoint: /api/health takes no input, so it must not list a 400

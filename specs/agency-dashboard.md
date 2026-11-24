@@ -156,7 +156,7 @@ The response also carries `alerts`, the visits where the visitor reported being 
 
 `from` and `to` are required dates in `YYYY-MM-DD` format, the same format as `GET /api/properties/{id}/slots`, in `Europe/Madrid`, and both days are included. They are required because the calendar always asks for a week, and the range is at most 31 days. A missing date, a date in another format, a `to` before `from` or a longer range returns `400 VALIDATION_FAILED`.
 
-`GET /api/agency/messages`, newest first, with the status stored by the messages feature. Each message has either `visitId` or `listingRequestId`, and the other one is `null`:
+`GET /api/agency/messages`, the last updated first, so a message scheduled for later never stays above the latest activity, with the status stored by the messages feature. Each message has either `visitId` or `listingRequestId`, and the other one is `null`:
 
 ```json
 [

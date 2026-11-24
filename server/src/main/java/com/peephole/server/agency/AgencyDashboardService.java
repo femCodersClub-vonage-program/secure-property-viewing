@@ -1,5 +1,6 @@
 package com.peephole.server.agency;
 
+import com.peephole.server.agency.dto.AgencyMessageResponse;
 import com.peephole.server.agency.dto.AgencySummaryResponse;
 import com.peephole.server.agency.dto.AgencyVisitResponse;
 import com.peephole.server.agency.dto.AlertResponse;
@@ -28,16 +29,19 @@ class AgencyDashboardService {
     private static final int ALERTS = 5;
 
     private final AgencyDashboardQueries queries;
+    private final AgencyMessageQueries messageQueries;
     private final VisitService visitService;
     private final PostVisitCallService postVisitCallService;
     private final Clock clock;
 
     AgencyDashboardService(
             AgencyDashboardQueries queries,
+            AgencyMessageQueries messageQueries,
             VisitService visitService,
             PostVisitCallService postVisitCallService,
             Clock clock) {
         this.queries = queries;
+        this.messageQueries = messageQueries;
         this.visitService = visitService;
         this.postVisitCallService = postVisitCallService;
         this.clock = clock;
@@ -73,6 +77,11 @@ class AgencyDashboardService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    List<AgencyMessageResponse> messages(long agencyId) {
+        return messageQueries.findByAgency(agencyId);
+    }
+
     private static UpcomingVisitResponse toUpcomingVisit(AgencyVisit visit) {
         return new UpcomingVisitResponse(
                 visit.id(), inAgencyZone(visit.startsAt()), visit.visitorName(), visit.propertyTitle());
@@ -97,7 +106,7 @@ class AgencyDashboardService {
                 visit.status());
     }
 
-    private static OffsetDateTime inAgencyZone(OffsetDateTime time) {
+    static OffsetDateTime inAgencyZone(OffsetDateTime time) {
         return time.atZoneSameInstant(AGENCY_ZONE).toOffsetDateTime();
     }
 }
