@@ -85,6 +85,11 @@ describe('PropertyCard', () => {
     expect(img).toHaveAttribute('src', '/images/property-placeholder.svg')
   })
 
+  it('calls a home with no bedroom a studio', () => {
+    renderCard({ ...baseProperty, bedrooms: 0 })
+    expect(screen.getByText('Studio')).toBeInTheDocument()
+  })
+
   it('uses singular bed for one bedroom', () => {
     renderCard({ ...baseProperty, bedrooms: 1 })
     expect(screen.getByText('1 bed')).toBeInTheDocument()

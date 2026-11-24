@@ -26,6 +26,22 @@ describe('Link', () => {
     )
   })
 
+  it.each(['button-on-dark', 'outline-on-dark'] as const)(
+    'shows a white focus outline in the %s variant, visible on a dark surface',
+    (variant) => {
+      render(
+        <MemoryRouter>
+          <Link to="/properties" variant={variant}>
+            Browse properties
+          </Link>
+        </MemoryRouter>,
+      )
+      const link = screen.getByRole('link', { name: 'Browse properties' })
+      expect(link).toHaveClass('focus-visible:outline-text-light')
+      expect(link).not.toHaveClass('focus-visible:outline-brand-primary')
+    },
+  )
+
   it('renders a button-variant internal link', () => {
     render(
       <MemoryRouter>

@@ -48,14 +48,10 @@ function HomePage() {
               Verified properties, video visits and secure communication — all in one place.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Link to="/properties" variant="button">
+              <Link to="/properties" variant="button-on-dark">
                 Browse properties
               </Link>
-              <Link
-                to={LIST_PROPERTY_PATH}
-                variant="button"
-                className="bg-transparent border border-text-light text-text-light hover:bg-text-light/10"
-              >
+              <Link to={LIST_PROPERTY_PATH} variant="outline-on-dark">
                 List my property
               </Link>
             </div>

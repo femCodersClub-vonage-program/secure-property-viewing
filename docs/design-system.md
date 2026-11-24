@@ -101,6 +101,8 @@ Dividers and cards use `1px solid var(--color-border)`. Form fields use `1px sol
 
 `Card` has a `dark` variant for a card that has to stand out from the page, such as the confirmed visit on A6: `--color-brand-dark` background, no border and white text (17.61:1). Only text in `--color-text-light` and decorative `--color-brand-accent` dots go inside it, and no interactive elements, so the common focus ring is never needed on the dark background.
 
+A `flush` `Card` has no inner padding, so a photo reaches its edges, as in the property cards.
+
 A field with an error (`aria-invalid`) uses `2px solid var(--color-error)`. The wider border keeps the error visible without relying on color alone, and the message under the field says what went wrong.
 
 ## Form fields
@@ -127,6 +129,8 @@ Every interactive element shows a focus ring using `outline-2 outline-offset-2`.
 | Danger button | `outline-error` | 6.31:1 on white — passes AA |
 | Elements on dark navigation (`bg-brand-dark`) | `outline-white` | 17.61:1 on `#23122B` — passes AA |
 
+On a dark surface, a `Link` that looks like a button uses the `button-on-dark` or `outline-on-dark` variant, such as the two in the hero of the home page: the same shape, with the white focus ring.
+
 ## Map
 
 The catalog map (`PropertyMap` in the `property-browsing` feature) uses Leaflet with OpenStreetMap tiles.
@@ -145,6 +149,14 @@ The header and the footer of the public site, and the four steps of the home pag
 - `--color-brand-accent` has 4.74:1 on `--color-brand-dark`, so it passes AA for text there. These links are its only use as text. Both components have a white focus outline and are only for dark surfaces. Links on white keep `--color-brand-primary`
 - Each of the four steps is a card with a `--color-text-light` border at 20% on `--color-brand-dark` at 70%, with white text. Its number is white, bold and `text-2xl`, on a circle with a gradient from `--color-brand-primary` (7.38:1) to `--color-brand-accent` (3.71:1, enough for large text). The shield icon next to the scam it stops is decorative, in `--color-brand-accent`
 - Behind the steps there is a photo under `--color-brand-dark` at 85%. Over pure white, the worst case, the text has at least 9.4:1 without counting the card's own background
+
+## Back to top
+
+`PublicLayout` has a round "Back to top" button (`BackToTop`) on every public page, in the bottom right corner, once the visitor has scrolled a whole screen.
+
+- `--color-brand-primary` with a white arrow (7.38:1) and a white border, so its shape shows on the dark footer too
+- Its focus is a white outline inside a `--color-brand-dark` ring, so it shows on white and on dark
+- It sits above the map's attribution, which the license asks to keep visible. The scroll is smooth, or instant with `prefers-reduced-motion`, and the focus goes to the top of the page
 
 ## Motion
 

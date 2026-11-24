@@ -105,6 +105,12 @@ describe('CatalogPage', () => {
     expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true')
   })
 
+  it('says how many properties there are', async () => {
+    fetchMock.mockReturnValue(Promise.resolve(json(propertiesFromSpec)))
+    renderCatalog()
+    expect(await screen.findByText('2 properties found.')).toBeInTheDocument()
+  })
+
   it('shows a loading state while fetching', () => {
     fetchMock.mockReturnValue(new Promise(() => {}))
     renderCatalog()

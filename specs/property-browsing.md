@@ -22,13 +22,13 @@ Home page (A1):
 - [ ] It shows the headline, a link to the catalog, an entry point to "List my property" and the three trust points: verified agencies, video visits and secure communication
 - [ ] It shows up to four properties from `GET /api/properties`, the first two rentals and the first two sales with a photo, with links to the catalog for rent, for sale and complete. Its loading, empty and error states never hide the rest of the page
 - [ ] It explains the visit in four steps, each with the scam it stops: choosing a property, verifying the phone, the video visit and the [post-visit call](post-visit-call.md)
-- [ ] Motion on scroll is decorative, stops with `prefers-reduced-motion` and never hides content in a browser without it
 - [ ] A section for owners repeats the entry point to "List my property"
 
 Catalog (A2):
 
 - [ ] It lists the active properties from `GET /api/properties`, each card with photo, title, neighborhood, price, bedrooms, size and the verified agency badge
 - [ ] The visitor can filter by all, rent or sale, and the filter is kept in the URL so a filtered catalog can be shared
+- [ ] The filters and the number of properties found stay on screen while the visitor scrolls
 - [ ] A map of Barcelona next to the list shows one pin per property with coordinates. Selecting a pin shows the title and price, with a link to the details
 - [ ] It shows a loading state, an empty state with a way to clear the filters, and an error state with a way to try again
 
@@ -40,8 +40,10 @@ Property details (A3):
 
 All three screens:
 
+- [ ] Motion on scroll is decorative, stops with `prefers-reduced-motion` and never hides content in a browser without it
 - [ ] A header, the same on every public page except the video room, links to the home page, the catalog, the "How it works" section and the agency sign-in, and marks the current page
 - [ ] A footer, on the same pages, says that the properties and the agency are fictional, repeats the main links, adds "List my property" and links the team to LinkedIn
+- [ ] A "Back to top" button, on the same pages, appears once the visitor has scrolled a whole screen
 - [ ] A link opens the next page at the top, and "How it works" opens the home page at that section
 - [ ] They use only design system components and tokens
 - [ ] They work with the keyboard alone, at 320 px wide and at 200% zoom

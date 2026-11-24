@@ -37,7 +37,7 @@ function FeaturedProperties() {
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-14 sm:px-10">
         <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-2">
           <h2 id="featured-heading" className="font-display text-2xl font-bold text-brand-dark">
-            Homes you can visit from anywhere
+            Homes in Barcelona
           </h2>
           <ul className="flex flex-wrap gap-x-6" aria-label="Browse the catalog">
             <li>

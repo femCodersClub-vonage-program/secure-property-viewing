@@ -2,7 +2,12 @@ import { Bed, MapPin, Maximize2, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 import { Alert, Badge, Link } from '../components/ui'
-import { PhotoGallery, getPropertyById, type PropertyDetail } from '../features/property-browsing'
+import {
+  formatBedrooms,
+  PhotoGallery,
+  getPropertyById,
+  type PropertyDetail,
+} from '../features/property-browsing'
 import { formatPrice } from '../features/property-browsing/price'
 import { ApiError } from '../lib/http'
 import NotFoundPage from './NotFoundPage'
@@ -73,7 +78,7 @@ function PropertyDetailsContent({ property }: { property: PropertyDetail }) {
           </li>
           <li className="flex items-center gap-1.5 font-body text-text-muted">
             <Bed className="size-4 shrink-0" aria-hidden="true" />
-            {bedrooms} {bedrooms === 1 ? 'bedroom' : 'bedrooms'}
+            {formatBedrooms(bedrooms, 'bedroom')}
           </li>
           <li className="flex items-center gap-1.5 font-body text-text-muted">
             <Maximize2 className="size-4 shrink-0" aria-hidden="true" />

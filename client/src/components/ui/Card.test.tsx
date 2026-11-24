@@ -13,6 +13,14 @@ describe('Card', () => {
     expect(screen.getByText('Property listing')).toHaveClass('bg-surface-card', 'border-border')
   })
 
+  it('has inner padding unless it is flush, for a photo that reaches its edges', () => {
+    const { rerender } = render(<Card>Property listing</Card>)
+    expect(screen.getByText('Property listing')).toHaveClass('p-card')
+
+    rerender(<Card flush>Property listing</Card>)
+    expect(screen.getByText('Property listing')).not.toHaveClass('p-card')
+  })
+
   it('has a dark variant with white text and no border', () => {
     render(<Card variant="dark">Your visit</Card>)
     const card = screen.getByText('Your visit')
