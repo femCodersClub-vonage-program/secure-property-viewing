@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Alert, Button } from '../../../components/ui'
-import { ApiError, SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
-import { getAgencySummary } from '../api'
+import { errorMessage, getAgencySummary } from '../api'
 import type { AgencySummary } from '../types'
 import DashboardHeading from './DashboardHeading'
 import DashboardOverview from './DashboardOverview'
@@ -10,11 +9,6 @@ type Load =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'ready'; summary: AgencySummary }
-
-// A business error, such as 401 AUTHENTICATION_REQUIRED, shows the server's message (docs/design-system.md → States)
-function errorMessage(error: unknown): string {
-  return error instanceof ApiError ? error.message : SYSTEM_ERROR_MESSAGE
-}
 
 /** D1: loads the summary and shows it, or says it is loading or could not load. */
 function DashboardHome() {

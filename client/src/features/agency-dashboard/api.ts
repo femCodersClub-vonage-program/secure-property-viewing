@@ -1,4 +1,4 @@
-import { request } from '../../lib/http'
+import { ApiError, request, SYSTEM_ERROR_MESSAGE } from '../../lib/http'
 import type { AgencySummary, AgencyVisit, UpcomingVisit, VisitAlert, VisitStatus } from './types'
 
 // Checks the server's answer before using it, as client/AGENTS.md asks.
@@ -23,6 +23,14 @@ const VISIT_STATUSES: readonly VisitStatus[] = ['CONFIRMED', 'CANCELED', 'COMPLE
 // some() compares the unknown value with each status, so the type is narrowed without `as`
 function isVisitStatus(value: unknown): value is VisitStatus {
   return VISIT_STATUSES.some((status) => status === value)
+}
+
+/**
+ * The message a dashboard screen shows when a call fails: the server's message for a business error,
+ * such as 401 AUTHENTICATION_REQUIRED, and the general one for anything else (docs/design-system.md → States).
+ */
+export function errorMessage(error: unknown): string {
+  return error instanceof ApiError ? error.message : SYSTEM_ERROR_MESSAGE
 }
 
 export function parseUpcomingVisit(value: unknown): UpcomingVisit {
