@@ -2,7 +2,10 @@ package com.peephole.server.agency;
 
 import com.peephole.server.agency.dto.AgencySummaryResponse;
 import com.peephole.server.agency.dto.AgencyVisitResponse;
+import com.peephole.server.agency.dto.AlertResponse;
 import com.peephole.server.agency.dto.UpcomingVisitResponse;
+import com.peephole.server.postvisitcall.PostVisitCallAlert;
+import com.peephole.server.postvisitcall.PostVisitCallService;
 import com.peephole.server.visit.AgencyVisit;
 import com.peephole.server.visit.VisitService;
 import java.time.Clock;
@@ -21,14 +24,22 @@ class AgencyDashboardService {
     private static final ZoneId AGENCY_ZONE = ZoneId.of("Europe/Madrid");
     private static final Duration UPCOMING_PERIOD = Duration.ofDays(7);
     private static final int NEXT_VISITS = 5;
+    private static final Duration ALERT_PERIOD = Duration.ofDays(14);
+    private static final int ALERTS = 5;
 
     private final AgencyDashboardQueries queries;
     private final VisitService visitService;
+    private final PostVisitCallService postVisitCallService;
     private final Clock clock;
 
-    AgencyDashboardService(AgencyDashboardQueries queries, VisitService visitService, Clock clock) {
+    AgencyDashboardService(
+            AgencyDashboardQueries queries,
+            VisitService visitService,
+            PostVisitCallService postVisitCallService,
+            Clock clock) {
         this.queries = queries;
         this.visitService = visitService;
+        this.postVisitCallService = postVisitCallService;
         this.clock = clock;
     }
 
@@ -42,6 +53,9 @@ class AgencyDashboardService {
                 queries.countActiveProperties(agencyId),
                 visitService.nextConfirmedVisits(agencyId, now, NEXT_VISITS).stream()
                         .map(AgencyDashboardService::toUpcomingVisit)
+                        .toList(),
+                postVisitCallService.recentAlerts(agencyId, now.minus(ALERT_PERIOD), ALERTS).stream()
+                        .map(AgencyDashboardService::toAlert)
                         .toList());
     }
 
@@ -62,6 +76,15 @@ class AgencyDashboardService {
     private static UpcomingVisitResponse toUpcomingVisit(AgencyVisit visit) {
         return new UpcomingVisitResponse(
                 visit.id(), inAgencyZone(visit.startsAt()), visit.visitorName(), visit.propertyTitle());
+    }
+
+    private static AlertResponse toAlert(PostVisitCallAlert alert) {
+        return new AlertResponse(
+                alert.visitId(),
+                alert.visitorName(),
+                alert.propertyTitle(),
+                inAgencyZone(alert.startsAt()),
+                inAgencyZone(alert.reportedAt()));
     }
 
     private static AgencyVisitResponse toAgencyVisit(AgencyVisit visit) {

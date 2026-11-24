@@ -59,6 +59,7 @@ erDiagram
     LISTING_REQUEST ||--o| PROPERTY : "becomes"
     VISIT ||--o{ MESSAGE : triggers
     VISIT ||--o{ VIDEO_ACCESS : grants
+    VISIT ||--o| POST_VISIT_CALL : "is followed by"
     LISTING_REQUEST ||--o{ MESSAGE : triggers
 ```
 
@@ -69,8 +70,9 @@ erDiagram
 | `property` | id, agency_id, listing_request_id (nullable), title, operation (`RENT`, `SALE`), property_type (`APARTMENT`, `HOUSE`, `STUDIO`), price_euros, area, address, latitude (nullable), longitude (nullable), bedrooms, size_m2, floor (nullable), description, video_visit_available, status (`ACTIVE`, `INACTIVE`), created_at | Only `ACTIVE` properties appear in the catalog. `area` is the neighborhood, such as Gràcia. Coordinates are approximate, at neighborhood level, and place the pin on the map |
 | `property_image` | id, property_id, url, alt_text, position | `alt_text` is required: it describes what the photo shows |
 | `visit_slot` | id, property_id, starts_at, ends_at, status (`AVAILABLE`, `BOOKED`) | Slots of 30 minutes in the screen map |
-| `visit` | id, property_id, visit_slot_id, phone_verification_id, visitor_name, visitor_phone, status (`CONFIRMED`, `CANCELED`, `COMPLETED`), video_session_id (nullable), created_at | A visit exists only once the phone is verified. `video_session_id` is filled the first time someone enters its [video visit](video-visit.md) |
+| `visit` | id, property_id, visit_slot_id, phone_verification_id, visitor_name, visitor_phone, status (`CONFIRMED`, `CANCELED`, `COMPLETED`), video_session_id (nullable), visitor_joined_at (nullable), created_at | A visit exists only once the phone is verified. `video_session_id` is filled the first time someone enters its [video visit](video-visit.md), and `visitor_joined_at` the first time the visitor does |
 | `video_access` | id, visit_id, role (`VISITOR`, `GUEST`), token_hash (unique), created_at | The room links of a visit: one for the visitor and up to 4 to share with guests. Only the hash of each token is stored. Detailed in the [video visit spec](video-visit.md) |
+| `post_visit_call` | id, visit_id (unique), vonage_call_uuid (unique, nullable), status (`CALLING`, `ANSWERED`, `NOT_REACHED`, `FAILED`, `SKIPPED`), answer (`ASKED_FOR_MONEY`, `NOT_ASKED`, nullable), created_at, answered_at (nullable) | At most one call per visit, after its video visit. Only the answer is stored, never the audio. Detailed in the [post-visit call spec](post-visit-call.md) |
 | `listing_request` | id, phone_verification_id, owner_full_name, owner_phone, title, description, property_type, operation, area, address, price_euros, bedrooms, size_m2, floor (nullable), status (`PENDING`, `APPROVED`, `REJECTED`), reviewed_by (nullable), rejection_reason (nullable), created_at, reviewed_at (nullable) | Approving it creates an `ACTIVE` property with its data, no coordinates and a generic image |
 | `phone_verification` | id, purpose (`VISIT`, `LISTING_REQUEST`), phone_hash, vonage_request_id, status (`PENDING`, `VERIFIED`, `FAILED`, `EXPIRED`), check_attempts, created_at, verified_at (nullable), channel (`SMS`, `SILENT_AUTH`), sms_fallback | Detailed in the [phone verification spec](phone-verification.md). The code is never stored, and the phone is kept only as a hash. `channel` is the step a pending verification is on and the channel that verified it, and `sms_fallback` is `false` for the `+990` test numbers, as the [Silent Authentication spec](silent-authentication.md) describes |
 | `message` | id, visit_id (nullable), listing_request_id (nullable), type (`CONFIRMATION`, `REMINDER`, `STATUS_UPDATE`), channel (`SMS`), vonage_message_id (nullable), status (`SCHEDULED`, `SUBMITTED`, `DELIVERED`, `FAILED`), scheduled_at, updated_at | Filled in by the messages feature in weeks 3 and 4 |
@@ -101,7 +103,7 @@ Agency:
 | Method and path | Purpose | Spec |
 | :---- | :---- | :---- |
 | `POST`, `GET` and `DELETE /api/agency/session` | Sign in, get the signed-in user and sign out | [Agency dashboard](agency-dashboard.md) |
-| `GET /api/agency/summary` | Indicators and upcoming visits for the dashboard | [Agency dashboard](agency-dashboard.md) |
+| `GET /api/agency/summary` | Indicators, upcoming visits and the alerts of the post-visit call for the dashboard | [Agency dashboard](agency-dashboard.md) |
 | `GET /api/agency/listing-requests?status=` | Listing requests, optionally by status | [Agency dashboard](agency-dashboard.md) |
 | `GET /api/agency/listing-requests/{id}` | Request details | [Agency dashboard](agency-dashboard.md) |
 | `POST /api/agency/listing-requests/{id}/approve` | Approve and publish | [Agency dashboard](agency-dashboard.md) |
@@ -117,6 +119,8 @@ Vonage webhooks, called by Vonage with a signed JWT that the server verifies, so
 | `POST /api/webhooks/messages/inbound` | Messages sent to our number. The MVP does not process replies, so it only answers `200` | [Messages](messages.md) |
 | `POST /api/webhooks/messages/status` | Delivery status of each message, which updates `message.status` | [Messages](messages.md) |
 | `POST /api/webhooks/verify/status` | Status of a verification with Silent Authentication, which can move it on to SMS or end it | [Silent Authentication](silent-authentication.md) |
+| `POST /api/webhooks/voice/input?callId=` | The key the visitor pressed in the post-visit call. Answers with the closing sentence as an NCCO | [Post-visit call](post-visit-call.md) |
+| `POST /api/webhooks/voice/event?callId=` | Status changes of the post-visit call, which mark it `NOT_REACHED` when it never reached the visitor | [Post-visit call](post-visit-call.md) |
 
 Each feature spec defines the exact request and response of its endpoints.
 
@@ -155,8 +159,9 @@ The `detail` of a business error is written so the client can show it as it is: 
 - Visit slots until December 31, 2026 for every property, some of them already booked, and visits in every status for the calendar
 - Listing requests in every status, including two rejected scam examples, with their phone verifications
 - Messages in every status. They are only rows for the dashboard, and a scheduled sample message is never sent
+- Two post-visit calls answered with "someone asked for money", on visits of November 28 and 29, so the agency dashboard shows its alerts during the demo recording. Their visits are `COMPLETED`, so they are never called
 - Everything fictional: names, addresses and phone numbers are invented and do not belong to anyone
 
-Loading: the schema stays in `db/migration`, as the migration rules require, and the sample data lives in a separate Flyway location, `db/seed`, as two repeatable migrations: `R__seed_01_catalog.sql` and `R__seed_02_activity.sql`. Repeatable migrations run again when their content changes, in the order of their names, so the sample data can evolve without new versions. The seed location is enabled with an environment variable locally and on Railway, and stays off where it is not wanted.
+Loading: the schema stays in `db/migration`, as the migration rules require, and the sample data lives in a separate Flyway location, `db/seed`, as three repeatable migrations: `R__seed_01_catalog.sql`, `R__seed_02_activity.sql` and `R__seed_03_post_visit_calls.sql`. Repeatable migrations run again when their content changes, in the order of their names, so the sample data can evolve without new versions. The seed location is enabled with an environment variable locally and on Railway, and stays off where it is not wanted.
 
 The client mirrors the same data in each feature's sample file while an endpoint is not ready yet.

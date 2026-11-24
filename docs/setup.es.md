@@ -117,7 +117,7 @@ Los datos de ejemplo son ficticios y están en `server/src/main/resources/db/see
 
 ### Variables de Vonage
 
-Cada API de Vonage funciona con la aplicación de Vonage de una persona del equipo, así que el servidor tiene un grupo de variables por API: el ID de la aplicación y su clave privada, y además el signature secret con el que Messages y Silent Authentication comprueban sus webhooks.
+Cada API de Vonage funciona con la aplicación de Vonage de una persona del equipo, así que el servidor tiene un grupo de variables por API: el ID de la aplicación y su clave privada, y además el signature secret con el que Messages, Silent Authentication y Voice comprueban sus webhooks. Voice necesita también el número de Vonage desde el que llama.
 
 | Grupo | Variables | Valores en Railway |
 | :---- | :---- | :---- |
@@ -125,6 +125,7 @@ Cada API de Vonage funciona con la aplicación de Vonage de una persona del equi
 | Video | `VONAGE_VIDEO_APPLICATION_ID`, `VONAGE_VIDEO_PRIVATE_KEY` | Viviana |
 | Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY`, `VONAGE_MESSAGES_SIGNATURE_SECRET` | Damaris |
 | Silent Authentication | `VONAGE_SILENT_AUTH_APPLICATION_ID`, `VONAGE_SILENT_AUTH_PRIVATE_KEY`, `VONAGE_SILENT_AUTH_SIGNATURE_SECRET` | Mayleth |
+| Voice | `VONAGE_VOICE_APPLICATION_ID`, `VONAGE_VOICE_PRIVATE_KEY`, `VONAGE_VOICE_FROM_NUMBER`, `VONAGE_VOICE_SIGNATURE_SECRET` | Irina |
 
 En local, todas rellenan el grupo de Video, y el de Verify mientras Silent Authentication está apagado, porque el servidor no arranca sin ellos:
 
@@ -145,6 +146,23 @@ En Railway, `SILENT_AUTH_REDIRECT_URL` es la misma ruta en el dominio público d
 
 **El callback de estado de Verify.** Vonage avisa al servidor de cómo terminó una comprobación silenciosa con el webhook de estado, como describe la [spec de Silent Authentication](../specs/silent-authentication.md). En la aplicación de Mayleth, en el dashboard de Vonage, el callback de estado de Verify apunta a `/api/webhooks/verify/status` en el dominio público del servidor en Railway, y solo Mayleth lo cambia. En local, los callbacks no llegan a tu ordenador sin un túnel, y el flujo funciona igual: el cliente pide pasar al SMS, y Verify pasa al SMS por su cuenta a los 60 segundos. Nunca apuntes la aplicación compartida a tu propio túnel sin avisar al equipo, porque mientras tanto Railway deja de recibir los callbacks.
 
+**La llamada después de la visita.** La [llamada después de la visita](../specs/post-visit-call.md) está apagada por defecto, con `VOICE_CALLS_ENABLED=false`, así que el servidor arranca sin el grupo de Voice y nunca llama. Para probarla, pon estas variables y rellena el grupo de Voice con los valores de Irina del Drive:
+
+| Variable | Valor |
+| :---- | :---- |
+| `VOICE_CALLS_ENABLED` | `true` para llamar al visitante después de la visita. Encendida, el servidor no arranca mientras falte una variable de Voice o `SERVER_PUBLIC_URL` |
+| `POST_VISIT_CALL_DELAY_MINUTES` | Minutos después de que termine la visita, `15` por defecto, que es cuando se cierra su sala |
+| `SERVER_PUBLIC_URL` | La dirección pública `https://` de tu servidor, a la que Vonage envía los webhooks de la llamada. En local es un túnel de ngrok, como se explica abajo |
+| `VONAGE_VOICE_FROM_NUMBER` | El número español de Vonage, en E.164 sin el `+` |
+
+Vonage no puede llegar a `localhost`, así que en local los webhooks pasan por un túnel de [ngrok](https://ngrok.com/) al puerto 8080. Instálalo e inicia sesión una vez con el token de tu cuenta gratuita de ngrok. Después, arráncalo antes que el servidor y copia en `SERVER_PUBLIC_URL` la dirección `https://` que muestra:
+
+```bash
+ngrok http 8080
+```
+
+La dirección cambia cada vez que arrancas ngrok, salvo que tu cuenta tenga un dominio fijo.
+
 **La clave privada en base64.** Cada clave privada va en una sola línea, así el mismo valor funciona en `server/.env` y en Railway. Para copiar la tuya:
 
 ```bash
@@ -157,7 +175,7 @@ base64 -i ruta/a/tu.key | tr -d '\n' | pbcopy
 [Convert]::ToBase64String([IO.File]::ReadAllBytes("ruta\a\tu.key")) | Set-Clipboard
 ```
 
-**Compartir tus credenciales.** Cada persona sube las suyas a la carpeta compartida del Drive del equipo: su API key, su API secret, el ID de su aplicación y el archivo de la clave privada (`.key`), y el signature secret si construye Messages. Nunca las envíes por Slack, en una issue, en el repositorio ni a un asistente de IA.
+**Compartir tus credenciales.** Cada persona sube las suyas a la carpeta compartida del Drive del equipo: su API key, su API secret, el ID de su aplicación y el archivo de la clave privada (`.key`), y el signature secret si construye Messages o Voice. Nunca las envíes por Slack, en una issue, en el repositorio ni a un asistente de IA.
 
 **En Railway.** Las mismas variables van en el servicio `server`, como se explica en [Railway desde la terminal](guides/railway.md).
 
@@ -208,6 +226,8 @@ Abre `http://localhost:5173`. Para pararlo, pulsa `Ctrl+C`.
 | `Connection refused` en el puerto `5432` | PostgreSQL no está arrancado | Windows: arranca el servicio `postgresql-x64-17`. macOS: `brew services start postgresql@17` |
 | `PHONE_HASH_SECRET is not set`, `VONAGE_VERIFY_… is not set` o `VONAGE_VIDEO_… is not set` | Esa variable está vacía en `server/.env` | Rellénala: el secreto del hash como en el paso 4, el grupo de Verify con tu propia aplicación de Vonage y el de Video con los valores de Viviana del Drive, como en [Variables de Vonage](#variables-de-vonage) |
 | `VONAGE_SILENT_AUTH_… is not set` o `SILENT_AUTH_REDIRECT_URL is not set` | `SILENT_AUTH_ENABLED` es `true` y esa variable está vacía en `server/.env` | Rellénala como en [Variables de Vonage](#variables-de-vonage), o pon `SILENT_AUTH_ENABLED=false` para volver a solo SMS |
+| `VONAGE_VOICE_… is not set` o `SERVER_PUBLIC_URL is not set` | `VOICE_CALLS_ENABLED` es `true` y esa variable está vacía | Rellena el grupo de Voice con los valores de Irina del Drive y arranca ngrok, como en [Variables de Vonage](#variables-de-vonage), o pon `VOICE_CALLS_ENABLED=false` |
+| `SERVER_PUBLIC_URL must start with https://` | Vonage solo envía los webhooks de la llamada por HTTPS | Copia la dirección `https://` que muestra ngrok |
 | `VONAGE_VERIFY_PRIVATE_KEY does not match VONAGE_VERIFY_APPLICATION_ID`, o lo mismo con `VONAGE_VIDEO_…` o `VONAGE_SILENT_AUTH_…` | La clave y el ID son de aplicaciones distintas, o la clave no se copió entera | Vuelve a copiar las dos de la misma aplicación, con la clave en base64 en una sola línea |
 | `VONAGE_VERIFY_APPLICATION_ID is not a valid application ID`, o lo mismo con `VONAGE_VIDEO_…` o `VONAGE_SILENT_AUTH_…` | El valor no es un Application ID, que tiene esta forma: `aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee` | Vuelve a copiarlo: el de Verify de tu aplicación en el dashboard de Vonage, y los de Video y Silent Authentication del Drive |
 | `VONAGE_VERIFY_PRIVATE_KEY is not valid base64`, o lo mismo con `VONAGE_VIDEO_…` o `VONAGE_SILENT_AUTH_…` | La clave se pegó tal cual, o con espacios o saltos de línea | Vuelve a convertirla con el comando de [Variables de Vonage](#variables-de-vonage) y pega la línea entera |

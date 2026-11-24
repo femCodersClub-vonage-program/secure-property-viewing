@@ -169,6 +169,75 @@ class AgencyDashboardControllerTest {
                 .andExpect(jsonPath("$.nextVisits[1].visitorName").value("Next"));
     }
 
+    // Alerts from the post-visit call (specs/post-visit-call.md)
+
+    @Test
+    void returnsTheAlertsInTheShapeOfTheSpec() throws Exception {
+        long property = insertProperty(agencyId, "Apartment in Gràcia", "ACTIVE");
+        OffsetDateTime startsAt = OffsetDateTime.parse("2099-03-01T11:00:00+01:00");
+        long visit = insertVisit(property, startsAt, "CONFIRMED", "Laura Gómez");
+        insertAnsweredCall(visit, "ASKED_FOR_MONEY", OffsetDateTime.parse("2099-03-01T10:47:12Z"));
+
+        mockMvc.perform(get("/api/agency/summary").session(signIn()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.alerts.length()").value(1))
+                // Contract: exactly the five fields of the spec's example, in Madrid time
+                .andExpect(jsonPath("$.alerts[0].length()").value(5))
+                .andExpect(jsonPath("$.alerts[0].visitId").value(visit))
+                .andExpect(jsonPath("$.alerts[0].visitorName").value("Laura Gómez"))
+                .andExpect(jsonPath("$.alerts[0].propertyTitle").value("Apartment in Gràcia"))
+                .andExpect(jsonPath("$.alerts[0].startsAt").value("2099-03-01T11:00:00+01:00"))
+                .andExpect(jsonPath("$.alerts[0].reportedAt").value("2099-03-01T11:47:12+01:00"));
+    }
+
+    @Test
+    void returnsAnEmptyListOfAlertsWhenThereAreNone() throws Exception {
+        long property = insertProperty(agencyId, "Apartment in Gràcia", "ACTIVE");
+        insertAnsweredCall(
+                insertVisit(property, NOW.minusDays(1), "CONFIRMED", "Said no"), "NOT_ASKED", NOW.minusDays(1));
+
+        mockMvc.perform(get("/api/agency/summary").session(signIn()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.alerts").isArray())
+                .andExpect(jsonPath("$.alerts.length()").value(0));
+    }
+
+    @Test
+    void listsTheFiveNewestAlertsOfTheAgencyFromTheLastFourteenDays() throws Exception {
+        long property = insertProperty(agencyId, "Apartment in Gràcia", "ACTIVE");
+        for (int day = 1; day <= 6; day++) {
+            long visit = insertVisit(property, NOW.minusDays(day), "CONFIRMED", "Day " + day);
+            insertAnsweredCall(visit, "ASKED_FOR_MONEY", NOW.minusDays(day).plusMinutes(47));
+        }
+        long tooOld = insertVisit(property, NOW.minusDays(15), "CONFIRMED", "Too old");
+        insertAnsweredCall(tooOld, "ASKED_FOR_MONEY", NOW.minusDays(14));
+        long otherProperty = insertProperty(insertAgency("Other Agency"), "Elsewhere", "ACTIVE");
+        long elsewhere = insertVisit(otherProperty, NOW.minusHours(2), "CONFIRMED", "Other agency");
+        insertAnsweredCall(elsewhere, "ASKED_FOR_MONEY", NOW.minusHours(1));
+
+        mockMvc.perform(get("/api/agency/summary").session(signIn()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.alerts.length()").value(5))
+                .andExpect(jsonPath("$.alerts[0].visitorName").value("Day 1"))
+                .andExpect(jsonPath("$.alerts[4].visitorName").value("Day 5"));
+    }
+
+    @Test
+    void dropsAnAlertOnceItIsFourteenDaysOld() throws Exception {
+        long property = insertProperty(agencyId, "Apartment in Gràcia", "ACTIVE");
+        insertAnsweredCall(
+                insertVisit(property, NOW.minusDays(15), "CONFIRMED", "Too old"), "ASKED_FOR_MONEY", NOW.minusDays(14));
+        insertAnsweredCall(
+                insertVisit(property, NOW.minusDays(14), "CONFIRMED", "Just in"),
+                "ASKED_FOR_MONEY",
+                NOW.minusDays(14).plusMinutes(1));
+
+        mockMvc.perform(get("/api/agency/summary").session(signIn()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.alerts.length()").value(1))
+                .andExpect(jsonPath("$.alerts[0].visitorName").value("Just in"));
+    }
+
     @Test
     void requiresASignedInUserForTheSummary() throws Exception {
         mockMvc.perform(get("/api/agency/summary"))
@@ -330,6 +399,14 @@ class AgencyDashboardControllerTest {
             VALUES (?, ?, ?, ?, '+34600000002', ?)
             RETURNING id
             """, Long.class, propertyId, slotId, insertPhoneVerification("VISIT"), visitorName, status);
+    }
+
+    private void insertAnsweredCall(long visitId, String answer, OffsetDateTime answeredAt) {
+        jdbcTemplate.update(
+                "INSERT INTO post_visit_call (visit_id, status, answer, answered_at) VALUES (?, 'ANSWERED', ?, ?)",
+                visitId,
+                answer,
+                answeredAt);
     }
 
     private void insertListingRequest(String status) {

@@ -89,6 +89,10 @@ class VideoVisitService {
         String sessionId = visitService.videoSessionId(visit.id(), () -> createSession(visit.id()));
         String token =
                 videoProvider.generateToken(sessionId, "role=" + role.name(), Duration.between(now, window.closesAt()));
+        // The post-visit call only goes to visitors who entered the room
+        if (role == VideoRole.VISITOR) {
+            visitService.markVisitorJoined(visit.id());
+        }
         return new VideoTokenResponse(
                 videoProvider.applicationId(), sessionId, token, role.name(), inMadrid(window.closesAt()));
     }

@@ -66,12 +66,14 @@ The program lasts six weeks, so the MVP focuses on what gives the project its pu
 [![Vonage Verify API](https://img.shields.io/badge/Verify%20API-1f2937?logo=vonage&logoColor=white&style=for-the-badge)](docs/vonage.md#verify-api)
 [![Vonage Video API](https://img.shields.io/badge/Video%20API-1f2937?logo=vonage&logoColor=white&style=for-the-badge)](docs/vonage.md#video-api)
 [![Vonage Messages API](https://img.shields.io/badge/Messages%20API-1f2937?logo=vonage&logoColor=white&style=for-the-badge)](docs/vonage.md#messages-api)
+[![Vonage Voice API](https://img.shields.io/badge/Voice%20API-1f2937?logo=vonage&logoColor=white&style=for-the-badge)](docs/vonage.md#voice-api)
 
 | Fraud vector | Risk | Vonage module that mitigates it |
 | :---- | :---- | :---- |
 | **Ghost listing or fake identity**: advertiser using a disposable number or a bot | Unverified advertiser: there is no way to know whether the person is real or using a temporary number | **Verify API**: SMS OTP to verify the advertiser's phone number, with Silent Authentication where the mobile operator supports it |
 | **Non-existent apartment or stolen photos**: the property does not match the listing | Misrepresented property: the photos are fake or belong to another property | **Video API**: live interactive visit to confirm that the property exists and matches the listing |
 | **Phishing or diversion to external channels**: malicious links or payments through opaque channels | Fraudulent links and payments outside official channels | **Messages API**: notifications always sent from the platform's official channel, so communication is secure and traceable |
+| **Asking for money before signing**: a deposit to "hold" the property or a fee to see it, right after the visit | The visitor pays before any contract exists, and the agency never finds out | **Voice API**: after the video visit, an automated call asks the visitor whether anyone asked for money, and a "yes" raises an alert on the agency dashboard |
 | **Multiple sales or fake deposits** *(later)*: lack of traceability and double bookings | The same property is booked or sold to several people, with upfront payments and no guarantees | **Video API + Verify API**: signing or ratification with the property manager by video, and two-step verification of all parties before any payment order |
 
 How we use each API, and the Vonage SDKs, CLI and MCP servers that support development, are described in [`docs/vonage.md`](docs/vonage.md).
