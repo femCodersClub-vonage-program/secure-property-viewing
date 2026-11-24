@@ -170,7 +170,9 @@ describe('coming back from the silent check', () => {
 
     renderAt('/verification/return#error_description=Device%20MSISDN%20does%20not%20match.')
 
-    expect(await screen.findByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus()
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus(),
+    )
     expect(callsTo('POST /api/phone-verifications/42/sms-fallback')).toHaveLength(1)
     expect(screen.getByText('You can ask for a new code in 12 s.')).toBeInTheDocument()
     expect(
@@ -187,7 +189,9 @@ describe('coming back from the silent check', () => {
 
     renderAt('/properties/7/visit')
 
-    expect(await screen.findByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus()
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus(),
+    )
     expect(callsTo('POST /api/phone-verifications/42/sms-fallback')).toHaveLength(1)
   })
 

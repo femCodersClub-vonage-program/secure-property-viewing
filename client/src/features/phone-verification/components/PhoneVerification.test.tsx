@@ -536,7 +536,9 @@ describe('PhoneVerification with Silent Authentication', () => {
     expect(sentBody(0)).toEqual({ phone: '+34600000000', purpose: 'VISIT', silentAuth: true })
     expect(openCheckUrl).not.toHaveBeenCalled()
     expect(sessionStorage.getItem('peephole.silent-check')).toBeNull()
-    expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus()
+    await vi.waitFor(() =>
+      expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus(),
+    )
   })
 
   it('asks for a new code by SMS only, as the spec says once the SMS step has started', async () => {
@@ -567,7 +569,9 @@ describe('PhoneVerification with Silent Authentication', () => {
     window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: false }))
     window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }))
 
-    expect(await screen.findByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus()
+    await vi.waitFor(() =>
+      expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus(),
+    )
     expect(fetchMock).toHaveBeenCalledTimes(2)
     expect(fetchMock.mock.calls[1]?.[0]).toBe('/api/phone-verifications/42/sms-fallback')
     expect(sessionStorage.getItem('peephole.silent-check')).toBeNull()
@@ -585,7 +589,9 @@ describe('PhoneVerification with Silent Authentication', () => {
 
     sendNumber('+34600000000')
 
-    expect(await screen.findByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus()
+    await vi.waitFor(() =>
+      expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus(),
+    )
     expect(openCheckUrl).not.toHaveBeenCalled()
     expect(fetchMock.mock.calls[1]?.[0]).toBe('/api/phone-verifications/42/sms-fallback')
   })
@@ -619,7 +625,9 @@ describe('PhoneVerification with Silent Authentication', () => {
     )
     render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} resumed={silentCodeBack()} />)
 
-    expect(await screen.findByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus()
+    await vi.waitFor(() =>
+      expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus(),
+    )
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent(
       "We've sent a 6-digit code by SMS to +34 600 000 000.",
@@ -717,7 +725,9 @@ describe('PhoneVerification, errors from the silent check', () => {
     )
     render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} resumed={silentCodeBack()} />)
 
-    expect(await screen.findByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus()
+    await vi.waitFor(() =>
+      expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus(),
+    )
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
