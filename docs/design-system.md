@@ -213,8 +213,16 @@ A badge always shows the status as text, with a `lucide-react` icon when it carr
 | Message `SCHEDULED`, `SUBMITTED` | `--color-text-muted` | None |
 | Message `DELIVERED` | `--color-success` | Check |
 | Message `FAILED` | `--color-error` | Alert |
+| Post-visit call alert, "Asked for money before signing" | `--color-warning` | TriangleAlert |
 
 A rejected request is a decision, not an error, so it is neutral. A failed message is the only status that uses `--color-error`, so it stands out in D5, and its row also shows the text "Failed".
+
+### Visits to review card
+
+D1 shows the visits where the [post-visit call](../specs/post-visit-call.md) recorded that someone asked the visitor for money, in a "Visits to review" card (`VisitsToReviewCard`) at the top, above the next visit card. It is not shown when `alerts` is empty.
+
+- A `Card` with an `h2` styled like "Next visits", and a `DataTable` with the visitor, the property, the visit time and when it was reported, both in Madrid time
+- Each row ends with a warning badge, "Asked for money before signing" with a TriangleAlert icon, so the alert never relies on color. The rows have no tint
 
 ### Next visit card
 

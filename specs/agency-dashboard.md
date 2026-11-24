@@ -95,6 +95,8 @@ No new tables: `listing_request`, `property`, `visit` and `message` from the [da
 
 `upcomingVisits` counts the confirmed visits that have not ended yet and start in the next 7 days, and `nextVisits` lists the first five confirmed visits that have not ended yet, by start time. A visit in progress stays until it ends, so an agent who signs in late can still join it.
 
+The response also carries `alerts`, the visits where the visitor reported being asked for money after the visit, as the [post-visit call spec](post-visit-call.md) describes, with the "Visits to review" card it adds to D1.
+
 `GET /api/agency/listing-requests?status=PENDING`, with an optional status of `PENDING`, `APPROVED` or `REJECTED`:
 
 ```json
@@ -185,11 +187,11 @@ The agency signs in with a server session managed by Spring Security, as decided
 
 ### Vonage
 
-None directly. The dashboard shows what Messages and Video produce: message statuses from the messages feature and the "Join visit" link from the video feature.
+None directly. The dashboard shows what Messages, Video and Voice produce: message statuses from the messages feature, the "Join visit" link from the video feature and the alerts from the [post-visit call](post-visit-call.md).
 
 ### Client
 
 - Pages under `/agency` in `routes.tsx`, composed of an `agency-dashboard` feature with its `api.ts`, types and components, following the folder rules in `client/AGENTS.md`
-- D1 opens with the next visit, the earliest in `nextVisits` after sorting it on the client, in its own card with a "Join visit" link, and marks that visit in the table with a "Next" label. Its look, tokens and self-hosted fonts are in the agency dashboard section of [`docs/design-system.md`](../docs/design-system.md#agency-dashboard)
-- The dashboard components are built in issue #27. The layout and D1 are built first, in issue #16, and D2 to D5 follow in the next weeks
+- D1 opens with the "Visits to review" card when there are alerts, then the next visit, the earliest in `nextVisits` after sorting it on the client, in its own card with a "Join visit" link, and marks that visit in the table with a "Next" label. Its look, tokens and self-hosted fonts are in the agency dashboard section of [`docs/design-system.md`](../docs/design-system.md#agency-dashboard)
+- The dashboard components are built in issue #27, and the layout and D1 in issue #16. How much of D2 to D5 is built is in the [build status](../docs/user-journeys.md#build-status)
 - The shared API client uses relative `/api` paths in every environment and sends the `X-XSRF-TOKEN` header with every `POST`, `PUT`, `PATCH` and `DELETE`, as decided in [ADR 0004](../docs/adr/0004-agency-sign-in.md). On the first load and after signing in or out, it makes a `GET` before the next of those requests, because the server clears the `XSRF-TOKEN` cookie on sign-in and sign-out and issues a new one with the next response

@@ -1,5 +1,5 @@
 import { request } from '../../lib/http'
-import type { AgencySummary, AgencyVisit, UpcomingVisit, VisitStatus } from './types'
+import type { AgencySummary, AgencyVisit, UpcomingVisit, VisitAlert, VisitStatus } from './types'
 
 // Checks the server's answer before using it, as client/AGENTS.md asks.
 // Contracts: specs/agency-dashboard.md → "API" → GET /api/agency/summary and GET /api/agency/visits
@@ -13,8 +13,8 @@ function isCount(value: unknown): value is number {
   return typeof value === 'number' && Number.isInteger(value) && value >= 0
 }
 
-// Rejects a date the screen could not show
-function isInstant(value: unknown): value is string {
+// Rejects a date the dashboard could not show
+function isDateTime(value: unknown): value is string {
   return typeof value === 'string' && !Number.isNaN(Date.parse(value))
 }
 
@@ -45,6 +45,35 @@ export function parseUpcomingVisit(value: unknown): UpcomingVisit {
   throw new Error('Unexpected visit in nextVisits of GET /api/agency/summary')
 }
 
+// Contract: specs/post-visit-call.md → "API" → alerts
+export function parseVisitAlert(value: unknown): VisitAlert {
+  if (
+    isObject(value) &&
+    typeof value.visitId === 'number' &&
+    Number.isInteger(value.visitId) &&
+    typeof value.visitorName === 'string' &&
+    typeof value.propertyTitle === 'string' &&
+    isDateTime(value.startsAt) &&
+    isDateTime(value.reportedAt)
+  ) {
+    return {
+      visitId: value.visitId,
+      visitorName: value.visitorName,
+      propertyTitle: value.propertyTitle,
+      startsAt: value.startsAt,
+      reportedAt: value.reportedAt,
+    }
+  }
+  throw new Error('Unexpected alert in alerts of GET /api/agency/summary')
+}
+
+// A server from before the post-visit call sends no alerts, which means there are none to show
+function parseAlerts(value: unknown): VisitAlert[] {
+  if (value === undefined) return []
+  if (Array.isArray(value)) return value.map(parseVisitAlert)
+  throw new Error('Unexpected alerts in GET /api/agency/summary')
+}
+
 export function parseAgencySummary(data: unknown): AgencySummary {
   if (
     isObject(data) &&
@@ -61,6 +90,7 @@ export function parseAgencySummary(data: unknown): AgencySummary {
       activeProperties: data.activeProperties,
       // One broken visit breaks the whole answer: the contract says every visit has all four fields
       nextVisits: data.nextVisits.map(parseUpcomingVisit),
+      alerts: parseAlerts(data.alerts),
     }
   }
   throw new Error('Unexpected GET /api/agency/summary response')
@@ -76,8 +106,8 @@ export function parseAgencyVisit(value: unknown): AgencyVisit {
     isObject(value) &&
     typeof value.visitId === 'number' &&
     Number.isInteger(value.visitId) &&
-    isInstant(value.startsAt) &&
-    isInstant(value.endsAt) &&
+    isDateTime(value.startsAt) &&
+    isDateTime(value.endsAt) &&
     typeof value.visitorName === 'string' &&
     typeof value.propertyTitle === 'string' &&
     isVisitStatus(value.status)

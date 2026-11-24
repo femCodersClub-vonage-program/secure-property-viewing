@@ -33,6 +33,15 @@ export type UpcomingVisit = {
   propertyTitle: string
 }
 
+/** One item of alerts in GET /api/agency/summary: the visitor said someone asked for money before signing */
+export type VisitAlert = {
+  visitId: number
+  visitorName: string
+  propertyTitle: string
+  startsAt: string
+  reportedAt: string
+}
+
 /** GET /api/agency/summary */
 export type AgencySummary = {
   agentName: string
@@ -40,4 +49,5 @@ export type AgencySummary = {
   upcomingVisits: number
   activeProperties: number
   nextVisits: UpcomingVisit[]
+  alerts: VisitAlert[]
 }

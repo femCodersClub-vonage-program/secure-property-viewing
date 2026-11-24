@@ -42,7 +42,27 @@ const SUMMARY: AgencySummary = {
       propertyTitle: 'Studio in Poblenou',
     },
   ],
+  alerts: [],
 }
+
+// Shaped like the alerts example in specs/post-visit-call.md. The times come in UTC, to check they are shown in
+// Madrid time
+const ALERTS: AgencySummary['alerts'] = [
+  {
+    visitId: 21,
+    visitorName: 'Raquel Moreno',
+    propertyTitle: 'Quiet studio in Horta',
+    startsAt: '2026-11-28T10:00:00Z',
+    reportedAt: '2026-11-28T10:46:12Z',
+  },
+  {
+    visitId: 22,
+    visitorName: 'Iván Prieto',
+    propertyTitle: 'Large apartment in Eixample',
+    startsAt: '2026-11-29T16:30:00Z',
+    reportedAt: '2026-11-29T17:16:40Z',
+  },
+]
 
 function renderOverview(summary: AgencySummary = SUMMARY) {
   render(
@@ -53,6 +73,40 @@ function renderOverview(summary: AgencySummary = SUMMARY) {
 }
 
 describe('DashboardOverview', () => {
+  it('shows no Visits to review card when there are no alerts', () => {
+    renderOverview()
+
+    expect(screen.queryByRole('heading', { name: 'Visits to review' })).not.toBeInTheDocument()
+  })
+
+  it('lists each alert with the visitor, the property, both times in Madrid and the reason in words', () => {
+    renderOverview({ ...SUMMARY, alerts: ALERTS })
+
+    const table = screen.getByRole('table', { name: 'Visits to review' })
+    const rows = within(table).getAllByRole('row').slice(1)
+    expect(rows).toHaveLength(2)
+    // Each time in its own column, so the report time is never read as the visit time
+    const [visitor, property, visit, reported, reason] = within(rows[0]).getAllByRole('cell')
+    expect(visitor).toHaveTextContent('Raquel Moreno')
+    expect(property).toHaveTextContent('Quiet studio in Horta')
+    expect(visit).toHaveTextContent('Visit Saturday 28 November, 11:00')
+    expect(reported).toHaveTextContent('Reported Saturday 28 November, 11:46')
+    expect(reason).toHaveTextContent('Asked for money before signing')
+    expect(within(rows[1]).getByText('Iván Prieto')).toBeInTheDocument()
+    expect(within(rows[1]).getByText('Asked for money before signing')).toBeInTheDocument()
+  })
+
+  it('puts the Visits to review card at the top, before the next visit', () => {
+    renderOverview({ ...SUMMARY, alerts: ALERTS })
+
+    const reviewHeading = screen.getByRole('heading', { level: 2, name: 'Visits to review' })
+    const nextVisit = screen.getByRole('region', { name: 'Next video visit' })
+    expect(reviewHeading.compareDocumentPosition(nextVisit)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(screen.getByRole('heading', { level: 1 }).compareDocumentPosition(reviewHeading)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    )
+  })
+
   it('greets the agent by name', () => {
     renderOverview()
 
@@ -138,7 +192,21 @@ describe('DashboardOverview', () => {
           propertyTitle: 'Apartment in Gràcia',
         },
       ],
+      // specs/post-visit-call.md, "API": the alerts example, verbatim
+      alerts: [
+        {
+          visitId: 31,
+          visitorName: 'Laura Gómez',
+          propertyTitle: 'Apartment in Gràcia',
+          startsAt: '2026-11-10T11:00:00+01:00',
+          reportedAt: '2026-11-10T11:47:12+01:00',
+        },
+      ],
     })
+
+    const alerts = screen.getByRole('table', { name: 'Visits to review' })
+    expect(alerts).toHaveTextContent('Tuesday 10 November, 11:00')
+    expect(alerts).toHaveTextContent('Tuesday 10 November, 11:47')
 
     const table = screen.getByRole('table', { name: 'Next visits' })
     expect(

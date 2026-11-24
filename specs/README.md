@@ -29,6 +29,7 @@ One file per feature, named in English and in kebab-case, such as `phone-verific
 | [Property browsing](property-browsing.md) | Home page, property catalog and property details (journey A, steps 1 to 3) |
 | [Visit booking](visit-booking.md) | Free visit slots, booking a visit with a verified phone, and its confirmation (journey A, steps 4 and 6) |
 | [Video visit](video-visit.md) | The video room for the visitor, her guests and the agency, and the room links (journey A, step 7) |
+| [Post-visit call](post-visit-call.md) | A Voice call after the visit that asks the visitor whether anyone asked for money before signing, with alerts for the agency (after journey A, step 7) |
 | [Agency dashboard](agency-dashboard.md) | The five screens of the agency dashboard |
 | [Messages](messages.md) | Visit confirmation and reminder, listing request updates and their delivery status |
 | [Owner listing](owner-listing.md) | Owner listing request: owner and property details and the confirmation (journey B, steps 1, 2, 3 and 5) |

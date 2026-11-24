@@ -10,12 +10,22 @@ const visitExample = {
   propertyTitle: 'Apartment in Gràcia',
 }
 
+// specs/post-visit-call.md, "API": an item of alerts, verbatim
+const alertExample = {
+  visitId: 31,
+  visitorName: 'Laura Gómez',
+  propertyTitle: 'Apartment in Gràcia',
+  startsAt: '2026-11-10T11:00:00+01:00',
+  reportedAt: '2026-11-10T11:47:12+01:00',
+}
+
 const summaryExample = {
   agentName: 'Marta',
   newRequests: 12,
   upcomingVisits: 8,
   activeProperties: 5,
   nextVisits: [visitExample],
+  alerts: [alertExample],
 }
 
 // specs/agency-dashboard.md, "API": one item of GET /api/agency/visits, verbatim
@@ -44,6 +54,12 @@ afterEach(() => {
 describe('parseAgencySummary', () => {
   it('reads the summary of the spec example', () => {
     expect(parseAgencySummary(summaryExample)).toEqual(summaryExample)
+  })
+
+  it('reads a summary from before the post-visit call, without alerts, as one with none', () => {
+    const { alerts: _alerts, ...withoutAlerts } = summaryExample
+
+    expect(parseAgencySummary(withoutAlerts)).toEqual({ ...summaryExample, alerts: [] })
   })
 
   it('reads a summary with no upcoming visits', () => {
@@ -75,6 +91,27 @@ describe('parseAgencySummary', () => {
     {
       name: 'a visit without a property title',
       data: { ...summaryExample, nextVisits: [{ ...visitExample, propertyTitle: undefined }] },
+    },
+    { name: 'alerts that is not a list', data: { ...summaryExample, alerts: null } },
+    {
+      name: 'an alert without a visitor name',
+      data: { ...summaryExample, alerts: [{ ...alertExample, visitorName: undefined }] },
+    },
+    {
+      name: 'an alert without a property title',
+      data: { ...summaryExample, alerts: [{ ...alertExample, propertyTitle: undefined }] },
+    },
+    {
+      name: 'an alert whose id is not a number',
+      data: { ...summaryExample, alerts: [{ ...alertExample, visitId: '31' }] },
+    },
+    {
+      name: 'an alert with an unreadable visit time',
+      data: { ...summaryExample, alerts: [{ ...alertExample, startsAt: 'yesterday' }] },
+    },
+    {
+      name: 'an alert with an unreadable report time',
+      data: { ...summaryExample, alerts: [{ ...alertExample, reportedAt: undefined }] },
     },
     { name: 'no body', data: null },
   ])('refuses a summary with $name', ({ data }) => {

@@ -19,8 +19,8 @@ export interface PropertySummary {
   area: string
   bedrooms: number
   sizeM2: number
-  latitude: number | null
-  longitude: number | null
+  latitude?: number | null
+  longitude?: number | null
   coverImage: CoverImage | null
   agency: Agency
 }

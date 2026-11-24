@@ -8,6 +8,7 @@ import DataTable, { type Column } from './DataTable'
 import NextLabel from './NextLabel'
 import NextVisitCard from './NextVisitCard'
 import StatCard from './StatCard'
+import VisitsToReviewCard from './VisitsToReviewCard'
 
 type Props = {
   summary: AgencySummary
@@ -61,6 +62,8 @@ function DashboardOverview({ summary, headingRef }: Props) {
           {summary.agentName}
         </span>
       </DashboardHeading>
+
+      {summary.alerts.length > 0 && <VisitsToReviewCard alerts={summary.alerts} />}
 
       {nextVisit && <NextVisitCard visit={nextVisit} />}
 
