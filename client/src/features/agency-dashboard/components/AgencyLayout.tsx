@@ -15,7 +15,8 @@ function AgencyLayout() {
   // The menu stays open only on the page where it was opened, so following a link closes it
   const [openOn, setOpenOn] = useState<string | null>(null)
   const isMenuOpen = openOn === pathname
-  const [signOutError, setSignOutError] = useState<string>()
+  const [signOutError, setSignOutError] = useState<{ message: string; on: string }>()
+  const signOutMessage = signOutError?.on === pathname ? signOutError.message : undefined
 
   async function handleSignOut() {
     setSignOutError(undefined)
@@ -25,7 +26,10 @@ function AgencyLayout() {
       // A 401 means the session had already ended, so she is signed out anyway
       if (!isSignedOut(error)) {
         // The session may still be open: she stays here and can try again
-        setSignOutError(error instanceof ApiError ? error.message : SYSTEM_ERROR_MESSAGE)
+        setSignOutError({
+          message: error instanceof ApiError ? error.message : SYSTEM_ERROR_MESSAGE,
+          on: pathname,
+        })
         return
       }
     }
@@ -54,9 +58,9 @@ function AgencyLayout() {
         <SideNav onSignOut={() => void handleSignOut()} />
       </div>
       <main className="min-w-0 flex-1 px-4 py-8 md:px-12 md:py-10">
-        {signOutError ? (
+        {signOutMessage ? (
           <Alert variant="error" className="mb-6">
-            {signOutError}
+            {signOutMessage}
           </Alert>
         ) : null}
         <Outlet />
