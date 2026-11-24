@@ -96,6 +96,7 @@ class SilentAuthControllerTest {
         assertThat(stored(session)).containsEntry("channel", "SILENT_AUTH").containsEntry("sms_fallback", true);
     }
 
+    // Without a check URL the field is left out, so the answer has only id, status and resendAvailableAt
     @Test
     void goesStraightToSmsWhenVonageGivesNoCheckUrl() throws Exception {
         when(phoneVerifier.startWithSilentAuth(PHONE, REDIRECT_URL, true))
@@ -104,7 +105,8 @@ class SilentAuthControllerTest {
 
         start(session, PHONE, true)
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.checkUrl").doesNotExist());
+                .andExpect(jsonPath("$.checkUrl").doesNotExist())
+                .andExpect(jsonPath("$.length()").value(3));
 
         assertThat(stored(session)).containsEntry("channel", "SMS");
         verify(phoneVerifier, never()).start(any());
@@ -163,6 +165,20 @@ class SilentAuthControllerTest {
                 .andExpect(status().isTooManyRequests())
                 .andExpect(jsonPath("$.code").value("VERIFICATION_RESEND_TOO_SOON"));
         verify(phoneVerifier, never()).cancel(any());
+    }
+
+    // A start that tries the silent check counts toward the 5 per hour like any other
+    @Test
+    void rejectsASixthSilentStartForTheSamePhoneInAnHour() throws Exception {
+        when(phoneVerifier.startWithSilentAuth(PHONE, REDIRECT_URL, true))
+                .thenReturn(new SilentAuthStart("request-id", Optional.of(CHECK_URL)));
+        for (int i = 0; i < 5; i++) {
+            start(new MockHttpSession(), PHONE, true).andExpect(status().isCreated());
+        }
+
+        start(new MockHttpSession(), PHONE, true)
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code").value("VERIFICATION_LIMIT_REACHED"));
     }
 
     // Checking the code of the silent check
@@ -234,6 +250,20 @@ class SilentAuthControllerTest {
         assertThat(stored(session)).containsEntry("channel", "SMS").containsEntry("status", "PENDING");
     }
 
+    // Verify has ended the request of a real number, so there is no SMS step left to move on to
+    @Test
+    void expiresARealNumberWhenVonageEndsTheSilentCheck() throws Exception {
+        MockHttpSession session = startSilentCheck(PHONE, true);
+        when(phoneVerifier.check(REQUEST_ID, SILENT_CODE)).thenReturn(CodeCheckResult.ENDED);
+
+        silentCheck(session, REQUEST_ID, SILENT_CODE)
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.code").value("VERIFICATION_EXPIRED"));
+
+        assertThat(stored(session)).containsEntry("status", "EXPIRED");
+        verify(phoneVerifier, never()).moveToSms(any());
+    }
+
     @Test
     void failsAVirtualOperatorVerificationWhenTheSilentCodeIsRejected() throws Exception {
         MockHttpSession session = startSilentCheck(VIRTUAL_OPERATOR_PHONE, false);
@@ -254,6 +284,47 @@ class SilentAuthControllerTest {
         silentCheck(session, REQUEST_ID, SILENT_CODE)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("FAILED"));
+    }
+
+    // The webhook can arrive before the browser comes back. Then the browser gets the status the webhook left, and
+    // Verify is never called again
+
+    @Test
+    void answersTheStatusTheWebhookAlreadyLeftWithoutCallingVonage() throws Exception {
+        MockHttpSession session = startSilentCheck(PHONE, true);
+        storeStatus(session, "FAILED");
+
+        silentCheck(session, REQUEST_ID, SILENT_CODE)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(idOf(session)))
+                .andExpect(jsonPath("$.status").value("FAILED"));
+
+        verify(phoneVerifier, never()).check(any(), any());
+        verify(phoneVerifier, never()).moveToSms(any());
+    }
+
+    @Test
+    void answersVerifiedWithoutCallingVonage() throws Exception {
+        MockHttpSession session = startSilentCheck(PHONE, true);
+        storeStatus(session, "VERIFIED");
+
+        silentCheck(session, REQUEST_ID, SILENT_CODE)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("VERIFIED"));
+
+        verify(phoneVerifier, never()).check(any(), any());
+    }
+
+    @Test
+    void fallsBackToTheStatusTheWebhookAlreadyLeftWithoutCallingVonage() throws Exception {
+        MockHttpSession session = startSilentCheck(PHONE, true);
+        storeStatus(session, "FAILED");
+
+        smsFallback(session)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("FAILED"));
+
+        verify(phoneVerifier, never()).moveToSms(any());
     }
 
     // Moving on to the SMS code
@@ -387,5 +458,18 @@ class SilentAuthControllerTest {
         return jdbcTemplate.queryForMap(
                 "SELECT channel, sms_fallback, status FROM phone_verification WHERE id = ?",
                 session.getAttribute(PhoneVerificationController.SESSION_ATTRIBUTE));
+    }
+
+    // Leaves the status as the webhook would. Hibernate still keeps the verification from the start, so it is
+    // flushed before the update and cleared after it, and the next request reads the row as it is now
+    private void storeStatus(MockHttpSession session, String status) {
+        entityManager.flush();
+        jdbcTemplate.update(
+                "UPDATE phone_verification SET status = ?,"
+                        + " verified_at = CASE WHEN ? = 'VERIFIED' THEN created_at END WHERE id = ?",
+                status,
+                status,
+                idOf(session));
+        entityManager.clear();
     }
 }
