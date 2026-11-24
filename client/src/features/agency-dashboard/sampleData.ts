@@ -1,34 +1,7 @@
-import type { AgencyVisit, ListingRequestSummary } from './types'
+import type { ListingRequestSummary } from './types'
 
 // Shaped like the examples in specs/agency-dashboard.md, for the screens whose endpoint is not used yet.
-// D1 reads GET /api/agency/summary, so it has no sample data any more
-export const SAMPLE_VISITS: AgencyVisit[] = [
-  {
-    visitId: 31,
-    startsAt: '2027-01-12T11:00:00+01:00',
-    endsAt: '2027-01-12T11:30:00+01:00',
-    visitorName: 'Laura Gómez',
-    propertyTitle: 'Apartment in Gràcia',
-    status: 'CONFIRMED',
-  },
-  {
-    visitId: 32,
-    startsAt: '2027-01-12T17:30:00+01:00',
-    endsAt: '2027-01-12T18:00:00+01:00',
-    visitorName: 'Joan Puig',
-    propertyTitle: 'Studio in Poblenou',
-    status: 'CONFIRMED',
-  },
-  {
-    visitId: 33,
-    startsAt: '2027-01-14T10:00:00+01:00',
-    endsAt: '2027-01-14T10:30:00+01:00',
-    visitorName: 'Amina Benali',
-    propertyTitle: 'Flat in Sants',
-    status: 'CANCELED',
-  },
-]
-
+// D1 and D4 read GET /api/agency/summary and GET /api/agency/visits, so they have no sample data any more
 export const SAMPLE_LISTING_REQUESTS: ListingRequestSummary[] = [
   {
     id: 18,

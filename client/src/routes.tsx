@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage'
 import NotFoundPage from './pages/NotFoundPage'
 import PropertyDetailsPage from './pages/PropertyDetailsPage'
 import { AgencyLayout } from './features/agency-dashboard'
+import AgencyCalendarPage from './pages/AgencyCalendarPage'
 import AgencyDashboardPage from './pages/AgencyDashboardPage'
 import AgencyPlaceholderPage from './pages/AgencyPlaceholderPage'
 import AgencyVideoRoomPage from './pages/AgencyVideoRoomPage'
@@ -34,7 +35,7 @@ export const routes: RouteObject[] = [
         path: 'listing-requests/:id',
         element: <AgencyPlaceholderPage title="Request details" />,
       },
-      { path: 'calendar', element: <AgencyPlaceholderPage title="Calendar" /> },
+      { path: 'calendar', element: <AgencyCalendarPage /> },
       { path: 'messages', element: <AgencyPlaceholderPage title="Messages" /> },
       { path: 'profile', element: <AgencyPlaceholderPage title="Profile" /> },
     ],
