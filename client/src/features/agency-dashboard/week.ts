@@ -1,14 +1,9 @@
-import { addDays, madridDay } from '../visit-booking'
+import { addDays, dayToDate, madridDay } from '../visit-booking'
 
 // Weeks start on Monday, as calendars do in Spain. Days are 'YYYY-MM-DD' keys in Madrid time,
 // the same format as the from and to of GET /api/agency/visits
 
 const DAYS_IN_WEEK = 7
-
-// A day key read at noon UTC stays on the same calendar day in every time zone
-function dayToDate(day: string): Date {
-  return new Date(`${day}T12:00:00Z`)
-}
 
 /** The Monday of the week of a day, such as '2026-11-23' for '2026-11-25'. */
 export function weekStart(day: string): string {
