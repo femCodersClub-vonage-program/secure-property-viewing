@@ -11,9 +11,10 @@ export { default as SignInRedirect } from './components/SignInRedirect'
 export { default as SignInScreen } from './components/SignInScreen'
 export { default as StatCard } from './components/StatCard'
 export { default as Tabs, type TabItem } from './components/Tabs'
+export { default as VisitsCalendar } from './components/VisitsCalendar'
 export { isSignedOut } from './api'
 
-export { SAMPLE_LISTING_REQUESTS, SAMPLE_VISITS } from './sampleData'
+export { SAMPLE_LISTING_REQUESTS } from './sampleData'
 export type {
   AgencySummary,
   AgencyVisit,

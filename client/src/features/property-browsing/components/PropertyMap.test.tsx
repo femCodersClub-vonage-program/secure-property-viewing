@@ -49,11 +49,11 @@ const properties: PropertySummary[] = [
   },
 ]
 
-function renderMap() {
+function renderMap(shown: PropertySummary[] = properties) {
   render(
     <StrictMode>
       <MemoryRouter>
-        <PropertyMap properties={properties} />
+        <PropertyMap properties={shown} />
       </MemoryRouter>
     </StrictMode>,
   )
@@ -74,6 +74,15 @@ describe('PropertyMap', () => {
     expect(
       within(map).getByRole('button', { name: 'Apartment near Arc de Triomf, 395.000 €' }),
     ).toBeInTheDocument()
+    expect(within(map).queryByRole('button', { name: /New owner listing/ })).not.toBeInTheDocument()
+  })
+
+  it('leaves out a property whose coordinates are missing from the response', () => {
+    const { latitude: _latitude, longitude: _longitude, ...withoutCoordinates } = properties[2]
+
+    const map = renderMap([properties[0], withoutCoordinates])
+
+    expect(within(map).getAllByRole('button', { name: /€/ })).toHaveLength(1)
     expect(within(map).queryByRole('button', { name: /New owner listing/ })).not.toBeInTheDocument()
   })
 

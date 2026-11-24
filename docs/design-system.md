@@ -214,8 +214,16 @@ A badge always shows the status as text, with a `lucide-react` icon when it carr
 | Message `SCHEDULED`, `SUBMITTED` | `--color-text-muted` | None |
 | Message `DELIVERED` | `--color-success` | Check |
 | Message `FAILED` | `--color-error` | Alert |
+| Post-visit call alert, "Asked for money before signing" | `--color-warning` | TriangleAlert |
 
 A rejected request is a decision, not an error, so it is neutral. A failed message is the only status that uses `--color-error`, so it stands out in D5, and its row also shows the text "Failed".
+
+### Visits to review card
+
+D1 shows the visits where the [post-visit call](../specs/post-visit-call.md) recorded that someone asked the visitor for money, in a "Visits to review" card (`VisitsToReviewCard`) at the top, above the next visit card. It is not shown when `alerts` is empty.
+
+- A `Card` with an `h2` styled like "Next visits", and a `DataTable` with the visitor, the property, the visit time and when it was reported, both in Madrid time
+- Each row ends with a warning badge, "Asked for money before signing" with a TriangleAlert icon, so the alert never relies on color. The rows have no tint
 
 ### Next visit card
 
@@ -257,6 +265,18 @@ Pairs that must never be used:
 | :---- | :---- | :---- |
 | `#FFC93C` text on `#FFFFFF` | 1.54:1 | Far below 3:1. Mango is never text on white |
 | `#FFFFFF` text on `#FF0090` | 3.71:1 | Below 4.5:1. The pink glow is decorative only |
+
+### Calendar
+
+D4 shows the visits of one week, from Monday to Sunday in `Europe/Madrid`, and opens on the current week.
+
+- Under the page heading, the week is an `h2` in `--font-dashboard-display`, such as "23 November – 29 November 2026", next to "Previous week" and "Next week" `secondary` buttons. Each button has a text label, and its chevron icon is decorative. The buttons stay on screen while the week loads or fails, so the agent can always change week
+- The whole week is one default `Card`. Visits are split by `--color-border` lines, as table rows are, with no card or shadow per visit
+- Each day starts with a header band: an `h3` on `--color-dashboard-page` with a `--color-border` line under it, with the weekday in `text-sm` and `--color-text-muted` (5.45:1) and the day number in `text-2xl`, bold, in `--font-dashboard-display` and `--color-brand-dark`. Its accessible name is always the full date, such as "Tuesday 24 November"
+- Below `xl`, the days are stacked, and each band shows the date first ("1 December") with the weekday on the right, so the dates line up from day to day. Each visit has its details on the left and "Join visit" always on the right, so long details wrap instead of moving the button. The reason for a disabled button goes on its own line under the visit. From `xl` up, the days are seven columns split by vertical lines, so the bands make one header row with the weekday above the number, and the month is visually hidden because the week heading already says it. The columns start at `xl` because below it, with the side navigation, a column is too narrow for a visit
+- Every day is shown, and a day with no visits says "No visits"
+- Each visit (`CalendarEvent`) shows the start and end times in `tabular-nums`, the visitor in semibold, the property in `--color-text-muted`, and "Join visit" as described in [States](#states). Its accessible name says which visit and on which day, as in D1
+- While loading, the sentence names the week, such as "Loading the visits of 23 November – 29 November 2026…". An empty week says "No visits this week"
 
 ### States
 

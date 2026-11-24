@@ -83,6 +83,7 @@ Public:
 
 | Method and path | Purpose | Spec |
 | :---- | :---- | :---- |
+| `GET /api/health` | Whether the server can reach its database. It also sets the `XSRF-TOKEN` cookie the client sends back on every write | [ADR 0004](../docs/adr/0004-agency-sign-in.md) |
 | `GET /api/properties?operation=` | Catalog, with an optional filter | [Property browsing](property-browsing.md) |
 | `GET /api/properties/{id}` | Property details | [Property browsing](property-browsing.md) |
 | `GET /api/properties/{id}/slots?from=&to=` | Available visit slots | [Visit booking](visit-booking.md) |

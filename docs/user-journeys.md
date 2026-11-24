@@ -42,3 +42,13 @@ Every agency screen needs a signed-in agent; a signed-out agent goes to the sign
 3. Request details  
 4. Visits calendar  
 5. Messages and notifications
+
+## Build status
+
+What works in `dev` on November 23, 2026. Each spec in `specs/` describes the full feature; this table says how much of it is built.
+
+| Journey | Built | Not built yet |
+| :---- | :---- | :---- |
+| A · Visitor | Screens 1 to 7: catalog with map, details, calendar, phone verification by SMS code, confirmation and video visit | Silent Authentication: the client is built, the server side is not (#106). The post-visit call: the notice on screen 6 and the alerts card on the dashboard are built, the call itself is in a draft pull request (#115). The confirmation SMS (#87) |
+| B · Property owner | The server receives listing requests (`POST /api/listing-requests`) | Screens 1 to 5 (#29). Step 6, the video call with the agency, has no spec yet |
+| Agency dashboard | Screen 1, the dashboard, and the server for the calendar (`GET /api/agency/visits`) and the session | The sign-in page (#114) and the calendar page (#111), both in review. Screens 2, 3 and 5 |
