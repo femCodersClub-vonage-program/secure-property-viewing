@@ -173,6 +173,21 @@ class VonageConfigTest {
                 .hasMessageStartingWith("VONAGE_MESSAGES_PRIVATE_KEY is not set");
     }
 
+    @Test
+    void requiresTheMessagesSignatureSecretWhenSendingIsOn() {
+        assertThatThrownBy(() -> config.messagesWebhookReader(true, " "))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageStartingWith("VONAGE_MESSAGES_SIGNATURE_SECRET is not set");
+    }
+
+    @Test
+    void rejectsEveryMessagesWebhookWhileTheSecretIsMissing() {
+        MessagesWebhookReader reader = config.messagesWebhookReader(false, "");
+
+        assertThat(reader.isSignedByVonage(TestVoiceWebhookTokens.authorizationFor("any-secret", "{}"), "{}"))
+                .isFalse();
+    }
+
     private static String privateKey() throws Exception {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048);

@@ -8,12 +8,16 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 
 // The recipient and the text are read when the message is sent, never stored (specs/messages.md)
 @Entity
 @Table(name = "message")
 class Message {
+
+    // A message is tried again for up to 10 minutes after its scheduledAt
+    static final Duration RETRY_WINDOW = Duration.ofMinutes(10);
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -65,16 +69,49 @@ class Message {
     void submitted(String messageUuid, OffsetDateTime now) {
         vonageMessageId = messageUuid;
         if (status == MessageStatus.SCHEDULED) {
-            status = MessageStatus.SUBMITTED;
-            updatedAt = now;
+            moveTo(MessageStatus.SUBMITTED, now);
         }
     }
 
     void failed(OffsetDateTime now) {
         if (status == MessageStatus.SCHEDULED) {
-            status = MessageStatus.FAILED;
-            updatedAt = now;
+            moveTo(MessageStatus.FAILED, now);
         }
+    }
+
+    // Until Vonage's answer to the send is saved, any message_uuid matches
+    boolean belongsTo(String messageUuid) {
+        return vonageMessageId == null || vonageMessageId.equals(messageUuid);
+    }
+
+    // The table of statuses in specs/messages.md. DELIVERED and FAILED are final
+    void statusReported(String vonageStatus, String messageUuid, OffsetDateTime now) {
+        if (status == MessageStatus.DELIVERED || status == MessageStatus.FAILED) {
+            return;
+        }
+        switch (vonageStatus) {
+            case "submitted" -> submitted(messageUuid, now);
+            case "delivered" -> {
+                vonageMessageId = messageUuid;
+                moveTo(MessageStatus.DELIVERED, now);
+            }
+            case "rejected" -> moveTo(MessageStatus.FAILED, now);
+            // It never left Vonage, so it is sent again within its retry window, with a new message_uuid
+            case "undeliverable" -> {
+                if (now.isAfter(scheduledAt.plus(RETRY_WINDOW))) {
+                    moveTo(MessageStatus.FAILED, now);
+                } else {
+                    vonageMessageId = null;
+                    moveTo(MessageStatus.SCHEDULED, now);
+                }
+            }
+            default -> {}
+        }
+    }
+
+    private void moveTo(MessageStatus newStatus, OffsetDateTime now) {
+        status = newStatus;
+        updatedAt = now;
     }
 
     Long getId() {

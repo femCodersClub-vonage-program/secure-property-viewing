@@ -4,7 +4,6 @@ import com.peephole.server.visit.VisitForMessage;
 import com.peephole.server.visit.VisitService;
 import com.peephole.server.vonage.MessageSendException;
 import com.peephole.server.vonage.MessageSender;
-import java.time.Duration;
 import java.time.OffsetDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Component;
 class MessageDispatcher {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageDispatcher.class);
-    private static final Duration RETRY_WINDOW = Duration.ofMinutes(10);
 
     private final MessageService service;
     private final VisitService visitService;
@@ -30,7 +28,7 @@ class MessageDispatcher {
 
     void sendDueMessages(OffsetDateTime now) {
         for (DueMessage message : service.dueVisitConfirmations(now)) {
-            if (now.isAfter(message.scheduledAt().plus(RETRY_WINDOW))) {
+            if (now.isAfter(message.scheduledAt().plus(Message.RETRY_WINDOW))) {
                 service.recordFailed(message.id(), now);
                 LOGGER.warn("Message {} failed: its retry window has passed", message.id());
             } else {

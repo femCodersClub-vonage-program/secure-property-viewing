@@ -104,6 +104,18 @@ class VonageConfig {
         return new VonageMessageSender(client.getMessagesClient(), from.strip());
     }
 
+    // With sending off, an empty secret still rejects every Messages webhook
+    @Bean
+    MessagesWebhookReader messagesWebhookReader(
+            @Value("${app.messages.sending-enabled}") boolean sendingEnabled,
+            @Value("${app.vonage.messages.signature-secret}") String signatureSecret) {
+        if (sendingEnabled && signatureSecret.isBlank()) {
+            throw new IllegalStateException("VONAGE_MESSAGES_SIGNATURE_SECRET is not set. Add it to server/.env"
+                    + " as explained in docs/setup.md");
+        }
+        return new MessagesWebhookReader(new WebhookSignatureVerifier(signatureSecret));
+    }
+
     private static VonageClient buildClient(String variablePrefix, String applicationId, String privateKey) {
         UUID id = parseApplicationId(variablePrefix + "_APPLICATION_ID", applicationId);
         byte[] key = decodePrivateKey(variablePrefix + "_PRIVATE_KEY", privateKey);
