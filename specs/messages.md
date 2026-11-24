@@ -46,7 +46,7 @@ Visitors and owners need to hear from Peephole after they leave the page: the co
 The open questions were approved as proposed by the tech lead on 2026-11-15. The build priority comes from the tech lead's comment in [#62](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/62).
 
 - **The texts.** In English like the interface, short enough for one SMS segment with a usual title, and without links:
-  - Visit confirmation: "Peephole: your video visit for {title} is confirmed for {day} at {time}. We will text you 1 hour before."
+  - Visit confirmation: "Peephole: your video visit for {title} is confirmed for {day} at {time}." It doesn't mention the reminder, because the reminder isn't built for the demo
   - Reminder: "Peephole: your video visit for {title} starts in 1 hour, at {time}."
   - Request received: "Peephole: we have received your request for {title}. The agency will review it and text you with its decision."
   - Request approved: "Peephole: your property {title} has been approved and is now published."
