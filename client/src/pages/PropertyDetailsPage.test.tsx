@@ -138,6 +138,17 @@ describe('PropertyDetailsPage', () => {
       expect(screen.getByRole('heading', { name: 'Apartment in Gràcia' })).toBeInTheDocument(),
     )
     expect(screen.queryByRole('link', { name: /request a video visit/i })).not.toBeInTheDocument()
+    expect(screen.getByText('This property has no video visits for now.')).toBeInTheDocument()
+  })
+
+  it('warns never to pay before signing, with or without video visits', async () => {
+    fetchMock.mockReturnValue(
+      Promise.resolve(json({ ...propertyFromSpec, videoVisitAvailable: false })),
+    )
+    renderDetails()
+    expect(
+      await screen.findByText('Never pay anything before you sign a contract.'),
+    ).toBeInTheDocument()
   })
 
   it('shows a back to catalog link', async () => {

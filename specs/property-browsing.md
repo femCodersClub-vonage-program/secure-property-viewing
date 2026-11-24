@@ -36,7 +36,8 @@ Catalog (A2):
 Property details (A3):
 
 - [ ] It shows the photo gallery, title, price, neighborhood, bedrooms, size, floor, description, the verified agency badge and whether video visits are available
-- [ ] "Request a video visit" leads to journey A step 4
+- [ ] "Request a video visit" leads to journey A step 4. A property without video visits says so instead
+- [ ] It reminds the visitor never to pay anything before signing a contract
 - [ ] A property that does not exist shows a not found page with a way back to the catalog
 
 All three screens:

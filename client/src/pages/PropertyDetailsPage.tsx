@@ -1,7 +1,7 @@
-import { Bed, MapPin, Maximize2, ShieldCheck } from 'lucide-react'
+import { Bed, Building2, MapPin, Maximize2, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
-import { Alert, Badge, Link } from '../components/ui'
+import { Alert, Badge, Card, Link } from '../components/ui'
 import {
   formatBedrooms,
   PhotoGallery,
@@ -41,71 +41,88 @@ function PropertyDetailsContent({ property }: { property: PropertyDetail }) {
     images,
   } = property
 
+  const details = [
+    { icon: MapPin, label: area },
+    { icon: Bed, label: formatBedrooms(bedrooms, 'bedroom') },
+    { icon: Maximize2, label: `${sizeM2} m²` },
+    ...(floor === null ? [] : [{ icon: Building2, label: `Floor ${floor}` }]),
+  ]
+
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8 flex flex-col gap-section">
+    <main className="mx-auto w-full max-w-7xl px-4 py-8 flex flex-col gap-4 sm:px-10">
       <nav aria-label="Breadcrumb">
         <ol>
           <li>
-            <Link to="/properties">
+            <Link to="/properties" className="inline-block py-2.5">
               <span aria-hidden="true">← </span>Back to catalog
             </Link>
           </li>
         </ol>
       </nav>
 
-      {images.length > 0 ? (
-        <PhotoGallery images={images} />
-      ) : (
-        <img
-          src={GENERIC_IMAGE_SRC}
-          alt={GENERIC_IMAGE_ALT}
-          className="w-full h-72 object-cover rounded-md sm:h-96"
-        />
-      )}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
+        {images.length > 0 ? (
+          <PhotoGallery images={images} className="lg:col-span-3 lg:min-h-120" />
+        ) : (
+          <img
+            src={GENERIC_IMAGE_SRC}
+            alt={GENERIC_IMAGE_ALT}
+            className="w-full h-72 object-cover rounded-md sm:h-96 lg:col-span-3 lg:h-full lg:min-h-120"
+          />
+        )}
 
-      <div className="flex flex-col gap-4">
-        <div>
-          <h1 className="font-display text-3xl font-bold text-brand-dark text-balance">{title}</h1>
-          <p className="font-body font-semibold text-brand-primary text-2xl mt-1">
-            {formatPrice(priceEuros, operation)}
-          </p>
-        </div>
+        <Card flush className="flex flex-col gap-5 p-4 sm:p-6 lg:col-span-2">
+          <div className="flex flex-col gap-1">
+            <h1 className="font-display text-3xl font-bold text-brand-dark text-balance">
+              {title}
+            </h1>
+            <p className="font-body font-semibold text-brand-primary text-2xl">
+              {formatPrice(priceEuros, operation)}
+            </p>
+          </div>
 
-        <ul className="flex flex-wrap gap-x-6 gap-y-2" aria-label="Property details">
-          <li className="flex items-center gap-1.5 font-body text-text-muted">
-            <MapPin className="size-4 shrink-0" aria-hidden="true" />
-            {area}
-          </li>
-          <li className="flex items-center gap-1.5 font-body text-text-muted">
-            <Bed className="size-4 shrink-0" aria-hidden="true" />
-            {formatBedrooms(bedrooms, 'bedroom')}
-          </li>
-          <li className="flex items-center gap-1.5 font-body text-text-muted">
-            <Maximize2 className="size-4 shrink-0" aria-hidden="true" />
-            {sizeM2} m²
-          </li>
-          {floor !== null && <li className="font-body text-text-muted">Floor {floor}</li>}
-        </ul>
+          <div className="flex flex-wrap gap-2 items-center">
+            {agency.verified && (
+              <Badge variant="approved">
+                <ShieldCheck className="size-3 mr-1 inline" aria-hidden="true" />
+                Verified agency
+              </Badge>
+            )}
+            {videoVisitAvailable && <Badge variant="approved">Video visit available</Badge>}
+          </div>
 
-        <div className="flex flex-wrap gap-2 items-center">
-          {agency.verified && (
-            <Badge variant="approved">
-              <ShieldCheck className="size-3 mr-1 inline" aria-hidden="true" />
-              Verified agency
-            </Badge>
+          <ul className="grid grid-cols-2 gap-3" aria-label="Property details">
+            {details.map(({ icon: Icon, label }) => (
+              <li
+                key={label}
+                className="flex items-center gap-2 rounded-sm bg-surface-input p-2 font-body text-sm text-text-default last:odd:col-span-2 sm:p-3 sm:text-base"
+              >
+                <Icon className="size-5 shrink-0 text-brand-primary" aria-hidden="true" />
+                {label}
+              </li>
+            ))}
+          </ul>
+
+          {description && (
+            <p className="font-body text-text-default leading-relaxed">{description}</p>
           )}
-          {videoVisitAvailable && <Badge variant="approved">Video visit available</Badge>}
-        </div>
 
-        {description && (
-          <p className="font-body text-text-default leading-relaxed">{description}</p>
-        )}
-
-        {videoVisitAvailable && (
-          <Link to={`/properties/${id}/visit`} variant="button" className="self-start">
-            Request a video visit
-          </Link>
-        )}
+          <div className="mt-auto flex flex-col gap-4 border-t border-border pt-5">
+            {videoVisitAvailable ? (
+              <Link to={`/properties/${id}/visit`} variant="button">
+                Request a video visit
+              </Link>
+            ) : (
+              <p className="font-body text-text-default">
+                This property has no video visits for now.
+              </p>
+            )}
+            <p className="flex items-start gap-2 font-body text-sm text-text-muted">
+              <ShieldCheck className="size-5 shrink-0 text-brand-primary" aria-hidden="true" />
+              Never pay anything before you sign a contract.
+            </p>
+          </div>
+        </Card>
       </div>
     </main>
   )
@@ -142,7 +159,7 @@ function PropertyDetailsPage() {
 
   if (state.status === 'loading') {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-8">
+      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-10">
         <p className="font-body text-text-muted" aria-live="polite">
           Loading property…
         </p>
@@ -152,7 +169,7 @@ function PropertyDetailsPage() {
 
   if (state.status === 'error') {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-8 flex flex-col gap-4 items-start">
+      <main className="mx-auto w-full max-w-7xl px-4 py-8 flex flex-col gap-4 items-start sm:px-10">
         <Link to="/properties">
           <span aria-hidden="true">← </span>Back to catalog
         </Link>

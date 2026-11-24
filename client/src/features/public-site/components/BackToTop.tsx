@@ -38,7 +38,7 @@ function BackToTop({ topRef }: { topRef: RefObject<HTMLElement | null> }) {
       type="button"
       aria-label="Back to top"
       onClick={goToTop}
-      className="fixed right-4 bottom-12 z-20 flex size-12 items-center justify-center rounded-pill border-2 border-surface-page bg-brand-primary text-text-light shadow-button focus-visible:ring-6 focus-visible:ring-brand-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-text-light"
+      className="fixed right-4 bottom-12 xl:bottom-32 z-20 flex size-12 items-center justify-center rounded-pill border-2 border-surface-page bg-brand-primary text-text-light shadow-button focus-visible:ring-6 focus-visible:ring-brand-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-text-light"
     >
       <ArrowUp className="size-6" aria-hidden="true" />
     </button>

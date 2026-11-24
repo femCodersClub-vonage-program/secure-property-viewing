@@ -39,7 +39,7 @@ const TEAM = [
 function SiteFooter() {
   return (
     <footer className="bg-brand-dark font-body text-text-light">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-10 sm:px-10">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 pt-10 pb-28 sm:px-10 xl:pb-10">
         <div className="flex flex-wrap items-center justify-between gap-x-12 gap-y-4">
           <div className="flex max-w-2xl flex-col gap-2">
             <p className="flex items-center gap-3">
@@ -51,8 +51,8 @@ function SiteFooter() {
               fictional.
             </p>
           </div>
-          <nav aria-label="Footer">
-            <ul className="flex flex-wrap gap-x-6">
+          <nav aria-label="Footer" className="w-full sm:w-auto">
+            <ul className="grid grid-cols-2 gap-x-4 sm:flex sm:flex-wrap sm:gap-x-6">
               <li>
                 <SiteNavLink to="/properties">Properties</SiteNavLink>
               </li>
@@ -76,7 +76,7 @@ function SiteFooter() {
           <h2 id="team-heading" className="font-display text-lg font-semibold">
             Meet the team on LinkedIn
           </h2>
-          <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:auto-cols-max md:grid-flow-col md:grid-cols-none md:grid-rows-2 md:justify-between xl:grid-rows-1">
+          <ul className="grid grid-cols-2 gap-x-4 gap-y-6 md:auto-cols-max md:grid-flow-col md:grid-cols-none md:grid-rows-2 md:justify-between xl:grid-rows-1">
             {TEAM.map((person) => (
               <li key={person.href}>
                 <TeamLink {...person} />

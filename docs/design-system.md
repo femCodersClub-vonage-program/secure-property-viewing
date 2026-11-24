@@ -150,6 +150,13 @@ The header and the footer of the public site, and the four steps of the home pag
 - Each of the four steps is a card with a `--color-text-light` border at 20% on `--color-brand-dark` at 70%, with white text. Its number is white, bold and `text-2xl`, on a circle with a gradient from `--color-brand-primary` (7.38:1) to `--color-brand-accent` (3.71:1, enough for large text). The shield icon next to the scam it stops is decorative, in `--color-brand-accent`
 - Behind the steps there is a photo under `--color-brand-dark` at 85%. Over pure white, the worst case, the text has at least 9.4:1 without counting the card's own background
 
+## Property details
+
+From `lg` up, the photo and the panel with the title, the price and "Request a video visit" are side by side and have the same height. Below it, the panel goes under the photo.
+
+- `PhotoGallery` has its buttons and the photo number over the photo, on a `--color-surface-page` pill, so they and their focus ring show over any photo
+- Each fact, such as the size, is an icon in `--color-brand-primary` and its text on `--color-surface-input`
+
 ## Back to top
 
 `PublicLayout` has a round "Back to top" button (`BackToTop`) on every public page, in the bottom right corner, once the visitor has scrolled a whole screen.
