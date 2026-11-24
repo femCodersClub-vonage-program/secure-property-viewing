@@ -211,21 +211,21 @@ describe('getAgencyVisits', () => {
     expect(error).toBeInstanceOf(ApiError)
     expect(error).toMatchObject({ kind: 'system', message: SYSTEM_ERROR_MESSAGE })
   })
+})
 
-  describe('errorMessage', () => {
-    it('shows the message of a business error', () => {
-      const error = new ApiError({
-        kind: 'business',
-        message: 'Sign in to continue.',
-        status: 401,
-        code: 'AUTHENTICATION_REQUIRED',
-      })
-
-      expect(errorMessage(error)).toBe('Sign in to continue.')
+describe('errorMessage', () => {
+  it('shows the message of a business error', () => {
+    const error = new ApiError({
+      kind: 'business',
+      message: 'Sign in to continue.',
+      status: 401,
+      code: 'AUTHENTICATION_REQUIRED',
     })
 
-    it('shows the general message for anything else', () => {
-      expect(errorMessage(new TypeError('Failed to fetch'))).toBe(SYSTEM_ERROR_MESSAGE)
-    })
+    expect(errorMessage(error)).toBe('Sign in to continue.')
+  })
+
+  it('shows the general message for anything else', () => {
+    expect(errorMessage(new TypeError('Failed to fetch'))).toBe(SYSTEM_ERROR_MESSAGE)
   })
 })
