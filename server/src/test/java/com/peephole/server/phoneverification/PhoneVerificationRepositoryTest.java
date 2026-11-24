@@ -25,6 +25,8 @@ class PhoneVerificationRepositoryTest {
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getStatus()).isEqualTo(PhoneVerificationStatus.PENDING);
         assertThat(saved.getCheckAttempts()).isZero();
+        assertThat(saved.getChannel()).isEqualTo(PhoneVerificationChannel.SMS);
+        assertThat(saved.hasSmsFallback()).isTrue();
     }
 
     @Test

@@ -23,12 +23,45 @@ class VonageConfigTest {
 
     @Test
     void namesTheVerifyVariablesForTheVerifyGroup() throws Exception {
-        assertThatThrownBy(() -> config.phoneVerifier("", privateKey()))
+        String key = privateKey();
+        assertThatThrownBy(() -> config.phoneVerifier(false, "", key, "", ""))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageStartingWith("VONAGE_VERIFY_APPLICATION_ID is not set");
-        assertThatThrownBy(() -> config.phoneVerifier(APPLICATION_ID, ""))
+        assertThatThrownBy(() -> config.phoneVerifier(false, APPLICATION_ID, "", "", ""))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageStartingWith("VONAGE_VERIFY_PRIVATE_KEY is not set");
+    }
+
+    @Test
+    void usesTheSilentAuthenticationApplicationWhenItIsOn() throws Exception {
+        String key = privateKey();
+        assertThatThrownBy(() -> config.phoneVerifier(true, APPLICATION_ID, key, "", key))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageStartingWith("VONAGE_SILENT_AUTH_APPLICATION_ID is not set");
+        assertThatThrownBy(() -> config.phoneVerifier(true, APPLICATION_ID, key, APPLICATION_ID, ""))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageStartingWith("VONAGE_SILENT_AUTH_PRIVATE_KEY is not set");
+    }
+
+    @Test
+    void needsNoSilentAuthenticationVariablesWhenItIsOff() throws Exception {
+        assertThat(config.phoneVerifier(false, APPLICATION_ID, privateKey(), "", ""))
+                .isNotNull();
+    }
+
+    @Test
+    void requiresTheSignatureSecretWhenSilentAuthenticationIsOn() {
+        assertThatThrownBy(() -> config.verifyWebhookReader(true, " "))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageStartingWith("VONAGE_SILENT_AUTH_SIGNATURE_SECRET is not set");
+    }
+
+    @Test
+    void rejectsEveryWebhookWithoutASecretWhenSilentAuthenticationIsOff() {
+        VerifyWebhookReader reader = config.verifyWebhookReader(false, "");
+
+        assertThat(reader.isSignedByVonage("Bearer " + TestWebhookTokens.signedWith("any-secret"), "{}"))
+                .isFalse();
     }
 
     @Test

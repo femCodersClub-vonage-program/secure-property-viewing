@@ -12,10 +12,15 @@ public record StartPhoneVerificationRequest(
         String phone,
 
         @NotBlank @Pattern(regexp = "VISIT|LISTING_REQUEST") @Schema(allowableValues = {"VISIT", "LISTING_REQUEST"})
-        String purpose) {
+        String purpose,
+
+        @Schema(
+                description = "Optional. Tries the silent check with the mobile operator first, when the server has"
+                        + " Silent Authentication on. Ignored otherwise")
+        Boolean silentAuth) {
 
     @Override
     public String toString() {
-        return "StartPhoneVerificationRequest[phone=<hidden>, purpose=" + purpose + "]";
+        return "StartPhoneVerificationRequest[phone=<hidden>, purpose=" + purpose + ", silentAuth=" + silentAuth + "]";
     }
 }

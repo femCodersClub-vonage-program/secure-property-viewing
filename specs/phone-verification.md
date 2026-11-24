@@ -90,7 +90,7 @@ Errors, following the [error format](data-model-and-api-contract.md#errors):
 | 422 | `VERIFICATION_CODE_INVALID` | The code does not match |
 | 422 | `VERIFICATION_EXPIRED` | The verification has expired |
 | 429 | `VERIFICATION_TOO_MANY_ATTEMPTS` | 3 wrong codes have been entered |
-| 429 | `VERIFICATION_RESEND_TOO_SOON` | A new code is requested before `resendAvailableAt` |
+| 429 | `VERIFICATION_RESEND_TOO_SOON` | A new code is requested before `resendAvailableAt`, or while the silent check of [Silent Authentication](silent-authentication.md) is still pending |
 | 429 | `VERIFICATION_LIMIT_REACHED` | The phone number has started 5 verifications in the last hour, or the server has started 30 |
 
 If Vonage's own rate limit is reached, the server answers `500 INTERNAL_ERROR` and logs that it came from that limit. With our limit of 30 per hour this is not expected.
