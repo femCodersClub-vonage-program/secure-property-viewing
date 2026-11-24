@@ -11,7 +11,7 @@ const TRUST_POINTS = [
   {
     icon: Video,
     title: 'Video visits',
-    description: 'Tour a property from wherever you are, with a live agent on screen.',
+    description: 'Visit a property from wherever you are, with a live agent on screen.',
   },
   {
     icon: MessageCircle,
