@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Alert, Button } from '../../../components/ui'
-import { errorMessage, getAgencySummary } from '../api'
-import { ApiError, SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
-import { getAgencySummary, isSignedOut } from '../api'
+import { errorMessage, getAgencySummary, isSignedOut } from '../api'
 import type { AgencySummary } from '../types'
 import DashboardHeading from './DashboardHeading'
 import DashboardOverview from './DashboardOverview'
@@ -13,11 +11,6 @@ type Load =
   | { status: 'error'; message: string }
   | { status: 'ready'; summary: AgencySummary }
   | { status: 'signed-out' }
-
-// A business error shows the server's message (docs/design-system.md → States)
-function errorMessage(error: unknown): string {
-  return error instanceof ApiError ? error.message : SYSTEM_ERROR_MESSAGE
-}
 
 /** D1: loads the summary and shows it, or says it is loading or could not load. */
 function DashboardHome() {

@@ -4,12 +4,6 @@ import {
   errorMessage,
   getAgencySummary,
   getAgencyVisits,
-  parseAgencySummary,
-  parseAgencyVisits,
-} from './api'
-import {
-  getAgencySummary,
-  getAgencyVisits,
   getSession,
   parseAgencySummary,
   parseAgencyUser,

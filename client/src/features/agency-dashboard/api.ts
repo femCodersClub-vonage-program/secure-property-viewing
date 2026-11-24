@@ -1,6 +1,4 @@
 import { ApiError, request, SYSTEM_ERROR_MESSAGE } from '../../lib/http'
-import type { AgencySummary, AgencyVisit, UpcomingVisit, VisitAlert, VisitStatus } from './types'
-import { ApiError, request } from '../../lib/http'
 import type {
   AgencyRole,
   AgencySummary,
@@ -33,14 +31,6 @@ const VISIT_STATUSES: readonly VisitStatus[] = ['CONFIRMED', 'CANCELED', 'COMPLE
 // some() compares the unknown value with each status, so the type is narrowed without `as`
 function isVisitStatus(value: unknown): value is VisitStatus {
   return VISIT_STATUSES.some((status) => status === value)
-}
-
-/**
- * The message a dashboard screen shows when a call fails: the server's message for a business error,
- * such as 401 AUTHENTICATION_REQUIRED, and the general one for anything else (docs/design-system.md → States).
- */
-export function errorMessage(error: unknown): string {
-  return error instanceof ApiError ? error.message : SYSTEM_ERROR_MESSAGE
 }
 
 export function parseUpcomingVisit(value: unknown): UpcomingVisit {
@@ -145,6 +135,14 @@ export function signIn(email: string, password: string): Promise<AgencyUser> {
 /** The signed-in agent. Without a session the server answers 401 AUTHENTICATION_REQUIRED. */
 export function getSession(signal?: AbortSignal): Promise<AgencyUser> {
   return request('/api/agency/session', parseAgencyUser, { signal })
+}
+
+/**
+ * The message a dashboard screen shows when a call fails: the server's message for a business error,
+ * such as 401 AUTHENTICATION_REQUIRED, and the general one for anything else (docs/design-system.md → States).
+ */
+export function errorMessage(error: unknown): string {
+  return error instanceof ApiError ? error.message : SYSTEM_ERROR_MESSAGE
 }
 
 /** True when the server says there is no signed-in agent, from any agency call. */
