@@ -133,7 +133,7 @@ Locally, everyone fills in the Video group, and the Verify group while Silent Au
 
 No code reads the Messages group yet: it is kept for the messages feature (#87), so leave it with its placeholders.
 
-**Silent Authentication.** Set `SILENT_AUTH_ENABLED` and `SILENT_AUTH_VIRTUAL_OPERATOR` to `false` to keep it off. Phone verification then sends an SMS code, as before, and the rest of its variables can keep their placeholders. To try it, as the [Silent Authentication spec](../specs/silent-authentication.md) describes, fill in its group with Mayleth's application from the Drive folder, which has Network Registry in Test access, and set:
+**Silent Authentication.** It is off while its lines stay commented out, as they come in `.env.example`. Phone verification then sends an SMS code, as before, and the Verify status webhook rejects every call. To try it, as the [Silent Authentication spec](../specs/silent-authentication.md) describes, uncomment its lines, fill in its group with Mayleth's application from the Drive folder, which has Network Registry in Test access, and set:
 
 | Variable | Value |
 | :---- | :---- |
@@ -202,7 +202,7 @@ Open `http://localhost:5173`. Stop it with `Ctrl+C`.
 | `password authentication failed for user "peephole"` | `DB_PASSWORD` in `server/.env` does not match the password of the `peephole` user | Check that both are the shared password from the Drive folder |
 | `Could not resolve placeholder 'app.flyway.locations.…'` | `LOAD_DEMO_DATA` in `server/.env` still has the placeholder from `.env.example` | Set it to `true` or `false` |
 | `Failed to bind properties under 'server.servlet.session.cookie.secure'` | `SESSION_COOKIE_SECURE` in `server/.env` still has the placeholder from `.env.example` | Set it to `false` |
-| `Invalid boolean value [true_or_false]` | `SILENT_AUTH_ENABLED` or `SILENT_AUTH_VIRTUAL_OPERATOR` in `server/.env` still has the placeholder from `.env.example` | Set it to `false`, or to `true` to try Silent Authentication as in [Vonage variables](#vonage-variables) |
+| `Invalid boolean value [true_or_false]` | `SILENT_AUTH_ENABLED` or `SILENT_AUTH_VIRTUAL_OPERATOR` in `server/.env` still has the `true_or_false` placeholder, from an older copy of `.env.example` or after uncommenting its lines | Set it to `true` or `false` as in [Vonage variables](#vonage-variables), or comment out the Silent Authentication lines to keep it off |
 | `database "peephole" does not exist` | Step 3 was not completed | Run the `createdb` command from step 3 |
 | `npm error code EBADENGINE` in `client/` | Your Node.js version is older than the one the project needs | Install a newer version (step 2) and run `npm ci` again |
 | `Connection refused` on port `5432` | PostgreSQL is not running | Windows: start the `postgresql-x64-17` service. macOS: `brew services start postgresql@17` |
