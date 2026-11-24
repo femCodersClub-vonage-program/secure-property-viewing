@@ -1,3 +1,4 @@
+export { default as FeaturedProperties } from './components/FeaturedProperties'
 export { default as PhotoGallery } from './components/PhotoGallery'
 export { default as PropertyCard } from './components/PropertyCard'
 export { default as PropertyMap } from './components/PropertyMap'

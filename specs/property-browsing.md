@@ -20,6 +20,12 @@ People looking for an apartment arrive at Peephole wary of scams. The home page,
 Home page (A1):
 
 - [ ] It shows the headline, a link to the catalog, an entry point to "List my property" and the three trust points: verified agencies, video visits and secure communication
+- [ ] A header links to the catalog, to the "How it works" section and to the agency sign-in
+- [ ] It shows up to four properties from `GET /api/properties`, the first two rentals and the first two sales with a photo, with links to the catalog for rent, for sale and complete. Its loading, empty and error states never hide the rest of the page
+- [ ] It explains the visit in four steps, each with the scam it stops: choosing a property, verifying the phone, the video visit and the [post-visit call](post-visit-call.md)
+- [ ] Motion on scroll is decorative, stops with `prefers-reduced-motion` and never hides content in a browser without it
+- [ ] A section for owners repeats the entry point to "List my property"
+- [ ] A footer says that the properties and the agency are fictional, repeats the main links and links the team to LinkedIn
 
 Catalog (A2):
 
@@ -106,6 +112,7 @@ None.
 
 ### Client
 
+- A `public-site` feature with the header, the footer and the sections of the home page that have no data
 - Pages in `src/pages/` for the home page, the catalog and the details, registered in `routes.tsx`
 - A `property-browsing` feature with its `api.ts`, types and components, following the folder rules in `client/AGENTS.md`
 - The map uses `leaflet` with OpenStreetMap tiles, in issue #30. Coordinates are approximate, at neighborhood level, because the full address is only shown after booking a visit

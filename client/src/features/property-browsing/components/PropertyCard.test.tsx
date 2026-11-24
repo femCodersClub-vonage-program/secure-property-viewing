@@ -35,6 +35,19 @@ describe('PropertyCard', () => {
     expect(screen.getByRole('heading', { name: 'Apartment in Gr\u00e0cia' })).toBeInTheDocument()
   })
 
+  it('titles the card with an h2 unless the page asks for an h3', () => {
+    const { unmount } = renderCard()
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(baseProperty.title)
+    unmount()
+
+    render(
+      <MemoryRouter>
+        <PropertyCard property={baseProperty} headingLevel="h3" />
+      </MemoryRouter>,
+    )
+    expect(screen.getByRole('heading', { level: 3 })).toHaveTextContent(baseProperty.title)
+  })
+
   it('shows the neighborhood', () => {
     renderCard()
     expect(screen.getByText('Gr\u00e0cia')).toBeInTheDocument()

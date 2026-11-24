@@ -5,12 +5,13 @@ import type { PropertySummary } from '../types'
 
 interface PropertyCardProps {
   property: PropertySummary
+  headingLevel?: 'h2' | 'h3'
 }
 
 const GENERIC_IMAGE_SRC = '/images/property-placeholder.svg'
 const GENERIC_IMAGE_ALT = 'Property image not available'
 
-function PropertyCard({ property }: PropertyCardProps) {
+function PropertyCard({ property, headingLevel: Heading = 'h2' }: PropertyCardProps) {
   const { id, title, operation, priceEuros, area, bedrooms, sizeM2, coverImage, agency } = property
 
   return (
@@ -22,9 +23,9 @@ function PropertyCard({ property }: PropertyCardProps) {
       />
       <div className="p-card flex flex-col gap-3 flex-1">
         <div>
-          <h2 className="font-display text-text-default text-lg font-semibold line-clamp-2">
+          <Heading className="font-display text-text-default text-lg font-semibold line-clamp-2">
             {title}
-          </h2>
+          </Heading>
           <p className="font-body font-semibold text-brand-primary text-base mt-1">
             {formatPrice(priceEuros, operation)}
           </p>

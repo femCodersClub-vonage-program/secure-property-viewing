@@ -136,6 +136,25 @@ The catalog map (`PropertyMap` in the `property-browsing` feature) uses Leaflet 
 - **Popup:** the title in `font-display text-lg` and `--color-brand-dark`, the price in `--color-brand-primary`, and a `Link` to the details, whose accessible name includes the title
 - **Leaflet's stylesheet** is imported in `src/index.css` inside `layer(components)`, so the design system's utilities win over Leaflet's own colors and sizes. Leaflet's controls (zoom buttons, the popup's close button and the attribution) keep its own look, which is not made of our tokens: it is the one exception to the design system, because restyling them would mean overriding a third-party stylesheet
 
+## Public site on dark surfaces
+
+The header, the footer and the four steps of the home page (`SiteHeader`, `SiteFooter` and `HowItWorks` in the `public-site` feature) are on `--color-brand-dark`.
+
+- The navigation links of the header and the footer (`SiteNavLink`) are white, and `--color-brand-accent` and underlined on hover and on the current page, which also has `aria-current="page"`
+- Each person of the team is a `TeamLink` to LinkedIn: the initials in white, bold and `text-xl`, on the same gradient circle as the steps, the name in white and the role under it. The name turns `--color-brand-accent` and underlined on hover. No photo is loaded from another site, so no visitor's IP is sent there
+- `--color-brand-accent` has 4.74:1 on `--color-brand-dark`, so it passes AA for text there. These links are its only use as text. Both components have a white focus outline and are only for dark surfaces. Links on white keep `--color-brand-primary`
+- Each of the four steps is a card with a `--color-text-light` border at 20% on `--color-brand-dark` at 70%, with white text. Its number is white, bold and `text-2xl`, on a circle with a gradient from `--color-brand-primary` (7.38:1) to `--color-brand-accent` (3.71:1, enough for large text). The shield icon next to the scam it stops is decorative, in `--color-brand-accent`
+- Behind the steps there is a photo under `--color-brand-dark` at 85%. Over pure white, the worst case, the text has at least 9.4:1 without counting the card's own background
+
+## Motion
+
+Two CSS utilities in `src/index.css`, with no JavaScript and no dependency, for any page of the public site.
+
+- `parallax`: a decorative photo moves more slowly than the page. Use it through `ParallaxImage`, never on an image that carries information
+- `reveal`: a block fades in and moves up 2.5rem as it enters the screen. Never on the headline of a page, on forms or on messages
+- Both only run with `prefers-reduced-motion: no-preference` and where the browser supports scroll-driven animations. Otherwise the content is shown still and complete
+- A parent with `overflow-hidden` breaks them, because they would follow it instead of the page. Use `overflow-clip`
+
 ## Agency dashboard
 
 The agency dashboard (screens D1 to D5 in [`user-journeys.md`](user-journeys.md)) uses the same components as the rest of Peephole. On top of the common tokens it has its own colors, fonts and shadow, listed below and used only in `features/agency-dashboard`. This section only adds what the dashboard needs on top of the common rules.

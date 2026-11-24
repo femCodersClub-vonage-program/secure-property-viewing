@@ -29,12 +29,16 @@ const signedInFetch = () =>
 
 describe('routes', () => {
   it('shows the home page at the root path', () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(() => new Promise(() => {})),
+    )
     renderAt('/')
 
     expect(
       screen.getByRole('heading', {
         level: 1,
-        name: 'Find your next home in Catalonia, without scams.',
+        name: 'Find your next home in Barcelona, without scams.',
       }),
     ).toBeInTheDocument()
   })
