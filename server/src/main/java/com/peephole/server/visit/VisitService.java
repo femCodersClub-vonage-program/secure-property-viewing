@@ -200,6 +200,13 @@ public class VisitService {
         return queries.findJoinedEndedBetween(after, upTo);
     }
 
+    /** The visitor's phone, the property's title and the start of the visit, for its confirmation SMS. */
+    @Transactional(readOnly = true)
+    public VisitForMessage forMessage(long visitId) {
+        return queries.findForMessage(visitId)
+                .orElseThrow(() -> new IllegalStateException("Visit " + visitId + " was not found"));
+    }
+
     private BookedVisit toBookedVisit(Visit visit) {
         return new BookedVisit(
                 visit.getId(),

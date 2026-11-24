@@ -1,12 +1,20 @@
 package com.peephole.server.message;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 
-// The recipient and the text are read when message is sent, never stored (specs/messages.md)
+// The recipient and the text are read when the message is sent, never stored (specs/messages.md)
 @Entity
 @Table(name = "message")
 class Message {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -51,6 +59,22 @@ class Message {
 
     static Message visitConfirmation(long visitId, OffsetDateTime now) {
         return new Message(visitId, MessageType.CONFIRMATION, now, now);
+    }
+
+    // The status webhook may have arrived first, so a later status is kept
+    void submitted(String messageUuid, OffsetDateTime now) {
+        vonageMessageId = messageUuid;
+        if (status == MessageStatus.SCHEDULED) {
+            status = MessageStatus.SUBMITTED;
+            updatedAt = now;
+        }
+    }
+
+    void failed(OffsetDateTime now) {
+        if (status == MessageStatus.SCHEDULED) {
+            status = MessageStatus.FAILED;
+            updatedAt = now;
+        }
     }
 
     Long getId() {
