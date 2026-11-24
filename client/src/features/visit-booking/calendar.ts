@@ -43,7 +43,7 @@ export function isMorning(instant: string): boolean {
 }
 
 // A day key read at noon UTC stays on the same calendar day in every time zone
-function dayToDate(day: string): Date {
+export function dayToDate(day: string): Date {
   return new Date(`${day}T12:00:00Z`)
 }
 

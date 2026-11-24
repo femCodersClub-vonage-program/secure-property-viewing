@@ -1,8 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { Alert, Button } from '../../../components/ui'
-import { ApiError, SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
-import { getAgencyVisits } from '../api'
+import { errorMessage, getAgencyVisits } from '../api'
 import type { AgencyVisit } from '../types'
 import { addWeeks, currentWeekStart, weekDays, weekEnd, weekLabel } from '../week'
 import DashboardHeading from './DashboardHeading'
@@ -13,14 +12,10 @@ type Load =
   | { status: 'error'; message: string }
   | { status: 'ready'; visits: AgencyVisit[] }
 
-// A business error, such as 401 AUTHENTICATION_REQUIRED, shows the server's message (docs/design-system.md → States)
-function errorMessage(error: unknown): string {
-  return error instanceof ApiError ? error.message : SYSTEM_ERROR_MESSAGE
-}
-
 /** D4: the visits of one week in Madrid, starting on the current one, with buttons to change week. */
 function VisitsCalendar() {
-  // The Monday of the week on screen. The function only runs on the first render
+  // The Monday of the week on screen. The function only runs on the first render, so a page left open
+  // past Sunday keeps showing the week it opened on until the agent changes week or reloads
   const [monday, setMonday] = useState(() => currentWeekStart())
   const [load, setLoad] = useState<Load>({ status: 'loading' })
   // Each "Try again" adds one, so the effect asks the server again for the same week

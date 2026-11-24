@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError, SYSTEM_ERROR_MESSAGE } from '../../lib/http'
 import {
+  errorMessage,
   getAgencySummary,
   getAgencyVisits,
   getSession,
@@ -309,5 +310,22 @@ describe('agency session', () => {
       '/api/agency/session',
       expect.objectContaining({ method: 'DELETE' }),
     )
+  })
+})
+
+describe('errorMessage', () => {
+  it('shows the message of a business error', () => {
+    const error = new ApiError({
+      kind: 'business',
+      message: 'Sign in to continue.',
+      status: 401,
+      code: 'AUTHENTICATION_REQUIRED',
+    })
+
+    expect(errorMessage(error)).toBe('Sign in to continue.')
+  })
+
+  it('shows the general message for anything else', () => {
+    expect(errorMessage(new TypeError('Failed to fetch'))).toBe(SYSTEM_ERROR_MESSAGE)
   })
 })
