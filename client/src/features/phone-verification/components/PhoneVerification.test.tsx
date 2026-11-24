@@ -25,8 +25,7 @@ const SENT_AT = new Date('2026-11-10T11:00:00+01:00')
 // The detail texts are the ones the server sends, from the exceptions in server/.../phoneverification/
 const EXPIRED = 'The code has expired. Ask for a new code.'
 const TOO_MANY_ATTEMPTS = 'You entered a wrong code too many times. Ask for a new code.'
-const RESEND_TOO_SOON =
-  'Wait until you can ask for a new code, as the countdown on the screen shows.'
+const RESEND_TOO_SOON = 'Wait a moment before asking for a new code.'
 const LIMIT_REACHED = 'Too many codes have been sent. Try again in an hour.'
 const NOT_FOUND = 'This verification was not found. Ask for a new code.'
 const IN_PROGRESS = 'A code is already on its way to this number. Wait a few minutes and try again.'
