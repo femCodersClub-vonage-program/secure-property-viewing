@@ -19,18 +19,18 @@ Visitors and owners need to hear from Peephole after they leave the page: the co
 - [ ] Booking a visit creates its confirmation, to be sent at once, and its reminder, scheduled 1 hour before the visit starts
 - [ ] A visit booked less than 1 hour before it starts gets the confirmation only
 - [ ] Sending a listing request creates the "request received" message, and approving or rejecting it creates the "request approved" or "request rejected" message
-- [ ] Each message is saved in the same transaction as the booking or review that triggers it, and sent afterwards, so a failure in Vonage never undoes a booking or a review
-- [ ] A scheduled task sends every `SCHEDULED` message whose `scheduledAt` has passed, once a minute. Messages that were due while the server was down are sent when it starts again, within the retry window
+- [x] Each message is saved in the same transaction as the booking or review that triggers it, and sent afterwards, so a failure in Vonage never undoes a booking or a review
+- [x] A scheduled task sends every `SCHEDULED` message whose `scheduledAt` has passed, once a minute. Messages that were due while the server was down are sent when it starts again, within the retry window
 - [ ] A reminder is not sent if its visit is no longer `CONFIRMED` or has already started
-- [ ] When Vonage accepts a message, the message becomes `SUBMITTED` and keeps its `message_uuid` as `vonage_message_id`
-- [ ] The status webhook moves a message to `DELIVERED` or `FAILED`, and a message never leaves those final statuses
-- [ ] If Vonage cannot be reached or answers with a temporary error, the message stays `SCHEDULED` and is tried again on the next runs, up to 10 minutes after its `scheduledAt`. After that, or after a permanent error, it becomes `FAILED`
-- [ ] A message that Vonage reports as `undeliverable` goes back to `SCHEDULED` and is tried again within its retry window
-- [ ] Both webhooks answer `401` with the code `WEBHOOK_SIGNATURE_INVALID` and change nothing when the request has no valid Vonage signature
+- [x] When Vonage accepts a message, the message becomes `SUBMITTED` and keeps its `message_uuid` as `vonage_message_id`
+- [x] The status webhook moves a message to `DELIVERED` or `FAILED`, and a message never leaves those final statuses
+- [x] If Vonage cannot be reached or answers with a temporary error, the message stays `SCHEDULED` and is tried again on the next runs, up to 10 minutes after its `scheduledAt`. After that, or after a permanent error, it becomes `FAILED`
+- [x] A message that Vonage reports as `undeliverable` goes back to `SCHEDULED` and is tried again within its retry window
+- [x] Both webhooks answer `401` with the code `WEBHOOK_SIGNATURE_INVALID` and change nothing when the request has no valid Vonage signature
 - [ ] Failed messages appear in D5 as described in the [agency dashboard spec](agency-dashboard.md)
-- [ ] Local servers and tests never send real messages: sending is off unless `MESSAGES_SENDING_ENABLED=true`
-- [ ] Phone numbers, message texts and webhook bodies never appear in logs. Logs use the message id
-- [ ] The server reaches Vonage only through an interface in `vonage/`, and the tests use a test double, so they never send real SMS or use credits
+- [x] Local servers and tests never send real messages: sending is off unless `MESSAGES_SENDING_ENABLED=true`
+- [x] Phone numbers, message texts and webhook bodies never appear in logs. Logs use the message id
+- [x] The server reaches Vonage only through an interface in `vonage/`, and the tests use a test double, so they never send real SMS or use credits
 
 ## Out of scope
 
@@ -59,6 +59,13 @@ The open questions were approved as proposed by the tech lead on 2026-11-15. The
 - **Sample data that must never be sent.** The sample data includes `SCHEDULED` messages with fictional phone numbers, and it is also loaded on Railway, where sending is on. A trial account rejects them because they are not verified test numbers, but they would turn `FAILED` in D5, and a paid account would send them to whoever owns those numbers. So their `scheduled_at` is in 2027, after the demo, and `MESSAGES_SENDING_ENABLED` is only `true` on Railway
 - **`undeliverable`.** Vonage sends it when the Messages API could not reach the provider, such as during an outage, so the message never left Vonage. The message goes back to `SCHEDULED` and is sent again within its retry window, and becomes `FAILED` after that
 - **Build priority for the demo on December 4.** First the visit confirmation and the signed status webhook that moves it to `DELIVERED` or `FAILED`. The reminder, the listing request messages and D5 follow if there is time
+
+Decided by the tech lead while building the visit confirmation in [#87](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/87):
+
+- **Credentials only when sending is on.** The server asks for the Messages group and `VONAGE_MESSAGES_FROM` only with `MESSAGES_SENDING_ENABLED=true`, so everyone can start it without a Messages application. Its lines are commented out in `.env.example`
+- **Whose application.** On Railway, Messages uses Damaris's application, which points its webhooks to the server there. The first end-to-end test uses Mayleth's own application with a tunnel, so Railway keeps getting Damaris's status webhooks
+- **One `payload_hash` check for every webhook.** The Verify, Voice and Messages webhook readers share `BodyHash`, which compares the SHA-256 of the body with the token's `payload_hash`. Voice rejects a token without it. Verify and Messages accept it for now, because the documentation does not say that they always send it
+- **Vonage is called outside any transaction.** The scheduled task reads the due messages, then sends each one and saves its result in its own short transaction, so a slow answer from Vonage never holds a database lock
 
 ## Technical plan
 
@@ -89,6 +96,7 @@ No new endpoints for the client. `GET /api/agency/messages` is defined in the [a
 `POST /api/webhooks/messages/status` receives the status from Vonage. The server uses `client_ref`, `message_uuid`, `status` and `timestamp`:
 
 - It finds the message by `client_ref`, which is our message id, so it works even if the status arrives before the server has saved the `message_uuid`
+- It ignores a status whose `message_uuid` differs from the `vonage_message_id` already saved, such as one from an earlier attempt of the same message
 - It updates the status following the table above, and ignores a status that would move a message out of `DELIVERED` or `FAILED`
 - It answers `200` to every request with a valid signature, even when the message is unknown, so Vonage does not retry it. That case is logged with the `client_ref`
 
@@ -103,14 +111,14 @@ Both webhooks:
 
 ### Vonage
 
-The Messages API, called from the server only, with the Messages group of variables: `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY` and `VONAGE_MESSAGES_SIGNATURE_SECRET`.
+The Messages API, called from the server only, with the Messages group of variables: `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY`, `VONAGE_MESSAGES_FROM` and `VONAGE_MESSAGES_SIGNATURE_SECRET`.
 
 - **Send:** `POST /v1/messages` with `channel` `sms`, `message_type` `text`, `to`, `from`, `text` and `client_ref` set to our message id. Reminders also set `ttl` to 3600 seconds, so a reminder that has not arrived by the start of the visit expires and is reported as `rejected` with the error `1360`. Vonage answers with a `message_uuid`
 - **Temporary and permanent errors:** a network error, a `5xx` or "throttled" (`1000`) keeps the message `SCHEDULED` for the next run. Invalid parameters, recipient or sender (`1020`, `1170`, `1420`) make it `FAILED`
-- **Signed webhooks:** Vonage sends a JWT in `Authorization: Bearer`, signed with our signature secret. The Vonage documentation says Messages always signs with SHA-256, and the first end-to-end test confirms it. The server checks the signature
-- **Webhook URLs:** the Messages application already points to the server on Railway, as set up in #19
+- **Signed webhooks:** Vonage sends a JWT in `Authorization: Bearer`, signed with our signature secret. The Vonage documentation says Messages always signs with SHA-256, and the first end-to-end test confirms it. The server checks the signature and, when the token carries a `payload_hash`, that the body matches it
+- **Webhook URLs:** the Messages application already points to the server on Railway, as set up in #19. Locally, each person points her own application to her tunnel, as [`docs/setup.md`](../docs/setup.md) explains
 
-In code, the feature talks to a `MessageSender` interface in `vonage/` and to a `WebhookSignatureVerifier` for the JWT. Both use the Java Server SDK, already in `pom.xml` since phone verification. `MessagesClient.verifySignature(jwt, secret)` checks the signature of a webhook, so `WebhookSignatureVerifier` wraps it and the feature needs no new dependency.
+In code, the feature talks to a `MessageSender` interface in `vonage/`, implemented by `VonageMessageSender`, and reads both webhooks through `MessagesWebhookReader`, which checks the JWT with the Java Server SDK and the `payload_hash` with `BodyHash`. The SDK is already in `pom.xml` since phone verification, so the feature needs no new dependency.
 
 The scheduled task uses Spring's `@Scheduled`, which needs no new dependency, and runs in the `message` package. Its logic is a service method that receives the current time, so tests control the clock. Railway runs a single server instance. The accepted trade-off: if the server stops right after Vonage accepts a message and before it is saved as `SUBMITTED`, that message may be sent twice.
 
