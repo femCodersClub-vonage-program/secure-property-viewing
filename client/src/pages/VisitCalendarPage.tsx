@@ -28,7 +28,7 @@ function VisitCalendarPage() {
   }
 
   return (
-    <main className="mx-auto flex max-w-lg flex-col gap-6 px-4 py-8">
+    <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8 sm:px-10">
       {/* The key starts the screen afresh, loading state included, when the property changes */}
       <VisitBooking
         key={propertyId}

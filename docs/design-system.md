@@ -157,6 +157,13 @@ From `lg` up, the photo and the panel with the title, the price and "Request a v
 - `PhotoGallery` has its buttons and the photo number over the photo, on a `--color-surface-page` pill, so they and their focus ring show over any photo
 - Each fact, such as the size, is an icon in `--color-brand-primary` and its text on `--color-surface-input`
 
+## Booking a visit
+
+From `lg` up, the calendar, the times and the visit are three cards of the same height (`StepCard`), with the property above the visit. On a phone they are one under the other, with the property first. Each one has its number on the same gradient circle as the steps of the home page.
+
+- The times show one part of the day, in four columns, behind two buttons like the filters of the catalog. Each button says how many free times it has, and is disabled when it has none
+- The other states, such as the phone verification, keep one narrow column (`max-w-lg`)
+
 ## Back to top
 
 `PublicLayout` has a round "Back to top" button (`BackToTop`) on every public page, in the bottom right corner, once the visitor has scrolled a whole screen.

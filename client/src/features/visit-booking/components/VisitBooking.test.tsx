@@ -173,8 +173,41 @@ describe('VisitBooking', () => {
     )
     // Sent as 10:30 UTC
     expect(screen.getByRole('button', { name: 'Thursday 19 November, 11:30' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Morning' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Afternoon' })).toBeInTheDocument()
+    const morning = screen.getByRole('button', { name: 'Morning (1)' })
+    const afternoon = screen.getByRole('button', { name: 'Afternoon (1)' })
+    expect(morning).toHaveAttribute('aria-pressed', 'true')
+    expect(
+      screen.queryByRole('button', { name: 'Thursday 19 November, 17:00' }),
+    ).not.toBeInTheDocument()
+
+    fireEvent.click(afternoon)
+    expect(afternoon).toHaveAttribute('aria-pressed', 'true')
+    expect(morning).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: 'Thursday 19 November, 17:00' })).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Thursday 19 November, 11:30' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('keeps the chosen time when the visitor looks at the other part of the day', async () => {
+    serveCalendar()
+    renderBooking()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Thursday 19 November' }))
+    expect(screen.getByText('No time chosen yet')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Thursday 19 November, 11:30' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Afternoon (1)' }))
+
+    expect(screen.getByText('Thursday 19 November, 11:30')).toBeInTheDocument()
+  })
+
+  it('cannot open a part of the day with no free times', async () => {
+    serveCalendar()
+    renderBooking()
+
+    expect(await screen.findByRole('button', { name: 'Morning (2)' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Afternoon (0)' })).toBeDisabled()
   })
 
   it('keeps Continue disabled and says what is missing until a time and a name are chosen', async () => {

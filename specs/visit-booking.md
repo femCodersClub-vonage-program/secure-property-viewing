@@ -22,6 +22,7 @@ Calendar (A4):
 - [ ] It shows the free 30-minute slots of the property within the next 14 days, from `GET /api/properties/{id}/slots`, in the `Europe/Madrid` time zone
 - [ ] Slots that have started, slots already booked and slots beyond 14 days are not shown
 - [ ] A property that does not exist or is not active shows a not found page with a way back to the catalog
+- [ ] The free times of the day show the morning or the afternoon, with how many there are in each. It opens on the first one with free times, and changing it never loses the time already chosen
 - [ ] The visitor picks a day, then a time, and enters her name. "Continue" stays disabled until both are done, with a sentence next to it that says what is missing
 
 Booking:
