@@ -24,7 +24,7 @@ Three constraints shaped the decision:
 | Build tool | Vite | 8.3 |
 | Routing | React Router | 8.x |
 | Icons | lucide-react | 1.x |
-| Video in the browser | Vonage Video Client SDK (`@vonage/client-sdk-video`) | 2.35.2, pinned exactly in `package.json` |
+| Video in the browser | Vonage Video Client SDK (`@vonage/client-sdk-video`) | 2.36.0, pinned exactly in `package.json` |
 | Map of the catalog | Leaflet (`leaflet`, BSD-2-Clause) with OpenStreetMap tiles, and `@types/leaflet` | 1.9.x. Never `react-leaflet`, whose license is not a standard open source one |
 | Frontend linter | oxlint | 1.x |
 | Frontend formatter | Prettier | 3.x |
