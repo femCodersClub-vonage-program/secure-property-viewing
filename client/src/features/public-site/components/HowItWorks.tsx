@@ -1,5 +1,9 @@
 import { ShieldCheck } from 'lucide-react'
+import { useEffect, useRef } from 'react'
+import { useLocation } from 'react-router'
 import { ParallaxImage } from '../../../components/ui'
+
+const SECTION_ID = 'how-it-works'
 
 const STEPS = [
   {
@@ -29,16 +33,28 @@ const STEPS = [
 ]
 
 function HowItWorks() {
+  const { hash, key } = useLocation()
+  const headingRef = useRef<HTMLHeadingElement>(null)
+
+  // The link only scrolls: without this, the focus would stay on it. The key is new on every click
+  useEffect(() => {
+    if (hash === `#${SECTION_ID}`) {
+      headingRef.current?.focus({ preventScroll: true })
+    }
+  }, [hash, key])
+
   return (
-    <section id="how-it-works" aria-labelledby="how-heading" className="relative bg-brand-dark">
+    <section id={SECTION_ID} aria-labelledby="how-heading" className="relative bg-brand-dark">
       <ParallaxImage src="/properties/property-11-cover.webp" />
       {/* Keeps the white text above 9:1 over any part of the photo */}
       <div className="absolute inset-0 bg-brand-dark/85" />
       <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-section px-4 py-16 sm:px-10">
         <div className="flex max-w-2xl flex-col gap-3">
           <h2
+            ref={headingRef}
             id="how-heading"
-            className="font-display text-2xl font-bold text-balance text-text-light"
+            tabIndex={-1}
+            className="font-display text-2xl font-bold text-balance text-text-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-text-light"
           >
             Four steps, and the scam each one stops
           </h2>

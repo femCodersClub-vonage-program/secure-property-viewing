@@ -202,6 +202,66 @@ describe('routes', () => {
     await waitFor(() => expect(scrolledIds).toEqual(['how-it-works']))
   })
 
+  it.each(['banner', 'contentinfo'])(
+    'moves the focus to the four steps from the link of the %s, every time it is pressed',
+    async (landmark) => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn<typeof fetch>(() => new Promise(() => {})),
+      )
+      Element.prototype.scrollIntoView = () => undefined
+      renderAt('/properties')
+      const pressLink = () => {
+        const link = within(screen.getByRole(landmark)).getByRole('link', { name: 'How it works' })
+        link.focus()
+        fireEvent.click(link)
+      }
+      const steps = { level: 2, name: 'Four steps, and the scam each one stops' }
+
+      pressLink()
+      await waitFor(() => expect(screen.getByRole('heading', steps)).toHaveFocus())
+
+      pressLink()
+      await waitFor(() => expect(screen.getByRole('heading', steps)).toHaveFocus())
+    },
+  )
+
+  it('takes the focus to the top when a link in the footer opens the next page', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(() => new Promise(() => {})),
+    )
+    renderAt('/')
+
+    const link = within(screen.getByRole('contentinfo')).getByRole('link', { name: 'Properties' })
+    link.focus()
+    fireEvent.click(link)
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Properties in Barcelona' }),
+    ).toBeInTheDocument()
+    await waitFor(() => expect(link).not.toHaveFocus())
+    expect(document.body).not.toHaveFocus()
+    expect(document.activeElement).toContainElement(screen.getByRole('banner'))
+  })
+
+  it('leaves the focus on the link in the header that opens the next page', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(() => new Promise(() => {})),
+    )
+    renderAt('/')
+
+    const link = within(screen.getByRole('banner')).getByRole('link', { name: 'Properties' })
+    link.focus()
+    fireEvent.click(link)
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Properties in Barcelona' }),
+    ).toBeInTheDocument()
+    expect(link).toHaveFocus()
+  })
+
   it('shows the not found page for an unknown path', () => {
     renderAt('/does-not-exist')
 
