@@ -15,5 +15,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test-setup.ts'],
+    // Longer than asyncUtilTimeout in test-setup.ts, so a failure says what was not found
+    testTimeout: 20_000,
   },
 })
