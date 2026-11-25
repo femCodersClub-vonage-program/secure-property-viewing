@@ -41,6 +41,7 @@ In the room:
 - [ ] The screen says so while waiting for the others, when the camera or microphone is denied (and how to allow them), while reconnecting after a dropped connection, after hanging up, and when the visit time is over
 - [ ] At `closesAt`, the client leaves the call and says the visit time is over
 - [ ] The videos form a grid: one column on a phone, two or three on a wider screen
+- [ ] The agency enters with the rear camera of the phone when there is one, without the mirror effect on their own screen. The visitor and the guests enter with the browser's default camera
 
 Security and data:
 
