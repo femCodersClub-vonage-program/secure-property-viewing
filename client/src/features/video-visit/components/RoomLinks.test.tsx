@@ -92,9 +92,7 @@ describe('RoomLinks', () => {
     expect(field).not.toHaveFocus()
     expect(screen.getByText('Your link is ready.')).toHaveAttribute('role', 'status')
     expect(
-      screen.getByText(
-        "This link is your only way into the room. Save it now: we can't send it to you again.",
-      ),
+      screen.getByText("Save it now: it's your only way in, and we can't send it again."),
     ).toBeInTheDocument()
     // StrictMode runs the effect twice: a second request would replace the link just shown
     expect(rolesRequested()).toEqual(['VISITOR'])
@@ -107,9 +105,7 @@ describe('RoomLinks', () => {
     renderLinks()
 
     expect(
-      await screen.findByText(
-        "The room opens at 10:50, 10 minutes before your visit, so you can check your camera. The agent joins from the agency's side.",
-      ),
+      await screen.findByText('The room opens at 10:50, 10 minutes before your visit.'),
     ).toBeInTheDocument()
   })
 
@@ -121,9 +117,10 @@ describe('RoomLinks', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Copy your link' }))
 
-    expect(
-      await within(section('Your link to the video visit')).findByText('Copied.'),
-    ).toHaveAttribute('role', 'status')
+    expect(await within(section('Your link to the visit')).findByText('Copied.')).toHaveAttribute(
+      'role',
+      'status',
+    )
     expect(writeText).toHaveBeenCalledWith(`${ROOM}visitor-token-1`)
   })
 
@@ -135,7 +132,7 @@ describe('RoomLinks', () => {
 
     const field = screen.getByRole<HTMLInputElement>('textbox', { name: 'Your link' })
     expect(
-      await within(section('Your link to the video visit')).findByText(
+      await within(section('Your link to the visit')).findByText(
         "The link is selected: copy it with your device's copy option.",
       ),
     ).toHaveAttribute('role', 'status')
@@ -153,7 +150,7 @@ describe('RoomLinks', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Copy your link' }))
 
     expect(
-      await within(section('Your link to the video visit')).findByText(
+      await within(section('Your link to the visit')).findByText(
         "The link is selected: copy it with your device's copy option.",
       ),
     ).toHaveAttribute('role', 'status')
@@ -230,9 +227,7 @@ describe('RoomLinks', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Get a link to share' }))
 
-    expect(
-      await within(section('Invite others to the visit')).findByRole('alert'),
-    ).toHaveTextContent(
+    expect(await within(section('Invite others')).findByRole('alert')).toHaveTextContent(
       'You have asked for the most links to share that one visit can have. The links you already shared still work.',
     )
     // The button was disabled while loading, so it gets the focus back

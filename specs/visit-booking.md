@@ -39,7 +39,7 @@ Booking:
 
 Confirmation (A6):
 
-- [ ] It shows the property title and neighborhood, the full address, the day and the time
+- [ ] It shows the property title and neighborhood, the full address, the day and the time, with the cover photo that the calendar passes on. A property without photos shows the rest
 - [ ] It says that an SMS confirmation is on its way, once the [messages](messages.md) feature sends it
 
 All screens:

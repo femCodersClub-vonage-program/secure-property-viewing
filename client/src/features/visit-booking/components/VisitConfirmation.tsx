@@ -1,76 +1,68 @@
-import { CalendarDays, Check, MapPin } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { CalendarDays, MapPin, Phone, type LucideIcon } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { Card } from '../../../components/ui'
 import { dayLabel, madridDay, madridTime } from '../calendar'
-import type { BookedVisit } from '../types'
+import type { BookedVisit, PropertyPhoto } from '../types'
 
 type Props = {
   visit: BookedVisit
+  photo?: PropertyPhoto
 }
 
-/** The top of the confirmation screen (A6): the visit is booked, with its day, time and full address. */
-function VisitConfirmation({ visit }: Props) {
-  const headingRef = useRef<HTMLHeadingElement>(null)
+type DetailProps = {
+  icon: LucideIcon
+  term: string
+  children: ReactNode
+}
 
-  // The visitor arrives from the calendar, so the focus starts at the new page's heading
-  useEffect(() => {
-    headingRef.current?.focus()
-  }, [])
-
+function Detail({ icon: Icon, term, children }: DetailProps) {
   return (
-    <div className="flex flex-col gap-7">
-      <div className="flex flex-col gap-3">
-        <span
-          aria-hidden="true"
-          className="flex size-18 items-center justify-center rounded-pill bg-surface-input text-success"
-        >
-          <Check className="size-8" />
-        </span>
-        <h1
-          ref={headingRef}
-          tabIndex={-1}
-          className="font-display text-3xl font-bold text-balance text-brand-dark"
-        >
-          Your video visit is booked
-        </h1>
-        <p className="font-body text-text-default">
-          Thank you, {visit.visitorName}. An agent will show you the property live.
-        </p>
+    <div className="flex gap-4">
+      <Icon aria-hidden="true" className="mt-0.5 size-6 shrink-0 text-brand-accent" />
+      <div>
+        <dt className="text-sm text-text-light/90">{term}</dt>
+        {children}
       </div>
-      <Card variant="dark" className="flex flex-col gap-4">
-        <p className="inline-flex items-center gap-2 font-body text-sm font-bold tracking-wider uppercase">
-          <span aria-hidden="true" className="size-2 rounded-pill bg-brand-accent" />
-          Video visit
-        </p>
-        <div className="flex flex-col gap-1">
-          <h2 className="font-display text-2xl font-bold text-balance">{visit.property.title}</h2>
-          <p className="font-body">{visit.property.area}</p>
-        </div>
-        <dl className="flex flex-col gap-4 font-body">
-          <div>
-            <dt className="flex items-center gap-3 text-sm">
-              <CalendarDays aria-hidden="true" className="size-5 shrink-0" />
-              When
-            </dt>
-            <dd className="pl-8 text-lg font-bold">{dayLabel(madridDay(visit.startsAt))}</dd>
-            <dd className="pl-8 tabular-nums">
-              {madridTime(visit.startsAt)} to {madridTime(visit.endsAt)}, Madrid time
-            </dd>
-          </div>
-          <div>
-            <dt className="flex items-center gap-3 text-sm">
-              <MapPin aria-hidden="true" className="size-5 shrink-0" />
-              Address
-            </dt>
-            <dd className="pl-8">{visit.property.address}</dd>
-          </div>
-        </dl>
-      </Card>
-      <p className="font-body text-text-default">
-        After the visit, Peephole will call you with one safety question. Answer with your
-        phone&apos;s keypad.
-      </p>
     </div>
+  )
+}
+
+/** The booked visit on the confirmation screen (A6): the property, the day, the time and the full address. */
+function VisitConfirmation({ visit, photo }: Props) {
+  return (
+    <section aria-labelledby="booked-visit" className="flex">
+      <Card variant="dark" flush className="flex w-full flex-col">
+        {photo ? (
+          <img
+            src={photo.url}
+            alt={photo.altText}
+            className="h-36 min-h-36 w-full grow object-cover"
+          />
+        ) : null}
+        <div className="flex flex-col gap-5 p-4 sm:p-6">
+          <div className="flex flex-col gap-1">
+            <h2 id="booked-visit" className="font-display text-2xl font-bold text-balance">
+              {visit.property.title}
+            </h2>
+            <p className="font-body text-text-light/90">{visit.property.area}</p>
+          </div>
+          <dl className="flex flex-col gap-4 font-body">
+            <Detail icon={CalendarDays} term="When">
+              <dd className="text-lg font-bold">{dayLabel(madridDay(visit.startsAt))}</dd>
+              <dd className="tabular-nums">
+                {madridTime(visit.startsAt)} to {madridTime(visit.endsAt)}, Madrid time
+              </dd>
+            </Detail>
+            <Detail icon={MapPin} term="Address">
+              <dd>{visit.property.address}</dd>
+            </Detail>
+            <Detail icon={Phone} term="After the visit">
+              <dd>Peephole will call you with one safety question. Answer with your keypad.</dd>
+            </Detail>
+          </dl>
+        </div>
+      </Card>
+    </section>
   )
 }
 

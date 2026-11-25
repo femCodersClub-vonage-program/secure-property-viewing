@@ -34,8 +34,8 @@ function VisitCalendarPage() {
         key={propertyId}
         propertyId={propertyId}
         resumedCheck={resumedCheck}
-        onBooked={(visit) => {
-          const state: VisitConfirmationState = { visit }
+        onBooked={(visit, photo) => {
+          const state: VisitConfirmationState = { visit, photo }
           void navigate(`/visits/${visit.visitId}/confirmation`, { state })
         }}
       />

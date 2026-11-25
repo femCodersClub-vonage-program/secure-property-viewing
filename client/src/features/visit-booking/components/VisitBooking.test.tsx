@@ -272,7 +272,7 @@ describe('VisitBooking', () => {
     expect(visit.getByText('For Laura Gómez, in Madrid time')).toBeInTheDocument()
     await verifyPhone()
 
-    await waitFor(() => expect(onBooked).toHaveBeenCalledWith(bookedFromSpec))
+    await waitFor(() => expect(onBooked).toHaveBeenCalledWith(bookedFromSpec, undefined))
     // The page opens the confirmation (A6): until then, the screen still says it is booking
     expect(
       screen.getByRole('heading', { level: 1, name: 'Booking your visit…' }),
@@ -383,7 +383,7 @@ describe('VisitBooking', () => {
     expect(screen.getByRole('textbox', { name: 'Your name' })).toHaveValue('Laura Gómez')
 
     fireEvent.click(screen.getByRole('button', { name: 'Book this time' }))
-    await waitFor(() => expect(onBooked).toHaveBeenCalledWith(bookedFromSpec))
+    await waitFor(() => expect(onBooked).toHaveBeenCalledWith(bookedFromSpec, undefined))
     expect(callsTo('POST /api/phone-verifications')).toHaveLength(1)
   })
 
@@ -417,7 +417,7 @@ describe('VisitBooking', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Wednesday 18 November, 10:30' }))
     fireEvent.click(screen.getByRole('button', { name: 'Book this time' }))
 
-    await waitFor(() => expect(onBooked).toHaveBeenCalledWith(bookedFromSpec))
+    await waitFor(() => expect(onBooked).toHaveBeenCalledWith(bookedFromSpec, undefined))
     expect(bodyOf(callsTo('POST /api/visits')[1])).toMatchObject({
       slotId: 302,
       phoneVerificationId: 42,
@@ -448,7 +448,7 @@ describe('VisitBooking', () => {
     )
     await verifyPhone()
 
-    await waitFor(() => expect(onBooked).toHaveBeenCalledWith(bookedFromSpec))
+    await waitFor(() => expect(onBooked).toHaveBeenCalledWith(bookedFromSpec, undefined))
     // The rejected verification is never sent again
     expect(bodyOf(callsTo('POST /api/visits')[1])).toMatchObject({ phoneVerificationId: 43 })
   })

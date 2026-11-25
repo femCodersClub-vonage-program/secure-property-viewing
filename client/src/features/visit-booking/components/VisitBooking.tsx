@@ -19,7 +19,7 @@ import {
   monthsBetween,
 } from '../calendar'
 import { readSavedVisitForm, type SavedVisitForm } from '../savedVisitForm'
-import type { BookedVisit, PropertySummary as Property, Slot } from '../types'
+import type { BookedVisit, PropertyPhoto, PropertySummary as Property, Slot } from '../types'
 import MonthCalendar from './MonthCalendar'
 import PropertySummary from './PropertySummary'
 import StepCard from './StepCard'
@@ -29,7 +29,7 @@ import VisitToConfirm from './VisitToConfirm'
 type Props = {
   propertyId: number
   /** Called with the confirmed visit, so the page can open the confirmation screen (A6). */
-  onBooked: (visit: BookedVisit) => void
+  onBooked: (visit: BookedVisit, photo: PropertyPhoto | undefined) => void
   /** A silent check the visitor came back from, with the form saved before it. */
   resumedCheck?: ResumedSilentCheck
 }
@@ -219,7 +219,7 @@ function VisitBooking({ propertyId, onBooked, resumedCheck }: Props) {
         phone: verifiedPhone.phone,
         phoneVerificationId: verifiedPhone.verificationId,
       })
-      onBooked(visit)
+      onBooked(visit, property.images[0])
     } catch (error) {
       const code = error instanceof ApiError ? error.code : undefined
       if (code === 'PHONE_VERIFICATION_INVALID') {

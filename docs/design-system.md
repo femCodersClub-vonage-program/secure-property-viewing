@@ -163,6 +163,7 @@ From `lg` up, the calendar, the times and the visit are three cards of the same 
 
 - The times show one part of the day, in four columns, behind two buttons like the filters of the catalog. Each button says how many free times it has, and is disabled when it has none
 - The phone verification and the visit to confirm (`VisitToConfirm`) are side by side from `lg` up, with the same height: the photo grows when the verification is taller.
+- The confirmation has a photo header like the catalog's, with a white check on the gradient circle. Under it, from `lg` up, the visit in a `dark` `Card` and the room links in a default one are side by side, with the same height. The icons of the visit are decorative, in `--color-brand-accent`
 - The other states, such as an error, keep one narrow column (`max-w-lg`)
 
 ## Back to top
