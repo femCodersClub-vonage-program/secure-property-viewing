@@ -14,14 +14,13 @@ function Page() {
 }
 
 function scrollPageTo(y: number) {
-  Object.defineProperty(window, 'scrollY', { value: y, configurable: true })
+  vi.stubGlobal('scrollY', y)
   fireEvent.scroll(window)
 }
 
 const button = () => screen.queryByRole('button', { name: 'Back to top' })
 
 afterEach(() => {
-  Reflect.deleteProperty(window, 'scrollY')
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
 })
@@ -42,6 +41,10 @@ describe('BackToTop', () => {
   })
 
   it('goes to the top smoothly and takes the focus there', () => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn(() => ({ matches: false })),
+    )
     const scrollTo = vi.spyOn(window, 'scrollTo').mockReturnValue(undefined)
     render(<Page />)
     scrollPageTo(5000)

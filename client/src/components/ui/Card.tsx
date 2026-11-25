@@ -10,7 +10,7 @@ type CardProps = HTMLAttributes<HTMLDivElement> & {
 
 const variantClasses: Record<CardVariant, string> = {
   default: 'border border-border bg-surface-card',
-  // White text only and nothing interactive: the purple of links, buttons and the focus ring
+  // White text, decorative accent icons or a photo, and nothing interactive: the purple of links, buttons and the focus ring
   // has 2.39:1 on this background, below AA
   dark: 'bg-brand-dark text-text-light',
 }

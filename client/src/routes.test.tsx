@@ -6,6 +6,8 @@ import { routes } from './routes'
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+  Reflect.deleteProperty(Element.prototype, 'scrollIntoView')
 })
 
 const renderAt = (path: string) => {
@@ -142,6 +144,21 @@ describe('routes', () => {
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()
   })
 
+  it('goes back to the header of the page with "Back to top"', () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(() => new Promise(() => {})),
+    )
+    renderAt('/')
+
+    vi.stubGlobal('scrollY', window.innerHeight + 1)
+    fireEvent.scroll(window)
+    fireEvent.click(screen.getByRole('button', { name: 'Back to top' }))
+
+    expect(document.body).not.toHaveFocus()
+    expect(document.activeElement).toContainElement(screen.getByRole('banner'))
+  })
+
   it.each(['/visits/room', '/agency/sign-in'])('shows %s without them', (path) => {
     renderAt(path)
 
@@ -165,7 +182,6 @@ describe('routes', () => {
       await screen.findByRole('heading', { level: 1, name: 'Properties in Barcelona' }),
     ).toBeInTheDocument()
     expect(scrollTo).toHaveBeenCalledWith(0, 0)
-    scrollTo.mockRestore()
   })
 
   it('opens the home page at the four steps from any other page', async () => {

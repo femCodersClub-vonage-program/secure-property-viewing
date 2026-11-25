@@ -17,12 +17,12 @@ type DetailProps = {
 
 function Detail({ icon: Icon, term, children }: DetailProps) {
   return (
-    <div className="flex gap-4">
-      <Icon aria-hidden="true" className="mt-0.5 size-6 shrink-0 text-brand-accent" />
-      <div>
-        <dt className="text-sm text-text-light/90">{term}</dt>
-        {children}
-      </div>
+    <div className="relative pl-10">
+      <dt className="text-sm text-text-light/90">
+        <Icon aria-hidden="true" className="absolute top-0.5 left-0 size-6 text-brand-accent" />
+        {term}
+      </dt>
+      {children}
     </div>
   )
 }

@@ -13,7 +13,7 @@ Each color is used only in the role listed here. Never swap roles or add colors 
 | `--color-brand-primary` | `#92189E` | Primary buttons, active states, focus ring |
 | `--color-brand-secondary` | `#503454` | Supporting UI, secondary text |
 | `--color-brand-dark` | `#23122B` | Headings (h1, h2, h3), navbar, dark surfaces |
-| `--color-brand-accent` | `#FF0090` | Logo icon, decorative dots on dark backgrounds |
+| `--color-brand-accent` | `#FF0090` | Logo icon, decorative dots and icons, and the header and footer links of the public site, on `--color-brand-dark` only |
 | `--color-text-default` | `#0F0F0F` | Body text |
 | `--color-text-muted` | `#666666` | Supporting text, labels, placeholders |
 | `--color-text-light` | `#FFFFFF` | Text on dark background, dark mode |
@@ -39,7 +39,7 @@ Pairs already verified against WCAG 2.1 AA:
 | `#666666` | `#FFFFFF` | 5.74:1 | Muted text — passes AA for normal text |
 | `#FFFFFF` | `#92189E` | 7.38:1 | White on primary button — passes AA |
 | `#FF0090` | `#FFFFFF` | 3.71:1 | Accent on white — large text and UI components only (3:1 threshold). Not used as body text |
-| `#FF0090` | `#23122B` | — | Accent dot on dark nav — decorative only, not text |
+| `#FF0090` | `#23122B` | 4.74:1 | Header and footer links of the public site, and decorative dots and icons — passes AA for normal text |
 | `#1A7D52` | `#FFFFFF` | 4.66:1 | Success — passes AA for normal text |
 | `#B91C1C` | `#FFFFFF` | 6.31:1 | Error — passes AA for normal text |
 | `#92400E` | `#FFFFFF` | 7.06:1 | Warning — passes AA for normal text |
@@ -99,9 +99,9 @@ The base unit is `0.25rem` (4px). The scale follows Tailwind's default steps, ex
 
 Dividers and cards use `1px solid var(--color-border)`. Form fields use `1px solid var(--color-border-input)`, so they meet the 3:1 contrast for interface components.
 
-`Card` has a `dark` variant for a card that has to stand out from the page, such as the confirmed visit on A6: `--color-brand-dark` background, no border and white text (17.61:1). Only text in `--color-text-light` and decorative `--color-brand-accent` dots go inside it, and no interactive elements, so the common focus ring is never needed on the dark background.
+`Card` has a `dark` variant for a card that has to stand out from the page, such as the confirmed visit on A6: `--color-brand-dark` background, no border and white text (17.61:1). Only text in `--color-text-light`, decorative `--color-brand-accent` dots or icons, and a photo go inside it, and no interactive elements, so the common focus ring is never needed on the dark background.
 
-A `flush` `Card` has no inner padding, so a photo reaches its edges, as in the property cards.
+A `flush` `Card` has no inner padding, so a photo reaches its edges, as in the property cards, or so its content sets its own padding, as in the booking steps.
 
 A field with an error (`aria-invalid`) uses `2px solid var(--color-error)`. The wider border keeps the error visible without relying on color alone, and the message under the field says what went wrong.
 
@@ -117,7 +117,7 @@ A field with an error (`aria-invalid`) uses `2px solid var(--color-error)`. The 
 | Token | Value | Use |
 | :---- | :---- | :---- |
 | `--shadow-card` | `0 2px 10px rgba(0, 0, 0, 0.08)` | Cards |
-| `--shadow-button` | `0 4px 16px rgba(146, 24, 158, 0.30)` | Primary button hover |
+| `--shadow-button` | `0 4px 16px rgba(146, 24, 158, 0.30)` | Primary button hover, and the back to top button |
 
 ## Focus
 
@@ -127,7 +127,7 @@ Every interactive element shows a focus ring using `outline-2 outline-offset-2`.
 | :---- | :---- | :---- |
 | All elements except danger button | `outline-brand-primary` | 7.38:1 on white — passes AA |
 | Danger button | `outline-error` | 6.31:1 on white — passes AA |
-| Elements on dark navigation (`bg-brand-dark`) | `outline-white` | 17.61:1 on `#23122B` — passes AA |
+| Elements on dark navigation (`bg-brand-dark`) | `outline-text-light` | 17.61:1 on `#23122B` — passes AA |
 
 On a dark surface, a `Link` that looks like a button uses the `button-on-dark` or `outline-on-dark` variant, such as the two in the hero of the home page: the same shape, with the white focus ring.
 

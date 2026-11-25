@@ -25,7 +25,7 @@
   --color-brand-primary: #92189e; /* primary buttons, active states, focus ring */
   --color-brand-secondary: #503454; /* supporting UI, secondary text */
   --color-brand-dark: #23122b; /* headings (h1, h2, h3), navbar, dark surfaces */
-  --color-brand-accent: #ff0090; /* logo icon, decorative dots on dark backgrounds */
+  --color-brand-accent: #ff0090; /* logo icon, decorative dots and icons, and the public site links on brand-dark */
 
   /* Text */
   --color-text-default: #0f0f0f;
