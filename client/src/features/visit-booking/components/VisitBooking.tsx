@@ -24,6 +24,7 @@ import MonthCalendar from './MonthCalendar'
 import PropertySummary from './PropertySummary'
 import StepCard from './StepCard'
 import TimeList from './TimeList'
+import VisitToConfirm from './VisitToConfirm'
 
 type Props = {
   propertyId: number
@@ -274,26 +275,32 @@ function VisitBooking({ propertyId, onBooked, resumedCheck }: Props) {
 
   if (step === 'verify' && selectedSlot) {
     return (
-      <div className={`${narrowColumn} flex flex-col gap-6`}>
-        <Button variant="link" className="self-start" onClick={() => goTo('calendar')}>
-          Back to the calendar
-        </Button>
-        <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col items-start gap-2">
+          <Button variant="link" className="px-0!" onClick={() => goTo('calendar')}>
+            <span aria-hidden="true">←</span>
+            Back to the calendar
+          </Button>
           <h1 ref={headingRef} tabIndex={-1} className={pageHeading}>
             Confirm your visit
           </h1>
-          <p className="font-body text-text-default">
-            {property.title}: {slotLabel(selectedSlot)}.
-          </p>
+          <p className="font-body text-text-muted">One last step: check that the phone is yours.</p>
         </div>
         {noticeBox}
-        <PhoneVerification
-          key={verificationAttempt}
-          purpose="VISIT"
-          formToKeep={{ propertyId, visitorName, slot: selectedSlot } satisfies SavedVisitForm}
-          resumed={pendingCheck}
-          onVerified={(verifiedPhone) => void book(selectedSlot, verifiedPhone)}
-        />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <PhoneVerification
+            key={verificationAttempt}
+            purpose="VISIT"
+            formToKeep={{ propertyId, visitorName, slot: selectedSlot } satisfies SavedVisitForm}
+            resumed={pendingCheck}
+            onVerified={(verifiedPhone) => void book(selectedSlot, verifiedPhone)}
+          />
+          <VisitToConfirm
+            property={property}
+            time={slotLabel(selectedSlot)}
+            visitorName={visitorName}
+          />
+        </div>
       </div>
     )
   }

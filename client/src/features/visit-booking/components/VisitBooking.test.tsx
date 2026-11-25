@@ -267,9 +267,9 @@ describe('VisitBooking', () => {
 
     await chooseTimeAndName('Wednesday 18 November, 10:30')
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
-    expect(
-      await screen.findByText('Apartment in Gràcia: Wednesday 18 November, from 10:30 to 11:00.'),
-    ).toBeInTheDocument()
+    const visit = within(await screen.findByRole('region', { name: 'Apartment in Gràcia' }))
+    expect(visit.getByText('Wednesday 18 November, from 10:30 to 11:00')).toBeInTheDocument()
+    expect(visit.getByText('For Laura Gómez, in Madrid time')).toBeInTheDocument()
     await verifyPhone()
 
     await waitFor(() => expect(onBooked).toHaveBeenCalledWith(bookedFromSpec))

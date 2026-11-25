@@ -406,8 +406,8 @@ function PhoneVerification({ purpose, onVerified, formToKeep, resumed }: Props) 
     ) : null
 
   return (
-    <section aria-labelledby="phone-verification-title">
-      <Card className="flex flex-col gap-8 px-6 py-8 sm:px-10">
+    <section aria-labelledby="phone-verification-title" className="flex">
+      <Card className="flex w-full flex-col justify-center gap-8 px-6 py-8 sm:px-10">
         <header className="flex flex-col items-center gap-3 text-center">
           <span
             aria-hidden="true"

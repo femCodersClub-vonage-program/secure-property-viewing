@@ -162,7 +162,8 @@ From `lg` up, the photo and the panel with the title, the price and "Request a v
 From `lg` up, the calendar, the times and the visit are three cards of the same height (`StepCard`), with the property above the visit. On a phone they are one under the other, with the property first. Each one has its number on the same gradient circle as the steps of the home page.
 
 - The times show one part of the day, in four columns, behind two buttons like the filters of the catalog. Each button says how many free times it has, and is disabled when it has none
-- The other states, such as the phone verification, keep one narrow column (`max-w-lg`)
+- The phone verification and the visit to confirm (`VisitToConfirm`) are side by side from `lg` up, with the same height: the photo grows when the verification is taller.
+- The other states, such as an error, keep one narrow column (`max-w-lg`)
 
 ## Back to top
 

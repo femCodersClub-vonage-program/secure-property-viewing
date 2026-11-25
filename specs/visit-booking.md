@@ -25,6 +25,10 @@ Calendar (A4):
 - [ ] The free times of the day show the morning or the afternoon, with how many there are in each. It opens on the first one with free times, and changing it never loses the time already chosen
 - [ ] The visitor picks a day, then a time, and enters her name. "Continue" stays disabled until both are done, with a sentence next to it that says what is missing
 
+Phone check (A5):
+
+- [ ] Next to the verification, it shows what is about to be booked: the property, the day, the time and the visitor's name
+
 Booking:
 
 - [ ] Once her phone is verified (A5), the booking is sent with the chosen slot and her name, and the visit is created as `CONFIRMED` and its slot becomes `BOOKED`

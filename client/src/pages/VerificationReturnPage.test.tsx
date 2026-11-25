@@ -175,9 +175,7 @@ describe('coming back from the silent check', () => {
     )
     expect(callsTo('POST /api/phone-verifications/42/sms-fallback')).toHaveLength(1)
     expect(screen.getByText('You can ask for a new code in 12 s.')).toBeInTheDocument()
-    expect(
-      screen.getByText('Apartment in Gràcia: Wednesday 18 November, from 10:30 to 11:00.'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Wednesday 18 November, from 10:30 to 11:00')).toBeInTheDocument()
   })
 
   it('asks for the SMS code when the visitor comes back with the back button, without a result', async () => {
