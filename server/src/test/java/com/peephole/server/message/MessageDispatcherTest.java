@@ -11,6 +11,7 @@ import com.peephole.server.vonage.MessageSendException;
 import com.peephole.server.vonage.MessageSender;
 import jakarta.persistence.EntityManager;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -144,6 +145,21 @@ class MessageDispatcherTest {
 
         verify(messageSender, never()).sendSms(any(), any(), eq(String.valueOf(id)));
         assertThat(stored(id)).containsEntry("status", "FAILED");
+    }
+
+    @Test
+    void keepsSendingTheOtherMessagesAfterAnUnexpectedError(CapturedOutput output) {
+        long first = message(NOW);
+        long second = message(NOW);
+        when(messageSender.sendSms(any(), any(), any()))
+                .thenThrow(new IllegalStateException("Unexpected answer for " + PHONE))
+                .thenReturn(MESSAGE_UUID);
+
+        dispatcher.sendDueMessages(NOW);
+
+        assertThat(List.of(stored(first).get("status"), stored(second).get("status")))
+                .containsExactlyInAnyOrder("SUBMITTED", "SCHEDULED");
+        assertThat(output).contains("IllegalStateException").doesNotContain("611222333");
     }
 
     @Test

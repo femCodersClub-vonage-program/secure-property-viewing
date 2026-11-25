@@ -32,8 +32,21 @@ class MessageDispatcher {
                 service.recordFailed(message.id(), now);
                 LOGGER.warn("Message {} failed: its retry window has passed", message.id());
             } else {
-                send(message, now);
+                sendLeavingTheOthersUnaffected(message, now);
             }
+        }
+    }
+
+    // An unexpected error keeps the message SCHEDULED until its retry window passes. Only the exception's type is
+    // logged, because its text may carry the phone number
+    private void sendLeavingTheOthersUnaffected(DueMessage message, OffsetDateTime now) {
+        try {
+            send(message, now);
+        } catch (RuntimeException exception) {
+            LOGGER.error(
+                    "Message {} will be tried again after an unexpected {}",
+                    message.id(),
+                    exception.getClass().getSimpleName());
         }
     }
 
