@@ -65,7 +65,22 @@ OffLoad shows what worked in practice. The Vonage Documentation MCP Server is st
 
 ### Messages API
 
-Planned, not built yet: visit confirmations, reminders and request status updates, always sent from the platform's official channel. The first one is the visit confirmation by SMS (#87), and WhatsApp Business is planned for later.
+Visit confirmations, reminders and request status updates, always sent from the platform's official channel, as the [messages spec](../specs/messages.md) decides. The visit confirmation by SMS (#87) is built. Reminders, request status updates and WhatsApp Business are planned for later.
+
+In `server/`:
+
+- **Saved with the booking.** `MessageService` saves the confirmation as `SCHEDULED` in the same transaction as the booking, so there is never a booking without its message. Booking a visit never calls Vonage
+- **Sent every minute.** With `MESSAGES_SENDING_ENABLED=true`, `MessageScheduler` asks `MessageDispatcher` to send the due confirmations every 60 seconds. The dispatcher calls Vonage outside any transaction, so a slow answer never holds a database lock
+- **The text.** `MessageTexts` builds it in English, with the property's title and the visit's date and time in Madrid time. It never carries a link
+- **The SMS.** `VonageMessageSender` sends it with the SDK's `SmsTextRequest`, to the number in E.164 without the `+`, and with the message's ID as the `client_ref`
+- **Failures.** A `429`, a `5xx` or a network error is temporary: the message stays `SCHEDULED` and is tried again for up to 10 minutes (`Message.RETRY_WINDOW`). Any other error is permanent, and the message becomes `FAILED`
+- **Status webhook:** `POST /api/webhooks/messages/status`, with a JWT signed with the signature secret of the Vonage account that owns the application. As with Verify, the server checks the signature and, when the token carries a `payload_hash`, that the body matches it. `submitted` and `delivered` move the message forward, and `rejected` or `undeliverable` send it back to `SCHEDULED` while the 10 minutes last, or to `FAILED` after them. `DELIVERED` and `FAILED` are final. A status whose `client_ref` or `message_uuid` doesn't match the message is ignored
+- **Inbound webhook:** `POST /api/webhooks/messages/inbound` answers `200` so Vonage stops retrying. Replies are not handled yet, and the body is never logged
+- **Never logged:** the phone numbers, in the sender, the dispatcher or the webhooks
+- On Railway, Messages uses Damaris's application. Locally, each person tries it with her own, so the status webhooks can reach her tunnel
+- `VonageMessageSender` and `MessagesWebhookReader` in `vonage/` are the only classes that talk to Messages or read its webhooks, and the tests use a test double of `MessageSender`
+
+The signature and `payload_hash` checks are shared by the three webhook readers in `BodyHash`, which compares the hashes with `MessageDigest.isEqual`.
 
 ### Voice API
 
@@ -81,7 +96,7 @@ The [post-visit call](../specs/post-visit-call.md): after a video visit, the ser
 
 | Tool | What we use it for | Where |
 | :---- | :---- | :---- |
-| **Java Server SDK** (`com.vonage:server-sdk`) | Calling Verify, Video and Voice from the server, and Messages once it is built, and generating video session tokens | `server/` |
+| **Java Server SDK** (`com.vonage:server-sdk`) | Calling Verify, Video, Messages and Voice from the server, and generating video session tokens | `server/` |
 | **Video Client SDK** (`@vonage/client-sdk-video`) | Embedding the video room in the browser | `client/` |
 | **Vonage CLI** | Creating and configuring the Vonage application, its keys and test numbers from the terminal, and checking that configuration, such as webhook URLs, before an end-to-end test | Project setup and manual checks |
 | **Documentation MCP Server** | Querying Vonage documentation, SDKs and sample code from the AI assistant without leaving the editor, so answers are checked against the official source. It is read-only | AI assistants |
