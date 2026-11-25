@@ -72,7 +72,7 @@ class MessageWebhookController {
                         () -> LOGGER.warn("Ignored a signed message status whose body could not be read"));
     }
 
-    // Replies are out of scope, so the body is never read or logged
+    // Replies are out of scope: the body is only read to check its payload_hash, and it is never logged
     @PostMapping("/inbound")
     @Operation(
             summary = "Receive an inbound SMS",
@@ -80,7 +80,8 @@ class MessageWebhookController {
     @ApiResponse(responseCode = "200", description = "The message was received and ignored")
     @ApiResponse(
             responseCode = "401",
-            description = "WEBHOOK_SIGNATURE_INVALID: the Authorization header has no valid signature from Vonage",
+            description = "WEBHOOK_SIGNATURE_INVALID: the Authorization header has no valid signature from Vonage, or"
+                    + " the body does not match its payload_hash",
             content =
                     @Content(
                             mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,

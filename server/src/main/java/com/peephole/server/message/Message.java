@@ -17,7 +17,7 @@ import java.time.OffsetDateTime;
 class Message {
 
     // A message is tried again for up to 10 minutes after its scheduledAt
-    static final Duration RETRY_WINDOW = Duration.ofMinutes(10);
+    private static final Duration RETRY_WINDOW = Duration.ofMinutes(10);
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -65,6 +65,10 @@ class Message {
         return new Message(visitId, MessageType.CONFIRMATION, now, now);
     }
 
+    static boolean retryWindowHasPassed(OffsetDateTime scheduledAt, OffsetDateTime now) {
+        return now.isAfter(scheduledAt.plus(RETRY_WINDOW));
+    }
+
     // The status webhook may have arrived first, so a later status is kept
     void submitted(String messageUuid, OffsetDateTime now) {
         vonageMessageId = messageUuid;
@@ -98,7 +102,7 @@ class Message {
             case "rejected" -> moveTo(MessageStatus.FAILED, now);
             // It never left Vonage, so it is sent again within its retry window, with a new message_uuid
             case "undeliverable" -> {
-                if (now.isAfter(scheduledAt.plus(RETRY_WINDOW))) {
+                if (retryWindowHasPassed(scheduledAt, now)) {
                     moveTo(MessageStatus.FAILED, now);
                 } else {
                     vonageMessageId = null;

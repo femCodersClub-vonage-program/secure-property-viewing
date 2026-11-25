@@ -10,7 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 // Calls Vonage outside any transaction, so a slow Vonage holds no database connection. The accepted trade-off in
-// specs/messages.md: if the server stops after Vonage accepts a message and before it is saved, it may be sent twice
+// specs/messages.md: if the server stops or the database fails after Vonage accepts a message and before it is
+// saved, it may be sent twice
 @Component
 class MessageDispatcher {
 
@@ -28,7 +29,7 @@ class MessageDispatcher {
 
     void sendDueMessages(OffsetDateTime now) {
         for (DueMessage message : service.dueVisitConfirmations(now)) {
-            if (now.isAfter(message.scheduledAt().plus(Message.RETRY_WINDOW))) {
+            if (Message.retryWindowHasPassed(message.scheduledAt(), now)) {
                 service.recordFailed(message.id(), now);
                 LOGGER.warn("Message {} failed: its retry window has passed", message.id());
             } else {
