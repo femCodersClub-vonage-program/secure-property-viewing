@@ -120,7 +120,7 @@ The Messages API, called from the server only, with the Messages group of variab
 
 In code, the feature talks to a `MessageSender` interface in `vonage/`, implemented by `VonageMessageSender`, and reads both webhooks through `MessagesWebhookReader`, which checks the JWT with `WebhookSignatureVerifier` and the `payload_hash` with `BodyHash`. The SDK is already in `pom.xml` since phone verification, so the feature needs no new dependency.
 
-The scheduled task uses Spring's `@Scheduled`, which needs no new dependency, and runs in the `message` package. Its logic is a service method that receives the current time, so tests control the clock. Railway runs a single server instance. The accepted trade-off: if the server stops right after Vonage accepts a message and before it is saved as `SUBMITTED`, that message may be sent twice.
+The scheduled task uses Spring's `@Scheduled`, which needs no new dependency, and runs in the `message` package. Its logic is a service method that receives the current time, so tests control the clock. Railway runs a single server instance. The accepted trade-off: if the server stops, or the database fails, right after Vonage accepts a message and before it is saved as `SUBMITTED`, that message stays `SCHEDULED` and may be sent twice. Avoiding it would need a record outside the database, and the demo runs a single instance with a short retry window. An unexpected error while sending one message keeps it `SCHEDULED` and never stops the others.
 
 Tests use a test double of `MessageSender`, and the webhook tests sign their own JWT with a test secret.
 
