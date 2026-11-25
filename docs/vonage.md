@@ -70,17 +70,17 @@ Visit confirmations, reminders and request status updates, always sent from the 
 In `server/`:
 
 - **Saved with the booking.** `MessageService` saves the confirmation as `SCHEDULED` in the same transaction as the booking, so there is never a booking without its message. Booking a visit never calls Vonage
-- **Sent every minute.** With `MESSAGES_SENDING_ENABLED=true`, `MessageScheduler` asks `MessageDispatcher` to send the due confirmations every 60 seconds. The dispatcher calls Vonage outside any transaction, so a slow answer never holds a database lock
+- **Sent every minute.** With `MESSAGES_SENDING_ENABLED=true`, `MessageScheduler` asks `MessageDispatcher` to send the due confirmations when the server starts and then 60 seconds after each run ends (`fixedDelay`). The dispatcher calls Vonage outside any transaction, so a slow answer never holds a database lock
 - **The text.** `MessageTexts` builds it in English, with the property's title and the visit's date and time in Madrid time. It never carries a link
 - **The SMS.** `VonageMessageSender` sends it with the SDK's `SmsTextRequest`, to the number in E.164 without the `+`, and with the message's ID as the `client_ref`
 - **Failures.** A `429`, a `5xx` or a network error is temporary: the message stays `SCHEDULED` and is tried again for up to 10 minutes after its `scheduledAt` (`Message.RETRY_WINDOW`). Any other error is permanent, and the message becomes `FAILED`
-- **Status webhook:** `POST /api/webhooks/messages/status`, with a JWT signed with the signature secret of the Vonage account that owns the application. As with Verify, the server checks the signature and, when the token carries a `payload_hash`, that the body matches it. `submitted` and `delivered` move the message forward and `rejected` makes it `FAILED`. `undeliverable` sends it back to `SCHEDULED` while the 10 minutes last, or to `FAILED` after them. `DELIVERED` and `FAILED` are final. A status whose `client_ref` or `message_uuid` doesn't match the message is ignored
-- **Inbound webhook:** `POST /api/webhooks/messages/inbound` answers `200` so Vonage stops retrying. Replies are not handled yet, and the body is never logged
+- **Status webhook:** `POST /api/webhooks/messages/status`, with a JWT signed with the signature secret of the Vonage account that owns the application. As with Verify, the server checks the signature and, when the token carries a `payload_hash`, that the body matches it. `submitted` and `delivered` move the message forward and `rejected` makes it `FAILED`. `undeliverable` sends it back to `SCHEDULED` while the 10 minutes last, or to `FAILED` after them. `DELIVERED` and `FAILED` are final. Other statuses, such as `read`, are ignored. Once a `message_uuid` is saved, a status with a different one is ignored too. The webhook answers `200` even for an unknown message, and `500` when the status can't be saved, so Vonage tries again
+- **Inbound webhook:** `POST /api/webhooks/messages/inbound` checks the signature in the same way and answers `200`, so Vonage stops retrying. Processing replies is out of scope, as the spec says, and the body is never logged
 - **Never logged:** phone numbers, message texts and webhook bodies. Logs use the message ID
 - On Railway, Messages uses Damaris's application. Locally, each person tries it with her own, so the status webhooks can reach her tunnel
 - `VonageMessageSender` and `MessagesWebhookReader` in `vonage/` are the only classes that talk to Messages or read its webhooks, and the tests use a test double of `MessageSender`
 
-The signature and `payload_hash` checks are shared by the three webhook readers in `BodyHash`, which compares the hashes with `MessageDigest.isEqual`.
+The three webhook readers check the signature with `WebhookSignatureVerifier` and share the `payload_hash` check in `BodyHash`, which compares the hashes with `MessageDigest.isEqual`.
 
 ### Voice API
 
