@@ -29,6 +29,9 @@ class Property {
     @JoinColumn(name = "agency_id", nullable = false)
     private Agency agency;
 
+    @Column(name = "listing_request_id", updatable = false)
+    private Long listingRequestId;
+
     @Column(nullable = false)
     private String title;
 
@@ -79,6 +82,25 @@ class Property {
     private List<PropertyImage> images = new ArrayList<>();
 
     protected Property() {}
+
+    // Without photos or coordinates, so the catalog shows the generic image and no pin. Without visit slots either,
+    // so it doesn't offer an empty calendar, as decided in #57
+    Property(Agency agency, NewProperty newProperty) {
+        this.agency = agency;
+        this.listingRequestId = newProperty.listingRequestId();
+        this.title = newProperty.title();
+        this.operation = newProperty.operation();
+        this.propertyType = newProperty.propertyType();
+        this.priceEuros = newProperty.priceEuros();
+        this.area = newProperty.area();
+        this.address = newProperty.address();
+        this.bedrooms = newProperty.bedrooms();
+        this.sizeM2 = newProperty.sizeM2();
+        this.floor = newProperty.floor();
+        this.description = newProperty.description();
+        this.videoVisitAvailable = false;
+        this.status = PropertyStatus.ACTIVE;
+    }
 
     Long getId() {
         return id;

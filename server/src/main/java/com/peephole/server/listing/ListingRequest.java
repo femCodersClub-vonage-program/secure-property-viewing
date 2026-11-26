@@ -98,6 +98,16 @@ class ListingRequest {
         this.createdAt = createdAt;
     }
 
+    boolean isPending() {
+        return status == ListingRequestStatus.PENDING;
+    }
+
+    void approve(long reviewerId, OffsetDateTime now) {
+        status = ListingRequestStatus.APPROVED;
+        reviewedBy = reviewerId;
+        reviewedAt = now;
+    }
+
     Long getId() {
         return id;
     }

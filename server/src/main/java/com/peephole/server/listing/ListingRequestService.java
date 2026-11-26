@@ -1,5 +1,6 @@
 package com.peephole.server.listing;
 
+import com.peephole.server.listing.dto.ApprovedListingResponse;
 import com.peephole.server.listing.dto.ListingRequestDetailsResponse;
 import com.peephole.server.listing.dto.ListingRequestResponse;
 import com.peephole.server.listing.dto.ListingRequestSummaryResponse;
@@ -7,7 +8,9 @@ import com.peephole.server.listing.dto.NewListingRequest;
 import com.peephole.server.phoneverification.PhoneVerificationInvalidException;
 import com.peephole.server.phoneverification.PhoneVerificationPurpose;
 import com.peephole.server.phoneverification.PhoneVerificationService;
+import com.peephole.server.property.NewProperty;
 import com.peephole.server.property.PropertyOperation;
+import com.peephole.server.property.PropertyService;
 import com.peephole.server.property.PropertyType;
 import java.sql.SQLException;
 import java.time.Clock;
@@ -29,12 +32,17 @@ class ListingRequestService {
 
     private final ListingRequestRepository repository;
     private final PhoneVerificationService phoneVerificationService;
+    private final PropertyService propertyService;
     private final Clock clock;
 
     ListingRequestService(
-        ListingRequestRepository repository, PhoneVerificationService phoneVerificationService, Clock clock) {
+        ListingRequestRepository repository,
+        PhoneVerificationService phoneVerificationService,
+        PropertyService propertyService,
+        Clock clock) {
         this.repository = repository;
         this.phoneVerificationService = phoneVerificationService;
+        this.propertyService = propertyService;
         this.clock = clock;
     }
 
@@ -85,6 +93,30 @@ class ListingRequestService {
             .findById(id)
             .map(ListingRequestService::toDetails)
             .orElseThrow(ListingRequestNotFoundException::new);
+    }
+
+    // The property is published in the same transaction, so the request is never APPROVED without it
+    @Transactional
+    ApprovedListingResponse approve(long id, long agencyId, long reviewerId) {
+        ListingRequest request = repository.findWithLockById(id).orElseThrow(ListingRequestNotFoundException::new);
+        if (!request.isPending()) {
+            throw new ListingRequestAlreadyReviewedException();
+        }
+        long propertyId = propertyService.publish(new NewProperty(
+            agencyId,
+            request.getId(),
+            request.getTitle(),
+            request.getDescription(),
+            request.getOperation(),
+            request.getPropertyType(),
+            request.getPriceEuros(),
+            request.getArea(),
+            request.getAddress(),
+            request.getBedrooms(),
+            request.getSizeM2(),
+            request.getFloor()));
+        request.approve(reviewerId, OffsetDateTime.now(clock));
+        return new ApprovedListingResponse(propertyId);
     }
 
     private static ListingRequestSummaryResponse toSummary(ListingRequest request) {

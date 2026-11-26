@@ -7,8 +7,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.jayway.jsonpath.JsonPath;
 import com.peephole.server.listing.dto.ListingRequestDetailsResponse;
+import jakarta.persistence.EntityManager;
+import java.time.Clock;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +26,7 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.bean.override.convention.TestBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +41,7 @@ class AgencyListingRequestControllerTest {
     private static final String EMAIL = "marta.listing-test@peephole.example";
     private static final String PASSWORD = "Listing-test-password-1";
     private static final OffsetDateTime TIME = OffsetDateTime.parse("2099-03-10T09:00:00Z");
+    private static final OffsetDateTime REVIEW_TIME = OffsetDateTime.parse("2099-03-12T10:00:00Z");
 
     @Autowired
     private MockMvc mockMvc;
@@ -43,8 +50,20 @@ class AgencyListingRequestControllerTest {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
+    private EntityManager entityManager;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @TestBean
+    private Clock clock;
+
+    static Clock clock() {
+        return Clock.fixed(REVIEW_TIME.toInstant(), ZoneOffset.UTC);
+    }
+
+    private long agencyId;
+    private long agentId;
     private int phoneVerifications;
 
     // Rolled back with the test: the demo data has its own listing requests
@@ -53,13 +72,15 @@ class AgencyListingRequestControllerTest {
         jdbcTemplate.update("DELETE FROM message WHERE listing_request_id IS NOT NULL");
         jdbcTemplate.update("UPDATE property SET listing_request_id = NULL WHERE listing_request_id IS NOT NULL");
         jdbcTemplate.update("DELETE FROM listing_request");
-        long agencyId = jdbcTemplate.queryForObject(
+        agencyId = jdbcTemplate.queryForObject(
             "INSERT INTO agency (name, email, phone, verified) VALUES (?, ?, '+34600000001', true) RETURNING id",
             Long.class,
             "Listing Test Agency",
             "agency.listing-test@peephole.example");
-        jdbcTemplate.update(
-            "INSERT INTO agency_user (agency_id, full_name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)",
+        agentId = jdbcTemplate.queryForObject(
+            "INSERT INTO agency_user (agency_id, full_name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)"
+                + " RETURNING id",
+            Long.class,
             agencyId,
             "Marta Ruiz",
             EMAIL,
@@ -239,12 +260,138 @@ class AgencyListingRequestControllerTest {
             .doesNotContain("Carrer de Verdi");
     }
 
+    // Approving (D3)
+
+    @Test
+    void approvesAPendingRequestIntoAnActivePropertyOfTheAgency() throws Exception {
+        long id = insertListingRequest("Ana Torres", "PENDING", TIME);
+
+        String body = approve(id)
+            .andExpect(status().isOk())
+            // Contract: only the id of the new property
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$.propertyId").isNumber())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+        long propertyId = JsonPath.<Number>read(body, "$.propertyId").longValue();
+
+        Map<String, Object> property = jdbcTemplate.queryForMap("SELECT * FROM property WHERE id = ?", propertyId);
+        assertThat(property)
+            .containsEntry("agency_id", agencyId)
+            .containsEntry("listing_request_id", id)
+            .containsEntry("title", "Apartment in Gràcia")
+            .containsEntry("description", "A bright flat near the square")
+            .containsEntry("operation", "RENT")
+            .containsEntry("property_type", "APARTMENT")
+            .containsEntry("price_euros", 1200)
+            .containsEntry("area", "Gràcia")
+            .containsEntry("address", "Carrer de Verdi 2")
+            .containsEntry("bedrooms", 3)
+            .containsEntry("size_m2", 85)
+            .containsEntry("floor", 2)
+            .containsEntry("latitude", null)
+            .containsEntry("longitude", null)
+            .containsEntry("video_visit_available", false)
+            .containsEntry("status", "ACTIVE");
+        // No photos: the catalog shows the generic image
+        assertThat(jdbcTemplate.queryForObject(
+            "SELECT count(*) FROM property_image WHERE property_id = ?", Integer.class, propertyId))
+            .isZero();
+    }
+
+    @Test
+    void showsTheApprovedPropertyInTheCatalog() throws Exception {
+        long id = insertListingRequest("Ana Torres", "PENDING", TIME);
+        long propertyId = approvedPropertyId(id);
+
+        mockMvc.perform(get("/api/properties/" + propertyId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.title").value("Apartment in Gràcia"))
+            .andExpect(jsonPath("$.images.length()").value(0));
+    }
+
+    @Test
+    void marksTheApprovedRequestWithItsReviewerAndTime() throws Exception {
+        long id = insertListingRequest("Ana Torres", "PENDING", TIME);
+
+        approve(id).andExpect(status().isOk());
+
+        details(id)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("APPROVED"))
+            .andExpect(jsonPath("$.reviewedAt").value("2099-03-12T11:00:00+01:00"))
+            .andExpect(jsonPath("$.rejectionReason").isEmpty());
+        entityManager.flush();
+        assertThat(jdbcTemplate.queryForObject(
+            "SELECT reviewed_by FROM listing_request WHERE id = ?", Long.class, id))
+            .isEqualTo(agentId);
+    }
+
+    @Test
+    void refusesToApproveARequestThatWasAlreadyReviewed() throws Exception {
+        long approved = insertListingRequest("Joan Puig", "APPROVED", TIME);
+        long rejected = insertListingRequest("Laia Vidal", "REJECTED", TIME);
+
+        approve(approved)
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value("LISTING_REQUEST_ALREADY_REVIEWED"));
+        approve(rejected)
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value("LISTING_REQUEST_ALREADY_REVIEWED"));
+
+        assertThat(jdbcTemplate.queryForObject(
+            "SELECT count(*) FROM property WHERE listing_request_id IN (?, ?)",
+            Integer.class,
+            approved,
+            rejected))
+            .isZero();
+    }
+
+    @Test
+    void returnsNotFoundWhenApprovingAnUnknownRequest() throws Exception {
+        approve(999_999_999L)
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+    }
+
+    @Test
+    void approvingRequiresASignedInUser() throws Exception {
+        long id = insertListingRequest("Ana Torres", "PENDING", TIME);
+
+        mockMvc.perform(post(PATH + "/" + id + "/approve").with(csrf()))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"));
+    }
+
+    @Test
+    void approvingRequiresACsrfToken() throws Exception {
+        long id = insertListingRequest("Ana Torres", "PENDING", TIME);
+
+        mockMvc.perform(post(PATH + "/" + id + "/approve").session(signIn()))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.code").value("CSRF_TOKEN_INVALID"));
+    }
+
     private ResultActions list(String query) throws Exception {
         return mockMvc.perform(get(PATH + query).session(signIn()));
     }
 
     private ResultActions details(long id) throws Exception {
         return mockMvc.perform(get(PATH + "/" + id).session(signIn()));
+    }
+
+    private ResultActions approve(long id) throws Exception {
+        return mockMvc.perform(post(PATH + "/" + id + "/approve").with(csrf()).session(signIn()));
+    }
+
+    private long approvedPropertyId(long id) throws Exception {
+        String body = approve(id)
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+        return JsonPath.<Number>read(body, "$.propertyId").longValue();
     }
 
     private MockHttpSession signIn() throws Exception {

@@ -1,7 +1,9 @@
 package com.peephole.server.listing;
 
+import com.peephole.server.agency.SignedInAgency;
 import com.peephole.server.common.ProblemResponse;
 import com.peephole.server.config.OpenApiConfig;
+import com.peephole.server.listing.dto.ApprovedListingResponse;
 import com.peephole.server.listing.dto.ListingRequestDetailsResponse;
 import com.peephole.server.listing.dto.ListingRequestSummaryResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,8 +15,10 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -87,5 +91,44 @@ class AgencyListingRequestController {
             schema = @Schema(implementation = ProblemResponse.class)))
     ListingRequestDetailsResponse details(@PathVariable long id) {
         return service.details(id);
+    }
+
+    @PostMapping("/{id}/approve")
+    @Operation(
+        summary = "Approve a listing request",
+        description = "Publishes the request as an active property of the agency, without photos, coordinates"
+            + " or video visits, and marks the request APPROVED. Needs the X-XSRF-TOKEN header.")
+    @SecurityRequirement(name = OpenApiConfig.AGENCY_SESSION)
+    @ApiResponse(responseCode = "200", description = "The request was approved, with the id of its new property")
+    @ApiResponse(
+        responseCode = "401",
+        description = "AUTHENTICATION_REQUIRED: there is no session",
+        content =
+        @Content(
+            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+            schema = @Schema(implementation = ProblemResponse.class)))
+    @ApiResponse(
+        responseCode = "403",
+        description = "CSRF_TOKEN_INVALID: the X-XSRF-TOKEN header is missing or does not match the cookie",
+        content =
+        @Content(
+            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+            schema = @Schema(implementation = ProblemResponse.class)))
+    @ApiResponse(
+        responseCode = "404",
+        description = "NOT_FOUND: there is no listing request with this id",
+        content =
+        @Content(
+            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+            schema = @Schema(implementation = ProblemResponse.class)))
+    @ApiResponse(
+        responseCode = "409",
+        description = "LISTING_REQUEST_ALREADY_REVIEWED: the request was already approved or rejected",
+        content =
+        @Content(
+            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+            schema = @Schema(implementation = ProblemResponse.class)))
+    ApprovedListingResponse approve(@PathVariable long id, Authentication authentication) {
+        return service.approve(id, SignedInAgency.idOf(authentication), SignedInAgency.userIdOf(authentication));
     }
 }
