@@ -13,6 +13,7 @@ import VerificationReturnPage from './pages/VerificationReturnPage'
 import VideoRoomPage from './pages/VideoRoomPage'
 import VisitCalendarPage from './pages/VisitCalendarPage'
 import VisitConfirmationPage from './pages/VisitConfirmationPage'
+import OwnerListingFormPage from './pages/OwnerListingFormPage'
 
 export const routes: RouteObject[] = [
   { path: '/', element: <HomePage /> },
@@ -21,6 +22,7 @@ export const routes: RouteObject[] = [
   { path: '/properties/:id/visit', element: <VisitCalendarPage /> },
   { path: '/visits/:id/confirmation', element: <VisitConfirmationPage /> },
   { path: '/visits/room', element: <VideoRoomPage /> },
+  { path: '/list-property/form', element: <OwnerListingFormPage /> },
   // Where the mobile operator sends the person back after the silent check
   { path: '/verification/return', element: <VerificationReturnPage /> },
   // The only agency page open to a signed-out agent
