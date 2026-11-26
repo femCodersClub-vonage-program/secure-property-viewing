@@ -15,6 +15,8 @@ import VideoRoomPage from './pages/VideoRoomPage'
 import VisitCalendarPage from './pages/VisitCalendarPage'
 import VisitConfirmationPage from './pages/VisitConfirmationPage'
 import OwnerListingFormPage from './pages/OwnerListingFormPage'
+import { LISTING_FORM_PATH, LISTING_SUBMITTED_PATH } from './features/owner-listing'
+import ListingSubmittedPage from './pages/ListingSubmittedPage'
 
 export const routes: RouteObject[] = [
   {
@@ -28,12 +30,14 @@ export const routes: RouteObject[] = [
       { path: '/visits/:id/confirmation', element: <VisitConfirmationPage /> },
       // Where the mobile operator sends the person back after the silent check
       { path: '/verification/return', element: <VerificationReturnPage /> },
+      { path: '/list-property/form', element: <OwnerListingFormPage /> },
+      { path: LISTING_FORM_PATH, element: <OwnerListingFormPage /> },
+      { path: LISTING_SUBMITTED_PATH, element: <ListingSubmittedPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
   // Outside PublicLayout on purpose: the call needs the whole screen
   { path: '/visits/room', element: <VideoRoomPage /> },
-  { path: '/list-property/form', element: <OwnerListingFormPage /> },
   // The only agency page open to a signed-out agent
   { path: '/agency/sign-in', element: <AgencySignInPage /> },
   {

@@ -1,31 +1,140 @@
 import { useState } from 'react'
-import { Button } from '../../../components/ui'
-import type { ListingStep } from '../types'
+import { useNavigate } from 'react-router'
+import { Alert, Button } from '../../../components/ui'
+import { ApiError, SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
+import { PhoneVerification, type VerifiedPhone } from '../../phone-verification'
+import { submitListingRequest } from '../api'
+import { EMPTY_FORM, OWNER_FIELDS, fromServerErrors, toListingRequest } from '../listingForm'
+import { LISTING_SUBMITTED_PATH } from '../paths'
+import type { ListingFormData, ListingStep } from '../types'
+import {
+  validateOwnerDetails,
+  validatePropertyDetails,
+  type ListingFieldErrors,
+} from '../validation'
+import OwnerDetailsStep from './OwnerDetailsStep'
+import PropertyDetailsStep from './PropertyDetailsStep'
 import StepIndicator from './StepIndicator'
 
 const pageHeading = 'font-display text-3xl font-bold text-balance text-brand-dark'
 
-// Holds the current step and, soon, the data of B2 to B4, so "Back" never loses what was entered
+// Holds the current step, the data and the errors of B2 to B4, so "Back" never loses what was entered
 function OwnerListingForm() {
+  const navigate = useNavigate()
   const [step, setStep] = useState<ListingStep>('details')
+  const [data, setData] = useState<ListingFormData>(EMPTY_FORM)
+  const [errors, setErrors] = useState<ListingFieldErrors>({})
+  const [notice, setNotice] = useState<string>()
+  const [submitting, setSubmitting] = useState(false)
+  // A new number mounts a fresh verification screen, as when the server rejects the verification
+  const [verificationAttempt, setVerificationAttempt] = useState(0)
+
+  // Copies the form and changes only one field, so the rest stays as it was
+  function updateField<K extends keyof ListingFormData>(field: K, value: ListingFormData[K]) {
+    setData((current) => ({ ...current, [field]: value }))
+  }
+
+  function continueFromDetails() {
+    const found = validateOwnerDetails(data)
+    setErrors(found)
+    if (Object.keys(found).length === 0) {
+      setStep('property')
+    }
+  }
+
+  function continueFromProperty() {
+    const found = validatePropertyDetails(data)
+    setErrors(found)
+    if (Object.keys(found).length === 0) {
+      setNotice(undefined)
+      setStep('verification')
+    }
+  }
+
+  async function submit(verified: VerifiedPhone) {
+    const request = toListingRequest(data, verified)
+    if (!request) {
+      setStep('property')
+      return
+    }
+    setSubmitting(true)
+    setNotice(undefined)
+    try {
+      await submitListingRequest(request)
+      // replace: "back" from the confirmation never returns to a form already sent
+      navigate(LISTING_SUBMITTED_PATH, { replace: true })
+    } catch (error) {
+      showSubmitError(error)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  function showSubmitError(error: unknown) {
+    if (!(error instanceof ApiError)) {
+      setNotice(SYSTEM_ERROR_MESSAGE)
+      return
+    }
+    if (error.code === 'VALIDATION_FAILED') {
+      // Each message goes next to its field, on the step where that field is
+      const found = fromServerErrors(error.fieldErrors)
+      setErrors(found)
+      const ownerFieldFailed = OWNER_FIELDS.some((field) => found[field] !== undefined)
+      setStep(ownerFieldFailed ? 'details' : 'property')
+      return
+    }
+    if (error.code === 'PHONE_VERIFICATION_INVALID') {
+      setVerificationAttempt((count) => count + 1)
+    }
+    setNotice(error.message)
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <h1 className={pageHeading}>List my property</h1>
       <StepIndicator current={step} />
 
-      {/* TEMPORARY: only to see the indicator change. Removed when B2 and B3 are built */}
-      <div className="flex flex-wrap gap-4">
-        <Button variant="secondary" onClick={() => setStep('details')}>
-          Details
-        </Button>
-        <Button variant="secondary" onClick={() => setStep('property')}>
-          Property
-        </Button>
-        <Button variant="secondary" onClick={() => setStep('verification')}>
-          Verification
-        </Button>
-      </div>
+      {step === 'details' && (
+        <OwnerDetailsStep
+          data={data}
+          errors={errors}
+          onChange={updateField}
+          onContinue={continueFromDetails}
+        />
+      )}
+      {step === 'property' && (
+        <PropertyDetailsStep
+          data={data}
+          errors={errors}
+          onChange={updateField}
+          onBack={() => setStep('details')}
+          onContinue={continueFromProperty}
+        />
+      )}
+      {step === 'verification' && (
+        <div className="flex flex-col gap-4">
+          {notice ? <Alert variant="error">{notice}</Alert> : null}
+          {submitting ? (
+            <p role="status" className="font-body text-text-default">
+              Sending your request…
+            </p>
+          ) : (
+            <PhoneVerification
+              key={verificationAttempt}
+              purpose="LISTING_REQUEST"
+              onVerified={(verified) => void submit(verified)}
+            />
+          )}
+          <Button
+            variant="secondary"
+            className="self-start"
+            disabled={submitting}
+            onClick={() => setStep('property')}
+          >
+            Back
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

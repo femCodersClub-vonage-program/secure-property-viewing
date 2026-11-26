@@ -2,9 +2,8 @@ import type { ListingFormData } from './types'
 
 /** One message per invalid field, keyed with the same names the server uses. */
 export type ListingFieldErrors = Partial<Record<keyof ListingFormData, string>>
-
 // The same limits the server checks, from the spec
-const MAX_LENGTH = {
+export const MAX_LENGTH = {
   ownerName: 100,
   title: 255,
   description: 5000,
@@ -16,6 +15,8 @@ const MAX_LENGTH = {
 const SPANISH_NUMBER = /^[6-9]\d{8}$/
 // E.164, the same rule as the server: + and 7 to 15 digits, never starting with 0
 const E164_NUMBER = /^\+[1-9]\d{6,14}$/
+// Letters in any language (\p{L}, with accents as \p{M}), spaces, hyphens, apostrophes and dots
+const NAME_CHARACTERS = /^[\p{L}\p{M}\s'.-]+$/u
 
 /** The phone in E.164, such as +34612987654, or undefined when it is not valid. */
 export function toE164Phone(value: string): string | undefined {
@@ -50,7 +51,11 @@ export function validateOwnerDetails(data: ListingFormData): ListingFieldErrors 
   const errors: ListingFieldErrors = {}
 
   const ownerName = checkText(data.ownerName, MAX_LENGTH.ownerName, 'your full name')
-  if (ownerName) errors.ownerName = ownerName
+  if (ownerName) {
+    errors.ownerName = ownerName
+  } else if (!NAME_CHARACTERS.test(data.ownerName.trim())) {
+    errors.ownerName = 'Use only letters in your name, without numbers or symbols.'
+  }
 
   if (!toE164Phone(data.ownerPhone)) {
     errors.ownerPhone =
