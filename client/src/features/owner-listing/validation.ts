@@ -90,14 +90,18 @@ export function validatePropertyDetails(data: ListingFormData): ListingFieldErro
   if (data.propertyType === '') errors.propertyType = 'Choose the property type.'
   if (data.operation === '') errors.operation = 'Choose rent or sale.'
 
-  if (!isWholeNumberBetween(data.priceEuros, 1, MAX_SERVER_INTEGER)) {
-    errors.priceEuros = `Enter the price in whole euros, from 1 to ${MAX_SERVER_INTEGER}, digits only, such as 250000.`
+  if (!isWholeNumberBetween(data.priceEuros, 1, Infinity)) {
+    errors.priceEuros = 'Enter the price in whole euros, digits only, such as 250000.'
+  } else if (Number(data.priceEuros) > MAX_SERVER_INTEGER) {
+    errors.priceEuros = 'This price is too high. Check the number of zeros.'
   }
   if (!isWholeNumberBetween(data.bedrooms, 0, 50)) {
     errors.bedrooms = 'Enter the number of bedrooms from 0 to 50, digits only. A studio has 0.'
   }
-  if (!isWholeNumberBetween(data.sizeM2, 1, MAX_SERVER_INTEGER)) {
-    errors.sizeM2 = `Enter the size in whole square meters, from 1 to ${MAX_SERVER_INTEGER}, digits only, such as 85.`
+  if (!isWholeNumberBetween(data.sizeM2, 1, Infinity)) {
+    errors.sizeM2 = 'Enter the size in whole square meters, digits only, such as 85.'
+  } else if (Number(data.sizeM2) > MAX_SERVER_INTEGER) {
+    errors.sizeM2 = 'This size is too large. Check the number of zeros.'
   }
   // Optional: only checked when the owner wrote something
   if (data.floor.trim() !== '' && !isWholeNumberBetween(data.floor, -5, 100, SIGNED_DIGITS)) {

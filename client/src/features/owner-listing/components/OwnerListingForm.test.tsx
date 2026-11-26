@@ -186,9 +186,8 @@ describe('owner listing form', () => {
       Description: 'Enter a description.',
       Neighborhood: 'Enter the neighborhood.',
       Address: 'Enter the address.',
-      Price: 'Enter the price in whole euros, from 1 to 2147483647, digits only, such as 250000.',
-      'Size (m²)':
-        'Enter the size in whole square meters, from 1 to 2147483647, digits only, such as 85.',
+      Price: 'Enter the price in whole euros, digits only, such as 250000.',
+      'Size (m²)': 'Enter the size in whole square meters, digits only, such as 85.',
       Bedrooms: 'Enter the number of bedrooms from 0 to 50, digits only. A studio has 0.',
     }
     for (const [name, message] of Object.entries(messages)) {

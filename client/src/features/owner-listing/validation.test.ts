@@ -96,7 +96,7 @@ describe('validatePropertyDetails', () => {
 
   it.each(['', '0', '-5', '1200.50', 'abc'])('rejects the price "%s"', (price) => {
     expect(validatePropertyDetails({ ...validForm, priceEuros: price }).priceEuros).toBe(
-      'Enter the price in whole euros, from 1 to 2147483647, digits only, such as 250000.',
+      'Enter the price in whole euros, digits only, such as 250000.',
     )
   })
 
@@ -176,6 +176,15 @@ describe('validatePropertyDetails', () => {
       expect(Object.keys(errors)).toEqual([field])
     },
   )
+
+  it.each([
+    ['priceEuros', 'This price is too high. Check the number of zeros.'],
+    ['sizeM2', 'This size is too large. Check the number of zeros.'],
+  ] as const)('says the %s is past the limit when it is 2147483648', (field, message) => {
+    expect(validatePropertyDetails({ ...validForm, [field]: '2147483648' })).toEqual({
+      [field]: message,
+    })
+  })
 
   it('rejects a description longer than 5,000 characters', () => {
     const errors = validatePropertyDetails({ ...validForm, description: 'a'.repeat(5001) })
