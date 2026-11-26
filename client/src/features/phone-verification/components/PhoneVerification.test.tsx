@@ -132,6 +132,29 @@ describe('PhoneVerification', () => {
     expect(screen.getByRole('status')).toHaveTextContent('+34 600 000 000.')
   })
 
+  it('starts with the initialPhone, and sends the number the person changes it to', async () => {
+    fetchMock.mockResolvedValueOnce(json(startedFromSpec, 201))
+    render(
+      <PhoneVerification
+        purpose="LISTING_REQUEST"
+        initialPhone="+34612987654"
+        onVerified={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByRole('textbox', { name: 'Phone number' })).toHaveValue('+34612987654')
+
+    await sendCodeTo('+34600000000')
+
+    expect(sentBody(0)).toEqual({ phone: '+34600000000', purpose: 'LISTING_REQUEST' })
+  })
+
+  it('starts with an empty phone number without an initialPhone', () => {
+    render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
+
+    expect(screen.getByRole('textbox', { name: 'Phone number' })).toHaveValue('')
+  })
+
   it('hands the verified phone to the page once the code matches', async () => {
     fetchMock
       .mockResolvedValueOnce(json(startedFromSpec, 201))
