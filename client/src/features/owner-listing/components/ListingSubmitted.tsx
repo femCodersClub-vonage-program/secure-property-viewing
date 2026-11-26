@@ -31,7 +31,7 @@ function ListingSubmitted() {
   }, [])
 
   return (
-    <Card className="flex flex-col gap-8 px-6 py-8 sm:px-10">
+    <Card flush className="flex flex-col gap-8 px-6 py-8 sm:px-10">
       <header className="flex flex-col items-center gap-4 text-center">
         <span
           aria-hidden="true"

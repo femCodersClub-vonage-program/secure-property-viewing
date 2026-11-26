@@ -18,7 +18,7 @@ function OwnerDetailsStep({ data, errors, onChange, onContinue }: Props) {
   }
 
   return (
-    <Card className="px-6 py-8 sm:px-10">
+    <Card flush className="px-6 py-8 sm:px-10">
       <form
         noValidate
         aria-labelledby="owner-details-title"
