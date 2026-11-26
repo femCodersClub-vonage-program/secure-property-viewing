@@ -23,7 +23,7 @@ describe('SiteFooter', () => {
     ).toEqual([
       ['Properties', '/properties'],
       ['How it works', '/#how-it-works'],
-      ['List my property', '/agencies/sign-up'],
+      ['List my property', '/list-property'],
       ['Agency sign in', '/agency/sign-in'],
     ])
   })

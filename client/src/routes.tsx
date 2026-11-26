@@ -15,8 +15,13 @@ import VideoRoomPage from './pages/VideoRoomPage'
 import VisitCalendarPage from './pages/VisitCalendarPage'
 import VisitConfirmationPage from './pages/VisitConfirmationPage'
 import OwnerListingFormPage from './pages/OwnerListingFormPage'
-import { LISTING_FORM_PATH, LISTING_SUBMITTED_PATH } from './features/owner-listing'
+import {
+  LIST_PROPERTY_PATH,
+  LISTING_FORM_PATH,
+  LISTING_SUBMITTED_PATH,
+} from './features/owner-listing'
 import ListingSubmittedPage from './pages/ListingSubmittedPage'
+import ListPropertyPage from './pages/ListPropertyPage'
 
 export const routes: RouteObject[] = [
   {
@@ -31,6 +36,7 @@ export const routes: RouteObject[] = [
       // Where the mobile operator sends the person back after the silent check
       { path: '/verification/return', element: <VerificationReturnPage /> },
       { path: '/list-property/form', element: <OwnerListingFormPage /> },
+      { path: LIST_PROPERTY_PATH, element: <ListPropertyPage /> },
       { path: LISTING_FORM_PATH, element: <OwnerListingFormPage /> },
       { path: LISTING_SUBMITTED_PATH, element: <ListingSubmittedPage /> },
       { path: '*', element: <NotFoundPage /> },
