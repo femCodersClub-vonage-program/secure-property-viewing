@@ -1,16 +1,21 @@
 package com.peephole.server.listing;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.peephole.server.listing.dto.ListingRequestDetailsResponse;
 import java.time.OffsetDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -23,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@ExtendWith(OutputCaptureExtension.class)
 class AgencyListingRequestControllerTest {
 
     private static final String PATH = "/api/agency/listing-requests";
@@ -48,17 +54,17 @@ class AgencyListingRequestControllerTest {
         jdbcTemplate.update("UPDATE property SET listing_request_id = NULL WHERE listing_request_id IS NOT NULL");
         jdbcTemplate.update("DELETE FROM listing_request");
         long agencyId = jdbcTemplate.queryForObject(
-                "INSERT INTO agency (name, email, phone, verified) VALUES (?, ?, '+34600000001', true) RETURNING id",
-                Long.class,
-                "Listing Test Agency",
-                "agency.listing-test@peephole.example");
+            "INSERT INTO agency (name, email, phone, verified) VALUES (?, ?, '+34600000001', true) RETURNING id",
+            Long.class,
+            "Listing Test Agency",
+            "agency.listing-test@peephole.example");
         jdbcTemplate.update(
-                "INSERT INTO agency_user (agency_id, full_name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)",
-                agencyId,
-                "Marta Ruiz",
-                EMAIL,
-                passwordEncoder.encode(PASSWORD),
-                "AGENT");
+            "INSERT INTO agency_user (agency_id, full_name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)",
+            agencyId,
+            "Marta Ruiz",
+            EMAIL,
+            passwordEncoder.encode(PASSWORD),
+            "AGENT");
     }
 
     // The list (D2)
@@ -68,16 +74,16 @@ class AgencyListingRequestControllerTest {
         long id = insertListingRequest("Ana Torres", "PENDING", TIME);
 
         list("").andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                // Contract: exactly the seven fields of the spec's example, in Madrid time
-                .andExpect(jsonPath("$[0].length()").value(7))
-                .andExpect(jsonPath("$[0].id").value(id))
-                .andExpect(jsonPath("$[0].ownerName").value("Ana Torres"))
-                .andExpect(jsonPath("$[0].title").value("Apartment in Gràcia"))
-                .andExpect(jsonPath("$[0].operation").value("RENT"))
-                .andExpect(jsonPath("$[0].priceEuros").value(1200))
-                .andExpect(jsonPath("$[0].createdAt").value("2099-03-10T10:00:00+01:00"))
-                .andExpect(jsonPath("$[0].status").value("PENDING"));
+            .andExpect(jsonPath("$.length()").value(1))
+            // Contract: exactly the seven fields of the spec's example, in Madrid time
+            .andExpect(jsonPath("$[0].length()").value(7))
+            .andExpect(jsonPath("$[0].id").value(id))
+            .andExpect(jsonPath("$[0].ownerName").value("Ana Torres"))
+            .andExpect(jsonPath("$[0].title").value("Apartment in Gràcia"))
+            .andExpect(jsonPath("$[0].operation").value("RENT"))
+            .andExpect(jsonPath("$[0].priceEuros").value(1200))
+            .andExpect(jsonPath("$[0].createdAt").value("2099-03-10T10:00:00+01:00"))
+            .andExpect(jsonPath("$[0].status").value("PENDING"));
     }
 
     @Test
@@ -87,17 +93,17 @@ class AgencyListingRequestControllerTest {
         long rejected = insertListingRequest("Laia Vidal", "REJECTED", TIME);
 
         list("?status=PENDING")
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].id").value(pending));
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].id").value(pending));
         list("?status=APPROVED")
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].id").value(approved));
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].id").value(approved));
         list("?status=REJECTED")
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].id").value(rejected));
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].id").value(rejected));
     }
 
     @Test
@@ -107,46 +113,149 @@ class AgencyListingRequestControllerTest {
         long middle = insertListingRequest("Laia Vidal", "REJECTED", TIME.minusDays(1));
 
         list("").andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(3))
-                .andExpect(jsonPath("$[0].id").value(newest))
-                .andExpect(jsonPath("$[1].id").value(middle))
-                .andExpect(jsonPath("$[2].id").value(oldest));
+            .andExpect(jsonPath("$.length()").value(3))
+            .andExpect(jsonPath("$[0].id").value(newest))
+            .andExpect(jsonPath("$[1].id").value(middle))
+            .andExpect(jsonPath("$[2].id").value(oldest));
     }
 
     @Test
     void rejectsAnUnknownStatus() throws Exception {
         list("?status=ARCHIVED")
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
     }
 
     @Test
     void returnsAnEmptyListWhenThereAreNoRequests() throws Exception {
         list("").andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(0));
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$.length()").value(0));
     }
 
     @Test
     void listRequiresASignedInUser() throws Exception {
         mockMvc.perform(get(PATH))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"));
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"));
+    }
+
+    // The details (D3)
+
+    @Test
+    void showsARequestInTheShapeOfTheSpec() throws Exception {
+        long id = insertListingRequest("Ana Torres", "REJECTED", TIME);
+        jdbcTemplate.update(
+            "UPDATE listing_request SET reviewed_at = ?, rejection_reason = ? WHERE id = ?",
+            TIME.plusDays(1),
+            "The address is outside Barcelona",
+            id);
+
+        details(id)
+            .andExpect(status().isOk())
+            // Contract: exactly the seventeen fields of the spec's example, in Madrid time
+            .andExpect(jsonPath("$.length()").value(17))
+            .andExpect(jsonPath("$.id").value(id))
+            .andExpect(jsonPath("$.status").value("REJECTED"))
+            .andExpect(jsonPath("$.ownerName").value("Ana Torres"))
+            .andExpect(jsonPath("$.ownerPhone").value("+34600000003"))
+            .andExpect(jsonPath("$.title").value("Apartment in Gràcia"))
+            .andExpect(jsonPath("$.description").value("A bright flat near the square"))
+            .andExpect(jsonPath("$.propertyType").value("APARTMENT"))
+            .andExpect(jsonPath("$.operation").value("RENT"))
+            .andExpect(jsonPath("$.area").value("Gràcia"))
+            .andExpect(jsonPath("$.address").value("Carrer de Verdi 2"))
+            .andExpect(jsonPath("$.priceEuros").value(1200))
+            .andExpect(jsonPath("$.bedrooms").value(3))
+            .andExpect(jsonPath("$.sizeM2").value(85))
+            .andExpect(jsonPath("$.floor").value(2))
+            .andExpect(jsonPath("$.createdAt").value("2099-03-10T10:00:00+01:00"))
+            .andExpect(jsonPath("$.reviewedAt").value("2099-03-11T10:00:00+01:00"))
+            .andExpect(jsonPath("$.rejectionReason").value("The address is outside Barcelona"));
+    }
+
+    @Test
+    void showsTheMissingValuesOfAPendingRequestAsNull() throws Exception {
+        long id = insertListingRequest("Ana Torres", "PENDING", TIME);
+        jdbcTemplate.update("UPDATE listing_request SET floor = NULL WHERE id = ?", id);
+
+        details(id)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(17))
+            .andExpect(jsonPath("$.floor").isEmpty())
+            .andExpect(jsonPath("$.reviewedAt").isEmpty())
+            .andExpect(jsonPath("$.rejectionReason").isEmpty());
+    }
+
+    @Test
+    void returnsNotFoundForAnUnknownRequest() throws Exception {
+        details(999_999_999L)
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+    }
+
+    @Test
+    void detailsRequireASignedInUser() throws Exception {
+        long id = insertListingRequest("Ana Torres", "PENDING", TIME);
+
+        mockMvc.perform(get(PATH + "/" + id))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"));
+    }
+
+    @Test
+    void neverLogsTheOwnerOfARequest(CapturedOutput output) throws Exception {
+        long id = insertListingRequest("Ana Torres", "PENDING", TIME);
+
+        details(id).andExpect(status().isOk());
+
+        assertThat(output).doesNotContain("600000003").doesNotContain("Ana Torres");
+    }
+
+    @Test
+    void neverPrintsTheOwnerOfARequest() {
+        ListingRequestDetailsResponse details = new ListingRequestDetailsResponse(
+            18,
+            "PENDING",
+            "Ana Torres",
+            "+34600000003",
+            "Apartment in Gràcia",
+            "A bright flat near the square",
+            "APARTMENT",
+            "RENT",
+            "Gràcia",
+            "Carrer de Verdi 2",
+            1200,
+            3,
+            85,
+            2,
+            TIME,
+            null,
+            null);
+
+        assertThat(details.toString())
+            .doesNotContain("Ana Torres")
+            .doesNotContain("600000003")
+            .doesNotContain("Carrer de Verdi");
     }
 
     private ResultActions list(String query) throws Exception {
         return mockMvc.perform(get(PATH + query).session(signIn()));
     }
 
+    private ResultActions details(long id) throws Exception {
+        return mockMvc.perform(get(PATH + "/" + id).session(signIn()));
+    }
+
     private MockHttpSession signIn() throws Exception {
         return (MockHttpSession) mockMvc.perform(post("/api/agency/session")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"" + EMAIL + "\",\"password\":\"" + PASSWORD + "\"}"))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getRequest()
-                .getSession(false);
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"" + EMAIL + "\",\"password\":\"" + PASSWORD + "\"}"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getRequest()
+            .getSession(false);
     }
 
     private long insertListingRequest(String ownerName, String status, OffsetDateTime createdAt) {
@@ -162,10 +271,10 @@ class AgencyListingRequestControllerTest {
     private long insertPhoneVerification() {
         phoneVerifications++;
         return jdbcTemplate.queryForObject(
-                "INSERT INTO phone_verification (purpose, phone_hash, vonage_request_id, status, check_attempts)"
-                        + " VALUES ('LISTING_REQUEST', ?, ?, 'VERIFIED', 1) RETURNING id",
-                Long.class,
-                "listing-test-hash-" + phoneVerifications,
-                "listing-test-request-" + phoneVerifications);
+            "INSERT INTO phone_verification (purpose, phone_hash, vonage_request_id, status, check_attempts)"
+                + " VALUES ('LISTING_REQUEST', ?, ?, 'VERIFIED', 1) RETURNING id",
+            Long.class,
+            "listing-test-hash-" + phoneVerifications,
+            "listing-test-request-" + phoneVerifications);
     }
 }

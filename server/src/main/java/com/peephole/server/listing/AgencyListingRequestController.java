@@ -2,6 +2,7 @@ package com.peephole.server.listing;
 
 import com.peephole.server.common.ProblemResponse;
 import com.peephole.server.config.OpenApiConfig;
+import com.peephole.server.listing.dto.ListingRequestDetailsResponse;
 import com.peephole.server.listing.dto.ListingRequestSummaryResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -53,5 +55,37 @@ class AgencyListingRequestController {
         @RequestParam(required = false)
         ListingRequestStatus status) {
         return service.list(status);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(
+        summary = "See a listing request",
+        description = "The owner's and the property's details, and the review once there is one. The owner's"
+            + " phone is personal data: it is shown here and never logged")
+    @SecurityRequirement(name = OpenApiConfig.AGENCY_SESSION)
+    @ApiResponse(responseCode = "200", description = "The listing request")
+    @ApiResponse(
+        responseCode = "400",
+        description = "VALIDATION_FAILED: the id is not a number",
+        content =
+        @Content(
+            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+            schema = @Schema(implementation = ProblemResponse.class)))
+    @ApiResponse(
+        responseCode = "401",
+        description = "AUTHENTICATION_REQUIRED: there is no session",
+        content =
+        @Content(
+            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+            schema = @Schema(implementation = ProblemResponse.class)))
+    @ApiResponse(
+        responseCode = "404",
+        description = "NOT_FOUND: there is no listing request with this id",
+        content =
+        @Content(
+            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+            schema = @Schema(implementation = ProblemResponse.class)))
+    ListingRequestDetailsResponse details(@PathVariable long id) {
+        return service.details(id);
     }
 }
