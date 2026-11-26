@@ -191,14 +191,14 @@ class ListingRequest {
     }
 
     record PropertyDetails(
-        String title,
-        String description,
-        PropertyType propertyType,
-        PropertyOperation operation,
-        String area,
-        String address,
-        int priceEuros,
-        short bedrooms,
-        int sizeM2,
-        Short floor) {}
+            String title,
+            String description,
+            PropertyType propertyType,
+            PropertyOperation operation,
+            String area,
+            String address,
+            int priceEuros,
+            short bedrooms,
+            int sizeM2,
+            Short floor) {}
 }

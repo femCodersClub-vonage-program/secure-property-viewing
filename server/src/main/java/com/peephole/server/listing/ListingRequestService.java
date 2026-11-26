@@ -36,10 +36,10 @@ class ListingRequestService {
     private final Clock clock;
 
     ListingRequestService(
-        ListingRequestRepository repository,
-        PhoneVerificationService phoneVerificationService,
-        PropertyService propertyService,
-        Clock clock) {
+            ListingRequestRepository repository,
+            PhoneVerificationService phoneVerificationService,
+            PropertyService propertyService,
+            Clock clock) {
         this.repository = repository;
         this.phoneVerificationService = phoneVerificationService;
         this.propertyService = propertyService;
@@ -55,44 +55,44 @@ class ListingRequestService {
         }
 
         ListingRequest listingRequest = new ListingRequest(
-            new ListingRequest.OwnerDetails(request.ownerName(), request.ownerPhone()),
-            new ListingRequest.PropertyDetails(
-                request.title(),
-                request.description(),
-                PropertyType.valueOf(request.propertyType()),
-                PropertyOperation.valueOf(request.operation()),
-                request.area(),
-                request.address(),
-                request.priceEuros(),
-                request.bedrooms().shortValue(),
-                request.sizeM2(),
-                request.floor() == null ? null : request.floor().shortValue()),
-            verificationId,
-            OffsetDateTime.now(clock));
+                new ListingRequest.OwnerDetails(request.ownerName(), request.ownerPhone()),
+                new ListingRequest.PropertyDetails(
+                        request.title(),
+                        request.description(),
+                        PropertyType.valueOf(request.propertyType()),
+                        PropertyOperation.valueOf(request.operation()),
+                        request.area(),
+                        request.address(),
+                        request.priceEuros(),
+                        request.bedrooms().shortValue(),
+                        request.sizeM2(),
+                        request.floor() == null ? null : request.floor().shortValue()),
+                verificationId,
+                OffsetDateTime.now(clock));
         try {
             listingRequest = repository.saveAndFlush(listingRequest);
         } catch (DataIntegrityViolationException exception) {
             throw mapConstraintViolation(exception);
         }
         return new ListingRequestResponse(
-            listingRequest.getId(), listingRequest.getStatus().name());
+                listingRequest.getId(), listingRequest.getStatus().name());
     }
 
     // Without a status, every request. The newest first in both cases
     @Transactional(readOnly = true)
     List<ListingRequestSummaryResponse> list(ListingRequestStatus status) {
         List<ListingRequest> requests = status == null
-            ? repository.findAllByOrderByCreatedAtDescIdDesc()
-            : repository.findAllByStatusOrderByCreatedAtDescIdDesc(status);
+                ? repository.findAllByOrderByCreatedAtDescIdDesc()
+                : repository.findAllByStatusOrderByCreatedAtDescIdDesc(status);
         return requests.stream().map(ListingRequestService::toSummary).toList();
     }
 
     @Transactional(readOnly = true)
     ListingRequestDetailsResponse details(long id) {
         return repository
-            .findById(id)
-            .map(ListingRequestService::toDetails)
-            .orElseThrow(ListingRequestNotFoundException::new);
+                .findById(id)
+                .map(ListingRequestService::toDetails)
+                .orElseThrow(ListingRequestNotFoundException::new);
     }
 
     // The property is published in the same transaction, so the request is never APPROVED without it
@@ -100,18 +100,18 @@ class ListingRequestService {
     ApprovedListingResponse approve(long id, long agencyId, long reviewerId) {
         ListingRequest request = pendingWithLock(id);
         long propertyId = propertyService.publish(new NewProperty(
-            agencyId,
-            request.getId(),
-            request.getTitle(),
-            request.getDescription(),
-            request.getOperation(),
-            request.getPropertyType(),
-            request.getPriceEuros(),
-            request.getArea(),
-            request.getAddress(),
-            request.getBedrooms(),
-            request.getSizeM2(),
-            request.getFloor()));
+                agencyId,
+                request.getId(),
+                request.getTitle(),
+                request.getDescription(),
+                request.getOperation(),
+                request.getPropertyType(),
+                request.getPriceEuros(),
+                request.getArea(),
+                request.getAddress(),
+                request.getBedrooms(),
+                request.getSizeM2(),
+                request.getFloor()));
         request.approve(reviewerId, OffsetDateTime.now(clock));
         return new ApprovedListingResponse(propertyId);
     }
@@ -134,34 +134,34 @@ class ListingRequestService {
 
     private static ListingRequestSummaryResponse toSummary(ListingRequest request) {
         return new ListingRequestSummaryResponse(
-            request.getId(),
-            request.getOwnerFullName(),
-            request.getTitle(),
-            request.getOperation().name(),
-            request.getPriceEuros(),
-            inAgencyZone(request.getCreatedAt()),
-            request.getStatus().name());
+                request.getId(),
+                request.getOwnerFullName(),
+                request.getTitle(),
+                request.getOperation().name(),
+                request.getPriceEuros(),
+                inAgencyZone(request.getCreatedAt()),
+                request.getStatus().name());
     }
 
     private static ListingRequestDetailsResponse toDetails(ListingRequest request) {
         return new ListingRequestDetailsResponse(
-            request.getId(),
-            request.getStatus().name(),
-            request.getOwnerFullName(),
-            request.getOwnerPhone(),
-            request.getTitle(),
-            request.getDescription(),
-            request.getPropertyType().name(),
-            request.getOperation().name(),
-            request.getArea(),
-            request.getAddress(),
-            request.getPriceEuros(),
-            request.getBedrooms(),
-            request.getSizeM2(),
-            request.getFloor() == null ? null : request.getFloor().intValue(),
-            inAgencyZone(request.getCreatedAt()),
-            inAgencyZone(request.getReviewedAt()),
-            request.getRejectionReason());
+                request.getId(),
+                request.getStatus().name(),
+                request.getOwnerFullName(),
+                request.getOwnerPhone(),
+                request.getTitle(),
+                request.getDescription(),
+                request.getPropertyType().name(),
+                request.getOperation().name(),
+                request.getArea(),
+                request.getAddress(),
+                request.getPriceEuros(),
+                request.getBedrooms(),
+                request.getSizeM2(),
+                request.getFloor() == null ? null : request.getFloor().intValue(),
+                inAgencyZone(request.getCreatedAt()),
+                inAgencyZone(request.getReviewedAt()),
+                request.getRejectionReason());
     }
 
     private static OffsetDateTime inAgencyZone(OffsetDateTime time) {
@@ -173,13 +173,13 @@ class ListingRequestService {
     private static RuntimeException mapConstraintViolation(DataIntegrityViolationException exception) {
         for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
             if (cause instanceof ConstraintViolationException violation
-                && Objects.equals(VERIFICATION_USED_CONSTRAINT, violation.getConstraintName())) {
+                    && Objects.equals(VERIFICATION_USED_CONSTRAINT, violation.getConstraintName())) {
                 return new PhoneVerificationInvalidException(PURPOSE);
             }
             if (cause instanceof SQLException sqlException
-                && "23505".equals(sqlException.getSQLState())
-                && sqlException.getMessage() != null
-                && sqlException.getMessage().contains(VERIFICATION_USED_CONSTRAINT)) {
+                    && "23505".equals(sqlException.getSQLState())
+                    && sqlException.getMessage() != null
+                    && sqlException.getMessage().contains(VERIFICATION_USED_CONSTRAINT)) {
                 return new PhoneVerificationInvalidException(PURPOSE);
             }
         }

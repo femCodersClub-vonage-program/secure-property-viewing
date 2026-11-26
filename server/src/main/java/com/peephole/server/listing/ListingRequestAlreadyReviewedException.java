@@ -7,8 +7,8 @@ class ListingRequestAlreadyReviewedException extends BusinessException {
 
     ListingRequestAlreadyReviewedException() {
         super(
-            HttpStatus.CONFLICT,
-            "LISTING_REQUEST_ALREADY_REVIEWED",
-            "The listing request has already been approved or rejected.");
+                HttpStatus.CONFLICT,
+                "LISTING_REQUEST_ALREADY_REVIEWED",
+                "The listing request has already been approved or rejected.");
     }
 }
