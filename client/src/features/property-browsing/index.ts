@@ -6,6 +6,7 @@ export { default as PropertyMap } from './components/PropertyMap'
 export { default as VerificationBadge } from './components/VerificationBadge'
 export { getProperties, getPropertyById } from './api'
 export { formatBedrooms } from './bedrooms'
+export { formatPrice } from './price'
 export type {
   PropertySummary,
   PropertyDetail,
