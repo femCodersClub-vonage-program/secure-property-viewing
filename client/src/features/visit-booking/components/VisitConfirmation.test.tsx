@@ -65,9 +65,14 @@ describe('VisitConfirmation', () => {
     ).toBeInTheDocument()
   })
 
-  it('does not mention the SMS confirmation until the messages feature sends it', () => {
+  it('tells the visitor that the SMS confirmation is on its way, without a link', () => {
     render(<VisitConfirmation visit={bookedFromSpec} />)
 
-    expect(screen.queryByText(/SMS/)).not.toBeInTheDocument()
+    expect(screen.getByText('By SMS')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'A confirmation with these details is on its way to your phone. It never includes a link.',
+      ),
+    ).toBeInTheDocument()
   })
 })

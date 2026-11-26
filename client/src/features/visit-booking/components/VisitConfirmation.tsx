@@ -1,4 +1,4 @@
-import { CalendarDays, MapPin, Phone, type LucideIcon } from 'lucide-react'
+import { CalendarDays, MapPin, MessageSquareText, Phone, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Card } from '../../../components/ui'
 import { dayLabel, madridDay, madridTime } from '../calendar'
@@ -55,6 +55,12 @@ function VisitConfirmation({ visit, photo }: Props) {
             </Detail>
             <Detail icon={MapPin} term="Address">
               <dd>{visit.property.address}</dd>
+            </Detail>
+            <Detail icon={MessageSquareText} term="By SMS">
+              <dd>
+                A confirmation with these details is on its way to your phone. It never includes a
+                link.
+              </dd>
             </Detail>
             <Detail icon={Phone} term="After the visit">
               <dd>Peephole will call you with one safety question. Answer with your keypad.</dd>
