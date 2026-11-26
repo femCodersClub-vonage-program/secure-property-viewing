@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError, SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
@@ -119,7 +119,55 @@ describe('ListingRequests', () => {
     expect(await screen.findByText('No approved requests')).toBeInTheDocument()
   })
 
-  it('opens on the tab in the address, so Back from the details returns to it', async () => {
+  it('says the new tab is loading, without the rows of the tab it left', async () => {
+    // The Approved answer waits until the test sends it, so the moment in between can be checked
+    let answerApproved: (requests: ListingRequestSummary[]) => void = () => {}
+    getListingRequestsMock.mockImplementation((status) =>
+      status === 'APPROVED'
+        ? new Promise((resolve) => {
+            answerApproved = resolve
+          })
+        : Promise.resolve([pending]),
+    )
+    renderAt()
+    await screen.findByRole('table', { name: 'Pending requests' })
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Approved' }))
+
+    expect(screen.getByRole('status')).toHaveTextContent('Loading approved requests…')
+    expect(screen.queryByRole('link', { name: 'Apartment in Gràcia' })).not.toBeInTheDocument()
+
+    await act(async () => {
+      answerApproved([approved])
+    })
+
+    expect(screen.getByRole('table', { name: 'Approved requests' })).toBeInTheDocument()
+  })
+
+  it('ignores a late answer for the tab the agent left', async () => {
+    // The Pending answer arrives after the agent has already moved to Approved
+    let answerPending: (requests: ListingRequestSummary[]) => void = () => {}
+    getListingRequestsMock.mockImplementation((status) =>
+      status === 'PENDING'
+        ? new Promise((resolve) => {
+            answerPending = resolve
+          })
+        : Promise.resolve([approved]),
+    )
+    renderAt()
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Approved' }))
+    await screen.findByRole('table', { name: 'Approved requests' })
+
+    await act(async () => {
+      answerPending([pending])
+    })
+
+    expect(screen.getByRole('table', { name: 'Approved requests' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Apartment in Gràcia' })).not.toBeInTheDocument()
+  })
+
+  it("opens on the tab in the address, as after the browser's Back from the details", async () => {
     getListingRequestsMock.mockResolvedValue([])
     renderAt('/agency/listing-requests?status=REJECTED')
 
