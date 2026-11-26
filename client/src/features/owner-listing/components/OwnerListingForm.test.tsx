@@ -415,7 +415,7 @@ describe('owner listing form', () => {
     expect(screen.queryByText(SYSTEM_ERROR_MESSAGE)).not.toBeInTheDocument()
   })
 
-  it('says what to do when the server rejects the request without naming a field', async () => {
+  it('shows the message of the server, with a new verification, when it names no known field', async () => {
     serveVerification()
     serve('POST /api/listing-requests', () =>
       json(
@@ -424,7 +424,7 @@ describe('owner listing form', () => {
           status: 400,
           detail: 'The request body is invalid.',
           code: 'VALIDATION_FAILED',
-          errors: {},
+          errors: { phoneVerificationId: 'Verify your phone again.' },
         },
         400,
       ),
@@ -434,9 +434,11 @@ describe('owner listing form', () => {
     await fillPropertyDetails()
     await verifyPhone()
 
-    const message = await screen.findByText(/check your property details/)
+    const message = await screen.findByText('The request body is invalid.')
     expect(message.closest('[tabindex="-1"]')).toHaveFocus()
     expect(screen.getByText('Step 3 of 3: Verification')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Send code' })).toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: 'Code from the SMS' })).not.toBeInTheDocument()
   })
 })
 

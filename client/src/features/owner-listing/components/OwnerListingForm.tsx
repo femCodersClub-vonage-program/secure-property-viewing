@@ -30,9 +30,6 @@ import StepIndicator from './StepIndicator'
 
 const pageHeading = 'font-display text-3xl font-bold text-balance text-brand-dark'
 
-const UNKNOWN_FIELD_MESSAGE =
-  "We couldn't send your request. Go back and check your property details, especially very large numbers, then verify your phone again."
-
 type Props = {
   resumedCheck?: ResumedSilentCheck
 }
@@ -131,14 +128,12 @@ function OwnerListingForm({ resumedCheck }: Props) {
       // Each message goes next to its field, on the step where that field is
       const found = fromServerErrors(error.fieldErrors)
       setErrors(found)
-      // With no field to point at, the owner stays here and reads what to do
-      if (Object.keys(found).length === 0) {
-        setNotice(UNKNOWN_FIELD_MESSAGE)
+      // With no field to point at, the owner stays here and reads the server's message
+      if (Object.keys(found).length > 0) {
+        const ownerFieldFailed = OWNER_FIELDS.some((field) => found[field] !== undefined)
+        goTo(ownerFieldFailed ? 'details' : 'property')
         return
       }
-      const ownerFieldFailed = OWNER_FIELDS.some((field) => found[field] !== undefined)
-      goTo(ownerFieldFailed ? 'details' : 'property')
-      return
     }
     setNotice(error.message)
   }
