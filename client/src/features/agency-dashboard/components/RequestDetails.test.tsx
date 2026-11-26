@@ -160,7 +160,10 @@ describe('RequestDetails', () => {
 
     fireEvent.click(button('Approve and publish'))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Request approved and published.')
+    const notice = await screen.findByRole('alert')
+    expect(notice).toHaveTextContent('Request approved and published.')
+    // Green like the Approved badge: the success variant of Alert
+    expect(notice).toHaveClass('text-success')
     expect(approveMock).toHaveBeenCalledWith(18)
     expect(screen.getByRole('heading', { level: 1, name: 'Apartment in Gràcia' })).toHaveFocus()
     expect(button('Approve and publish')).toHaveAccessibleDescription(
@@ -192,7 +195,11 @@ describe('RequestDetails', () => {
     fireEvent.change(reason, { target: { value: '  Duplicated listing  ' } })
     fireEvent.click(button('Reject request'))
 
-    expect(await screen.findByText('Request rejected.')).toBeInTheDocument()
+    const notice = await screen.findByRole('alert')
+    expect(notice).toHaveTextContent('Request rejected.')
+    // Neutral like the Rejected badge, never the error red: the info variant of Alert
+    expect(notice).toHaveClass('text-text-default')
+    expect(notice).not.toHaveClass('text-error')
     expect(rejectMock).toHaveBeenCalledWith(18, 'Duplicated listing')
     expect(button('Reject')).toHaveAccessibleDescription('This request was already rejected')
   })

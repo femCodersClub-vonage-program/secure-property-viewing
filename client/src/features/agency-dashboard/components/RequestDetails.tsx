@@ -114,7 +114,9 @@ function RequestDetails({ id }: { id: number }) {
         ? { status: 'ready', request: { ...current.request, status } }
         : current,
     )
-    showNotice({ variant: 'success', text })
+    // The message takes the color of the status badge: green for an approval, and neutral for a
+    // rejection, which is a decision and not an error (docs/design-system.md → Status badges)
+    showNotice({ variant: status === 'APPROVED' ? 'success' : 'info', text })
     setAttempt((count) => count + 1)
   }
 
