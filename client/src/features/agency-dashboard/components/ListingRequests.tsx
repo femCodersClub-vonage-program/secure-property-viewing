@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router'
 import { Alert, Button, Card, Link } from '../../../components/ui'
 import { formatPrice } from '../../property-browsing'
 import { errorMessage, isListingRequestStatus, isSignedOut } from '../api'
+import { OPERATION_LABEL } from '../listingRequestLabels'
 // Sample data until the endpoints of #57 are in dev: then this import becomes '../api'
 import { getListingRequests } from '../listingRequestsSample'
 import type { ListingRequestStatus, ListingRequestSummary } from '../types'
@@ -44,8 +45,6 @@ const TAB_TEXT: Record<ListingRequestStatus, { caption: string; loading: string;
       empty: 'No rejected requests',
     },
   }
-
-const OPERATION_LABEL = { RENT: 'Rent', SALE: 'Sale' } as const
 
 const columns: Column<ListingRequestSummary>[] = [
   { header: 'Owner', cell: (request) => request.ownerName },
