@@ -35,7 +35,6 @@ export const routes: RouteObject[] = [
       { path: '/visits/:id/confirmation', element: <VisitConfirmationPage /> },
       // Where the mobile operator sends the person back after the silent check
       { path: '/verification/return', element: <VerificationReturnPage /> },
-      { path: '/list-property/form', element: <OwnerListingFormPage /> },
       { path: LIST_PROPERTY_PATH, element: <ListPropertyPage /> },
       { path: LISTING_FORM_PATH, element: <OwnerListingFormPage /> },
       { path: LISTING_SUBMITTED_PATH, element: <ListingSubmittedPage /> },
