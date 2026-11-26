@@ -139,6 +139,14 @@ The response also carries `alerts`, the visits where the visitor reported being 
 
 `POST /api/agency/listing-requests/{id}/approve` returns `200` with `{ "propertyId": 13 }`. `POST /api/agency/listing-requests/{id}/reject` receives `{ "reason": "..." }` and returns `200` with `{ "id": 18, "status": "REJECTED" }`. Both return `409 LISTING_REQUEST_ALREADY_REVIEWED` if the request was already approved or rejected.
 
+Decided with the tech lead in [#57](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/57):
+
+- The list shows the newest requests first, with or without the status filter
+- Approving or rejecting saves the signed-in agent in `reviewed_by` and the time in `reviewed_at`. The request is locked while it is reviewed, so when two agents review it at once, the second gets the `409`
+- The approved property belongs to the agent's agency and has `video_visit_available` set to `false`, because it has no visit slots yet, so it never offers an empty calendar
+- The rejection reason is required and trimmed, with up to 1,000 characters. A missing, blank or longer one returns `400 VALIDATION_FAILED`
+- An unknown request returns `404 NOT_FOUND` in the details and in both reviews, like an unknown property
+
 `GET /api/agency/visits?from=2026-11-23&to=2026-11-29`, ordered by start time:
 
 ```json
