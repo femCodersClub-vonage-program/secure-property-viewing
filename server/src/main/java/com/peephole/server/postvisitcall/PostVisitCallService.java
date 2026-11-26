@@ -99,7 +99,9 @@ public class PostVisitCallService {
      */
     @Transactional
     String recordKey(long callId, KeyInput input) {
-        Optional<PostVisitCall> found = lock(callId).filter(call -> call.belongsTo(input.callUuid()));
+        // Vonage may leave out the uuid when the key times out; the callId we put in the eventUrl still names the call
+        Optional<PostVisitCall> found =
+                lock(callId).filter(call -> input.callUuid() == null || call.belongsTo(input.callUuid()));
         if (found.isEmpty()) {
             LOGGER.warn("Ignored a key for post-visit call {}, which doesn't match any call", callId);
             return PostVisitCallTexts.NO_VALID_KEY;
