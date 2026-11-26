@@ -27,9 +27,9 @@ describe('listing request details sample', () => {
   })
 
   it('answers one request by its id', async () => {
-    await expect(sample.getListingRequest(18)).resolves.toMatchObject({
-      id: 18,
-      title: 'Apartment in Gràcia',
+    await expect(sample.getListingRequest(900001)).resolves.toMatchObject({
+      id: 900001,
+      title: 'Bright flat near Plaça del Sol',
       status: 'PENDING',
     })
   })
@@ -43,7 +43,7 @@ describe('listing request details sample', () => {
 
   it('fails like fetch when the screen cancels the call', async () => {
     const controller = new AbortController()
-    const call = sample.getListingRequest(18, controller.signal)
+    const call = sample.getListingRequest(900001, controller.signal)
 
     controller.abort()
 
@@ -51,15 +51,17 @@ describe('listing request details sample', () => {
   })
 
   it('approves a pending request once, and answers 409 the second time', async () => {
-    await expect(sample.approveListingRequest(18)).resolves.toEqual({
+    await expect(sample.approveListingRequest(900001)).resolves.toEqual({
       propertyId: expect.any(Number),
     })
 
-    const approved = await sample.getListingRequest(18)
+    const approved = await sample.getListingRequest(900001)
     expect(approved.status).toBe('APPROVED')
     expect(approved.reviewedAt).not.toBeNull()
 
-    const error: unknown = await sample.approveListingRequest(18).catch((caught: unknown) => caught)
+    const error: unknown = await sample
+      .approveListingRequest(900001)
+      .catch((caught: unknown) => caught)
     expect(api.isAlreadyReviewed(error)).toBe(true)
     expect(api.errorMessage(error)).toBe(
       'The listing request has already been approved or rejected.',
@@ -67,35 +69,35 @@ describe('listing request details sample', () => {
   })
 
   it('rejects a pending request with the trimmed reason, and answers 409 the second time', async () => {
-    await expect(sample.rejectListingRequest(21, '  Duplicated listing  ')).resolves.toEqual({
-      id: 21,
+    await expect(sample.rejectListingRequest(900002, '  Duplicated listing  ')).resolves.toEqual({
+      id: 900002,
       status: 'REJECTED',
     })
 
-    const rejected = await sample.getListingRequest(21)
+    const rejected = await sample.getListingRequest(900002)
     expect(rejected).toMatchObject({ status: 'REJECTED', rejectionReason: 'Duplicated listing' })
     expect(rejected.reviewedAt).not.toBeNull()
 
     const error: unknown = await sample
-      .rejectListingRequest(21, 'Again')
+      .rejectListingRequest(900002, 'Again')
       .catch((caught: unknown) => caught)
     expect(api.isAlreadyReviewed(error)).toBe(true)
   })
 
   it('refuses a blank reason and leaves the request pending', async () => {
     const error: unknown = await sample
-      .rejectListingRequest(18, '   ')
+      .rejectListingRequest(900001, '   ')
       .catch((caught: unknown) => caught)
 
     expect(api.isInvalidReason(error)).toBe(true)
-    await expect(sample.getListingRequest(18)).resolves.toMatchObject({ status: 'PENDING' })
+    await expect(sample.getListingRequest(900001)).resolves.toMatchObject({ status: 'PENDING' })
   })
 
   it('refuses a reason longer than the server accepts', async () => {
     const tooLong = 'x'.repeat(api.REJECTION_REASON_MAX_LENGTH + 1)
 
     const error: unknown = await sample
-      .rejectListingRequest(18, tooLong)
+      .rejectListingRequest(900001, tooLong)
       .catch((caught: unknown) => caught)
 
     expect(api.isInvalidReason(error)).toBe(true)
@@ -104,8 +106,10 @@ describe('listing request details sample', () => {
   it('accepts the longest reason once the spaces around it are trimmed', async () => {
     const longest = 'x'.repeat(api.REJECTION_REASON_MAX_LENGTH)
 
-    await sample.rejectListingRequest(18, `  ${longest} `)
+    await sample.rejectListingRequest(900001, `  ${longest} `)
 
-    await expect(sample.getListingRequest(18)).resolves.toMatchObject({ rejectionReason: longest })
+    await expect(sample.getListingRequest(900001)).resolves.toMatchObject({
+      rejectionReason: longest,
+    })
   })
 })
