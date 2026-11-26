@@ -91,7 +91,7 @@ describe('validatePropertyDetails', () => {
 
   it.each(['', '0', '-5', '1200.50', 'abc'])('rejects the price "%s"', (price) => {
     expect(validatePropertyDetails({ ...validForm, priceEuros: price }).priceEuros).toBe(
-      'Enter a price greater than 0, in whole euros.',
+      'Enter the price in whole euros, from 1 to 2147483647, digits only, such as 250000.',
     )
   })
 
@@ -144,6 +144,33 @@ describe('validatePropertyDetails', () => {
   it.each(['-6', '101'])('rejects the floor %s, past the limit', (floor) => {
     expect(Object.keys(validatePropertyDetails({ ...validForm, floor }))).toEqual(['floor'])
   })
+
+  it.each([
+    ['priceEuros', '250.000'],
+    ['priceEuros', '1e3'],
+    ['priceEuros', '0x10'],
+    ['sizeM2', '1.000'],
+    ['sizeM2', '1e2'],
+    ['sizeM2', '0x10'],
+    ['bedrooms', '2.0'],
+    ['bedrooms', '1e1'],
+    ['bedrooms', '0x2'],
+    ['floor', '2.0'],
+    ['floor', '1e1'],
+    ['floor', '0x2'],
+    ['floor', '+2'],
+  ] as const)('rejects a %s written as "%s", not in digits only', (field, value) => {
+    expect(Object.keys(validatePropertyDetails({ ...validForm, [field]: value }))).toEqual([field])
+  })
+
+  it.each(['priceEuros', 'sizeM2'] as const)(
+    'accepts a %s up to the largest number the server holds',
+    (field) => {
+      expect(validatePropertyDetails({ ...validForm, [field]: '2147483647' })).toEqual({})
+      const errors = validatePropertyDetails({ ...validForm, [field]: '2147483648' })
+      expect(Object.keys(errors)).toEqual([field])
+    },
+  )
 
   it('rejects a description longer than 5,000 characters', () => {
     const errors = validatePropertyDetails({ ...validForm, description: 'a'.repeat(5001) })

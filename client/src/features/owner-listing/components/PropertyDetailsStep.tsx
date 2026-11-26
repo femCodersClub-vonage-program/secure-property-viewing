@@ -21,9 +21,10 @@ const PROPERTY_TYPES: Choice<PropertyType>[] = [
 // The spec: €/month for rent and € for sale
 function priceText(operation: ListingFormData['operation']) {
   if (operation === 'RENT')
-    return { label: 'Price (€/month)', hint: 'Monthly rent, in whole euros.' }
-  if (operation === 'SALE') return { label: 'Price (€)', hint: 'Sale price, in whole euros.' }
-  return { label: 'Price', hint: 'Choose rent or sale above, then the price in whole euros.' }
+    return { label: 'Price (€/month)', hint: 'Monthly rent in whole euros, digits only.' }
+  if (operation === 'SALE')
+    return { label: 'Price (€)', hint: 'Sale price in whole euros, digits only, such as 250000.' }
+  return { label: 'Price', hint: 'Choose rent or sale above, then the price in digits only.' }
 }
 
 type Props = {
@@ -189,7 +190,7 @@ function PropertyDetailsStep({ data, errors, onChange, onBack, onContinue }: Pro
             <FormField
               id="listing-size"
               label="Size (m²)"
-              hint="Usable area, in whole square meters."
+              hint="Usable area in whole square meters, digits only."
               error={errors.sizeM2}
             >
               {(props) => (

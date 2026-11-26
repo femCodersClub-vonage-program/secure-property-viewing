@@ -186,9 +186,10 @@ describe('owner listing form', () => {
       Description: 'Enter a description.',
       Neighborhood: 'Enter the neighborhood.',
       Address: 'Enter the address.',
-      Price: 'Enter a price greater than 0, in whole euros.',
-      'Size (m²)': 'Enter the size in whole square meters, greater than 0.',
-      Bedrooms: 'Enter a whole number of bedrooms from 0 to 50. A studio has 0.',
+      Price: 'Enter the price in whole euros, from 1 to 2147483647, digits only, such as 250000.',
+      'Size (m²)':
+        'Enter the size in whole square meters, from 1 to 2147483647, digits only, such as 85.',
+      Bedrooms: 'Enter the number of bedrooms from 0 to 50, digits only. A studio has 0.',
     }
     for (const [name, message] of Object.entries(messages)) {
       expect(screen.getByRole('textbox', { name })).toHaveAccessibleDescription(

@@ -19,6 +19,11 @@ const E164_NUMBER = /^\+[1-9]\d{6,14}$/
 // Phones often type the typographic apostrophe ’ (U+2019) instead of '
 const NAME_CHARACTERS = /^[\p{L}\p{M}\s'\u2019.-]+$/u
 
+const DIGITS = /^\d+$/
+const SIGNED_DIGITS = /^-?\d+$/
+// The largest value of the server's Java Integer, which holds the price and the size
+const MAX_SERVER_INTEGER = 2147483647
+
 /** The phone in E.164, such as +34612987654, or undefined when it is not valid. */
 export function toE164Phone(value: string): string | undefined {
   // People type spaces, dashes, dots or brackets, and sometimes 00 instead of +
@@ -41,10 +46,11 @@ function checkText(value: string, maxLength: number, label: string): string | un
   return undefined
 }
 
-// Number('') is 0, so an empty field has to be checked first
-function isWholeNumberBetween(value: string, min: number, max = Number.MAX_SAFE_INTEGER): boolean {
-  const number = Number(value)
-  return value.trim() !== '' && Number.isInteger(number) && number >= min && number <= max
+// Number() also reads "1e3", "0x10" and "250.000" (as 250), so the text is checked first
+function isWholeNumberBetween(value: string, min: number, max: number, pattern = DIGITS): boolean {
+  const text = value.trim()
+  const number = Number(text)
+  return pattern.test(text) && number >= min && number <= max
 }
 
 /** B2: the owner's details. */
@@ -84,18 +90,18 @@ export function validatePropertyDetails(data: ListingFormData): ListingFieldErro
   if (data.propertyType === '') errors.propertyType = 'Choose the property type.'
   if (data.operation === '') errors.operation = 'Choose rent or sale.'
 
-  if (!isWholeNumberBetween(data.priceEuros, 1)) {
-    errors.priceEuros = 'Enter a price greater than 0, in whole euros.'
+  if (!isWholeNumberBetween(data.priceEuros, 1, MAX_SERVER_INTEGER)) {
+    errors.priceEuros = `Enter the price in whole euros, from 1 to ${MAX_SERVER_INTEGER}, digits only, such as 250000.`
   }
   if (!isWholeNumberBetween(data.bedrooms, 0, 50)) {
-    errors.bedrooms = 'Enter a whole number of bedrooms from 0 to 50. A studio has 0.'
+    errors.bedrooms = 'Enter the number of bedrooms from 0 to 50, digits only. A studio has 0.'
   }
-  if (!isWholeNumberBetween(data.sizeM2, 1)) {
-    errors.sizeM2 = 'Enter the size in whole square meters, greater than 0.'
+  if (!isWholeNumberBetween(data.sizeM2, 1, MAX_SERVER_INTEGER)) {
+    errors.sizeM2 = `Enter the size in whole square meters, from 1 to ${MAX_SERVER_INTEGER}, digits only, such as 85.`
   }
   // Optional: only checked when the owner wrote something
-  if (data.floor.trim() !== '' && !isWholeNumberBetween(data.floor, -5, 100)) {
-    errors.floor = 'Enter a floor from -5 to 100, or leave it empty.'
+  if (data.floor.trim() !== '' && !isWholeNumberBetween(data.floor, -5, 100, SIGNED_DIGITS)) {
+    errors.floor = 'Enter a floor from -5 to 100, digits only, or leave it empty.'
   }
   return errors
 }
