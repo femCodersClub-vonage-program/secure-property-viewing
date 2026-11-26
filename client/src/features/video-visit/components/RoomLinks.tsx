@@ -25,7 +25,7 @@ type LinkState =
   | { status: 'error'; message: string; byClick: boolean }
   | { status: 'ready'; url: string; byClick: boolean }
 
-const sectionHeading = 'font-display text-2xl font-bold text-balance text-brand-dark'
+const sectionHeading = 'font-display text-xl font-semibold text-balance text-brand-dark'
 
 function errorMessage(error: unknown): string {
   if (error instanceof ApiError && error.code === 'VIDEO_INVITE_LIMIT_REACHED') {
@@ -91,7 +91,7 @@ function RoomLinks({ visitId, opensAt, createdBefore, onFirstVisitorLink }: Prop
     <>
       <section aria-labelledby="visitor-link-heading" className="flex flex-col gap-3">
         <h2 id="visitor-link-heading" className={sectionHeading}>
-          Your link to the video visit
+          Your link to the visit
         </h2>
         <p
           role="status"
@@ -106,7 +106,7 @@ function RoomLinks({ visitId, opensAt, createdBefore, onFirstVisitorLink }: Prop
         {visitor.status === 'ready' ? (
           <>
             <p className="font-body text-text-default">
-              This link is your only way into the room. Save it now: we can't send it to you again.
+              Save it now: it's your only way in, and we can't send it again.
             </p>
             <CopyableLink
               id="visitor-link"
@@ -146,8 +146,7 @@ function RoomLinks({ visitId, opensAt, createdBefore, onFirstVisitorLink }: Prop
         )}
         <p className="flex gap-2 font-body text-sm text-text-muted">
           <Clock aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-          The room opens at {opensAt}, {OPENS_MINUTES_BEFORE} minutes before your visit, so you can
-          check your camera. The agent joins from the agency's side.
+          The room opens at {opensAt}, {OPENS_MINUTES_BEFORE} minutes before your visit.
         </p>
       </section>
 
@@ -156,13 +155,12 @@ function RoomLinks({ visitId, opensAt, createdBefore, onFirstVisitorLink }: Prop
         className="flex flex-col gap-3 border-t border-border pt-6"
       >
         <h2 id="guest-link-heading" className={sectionHeading}>
-          Invite others to the visit
+          Invite others
         </h2>
         {guest.status === 'ready' ? (
           <>
             <p className="font-body text-text-default">
-              Share this link with everyone you want in the call. They join as guests, with no
-              account.
+              Share it with everyone you want in the call. They don't need an account.
             </p>
             <CopyableLink
               id="guest-link"
@@ -178,7 +176,7 @@ function RoomLinks({ visitId, opensAt, createdBefore, onFirstVisitorLink }: Prop
             <p className="font-body text-text-default">
               {createdBefore
                 ? 'If you already shared a link, it still works. Need one again? Get a new link to share: everyone who uses it joins the same call as a guest.'
-                : "Want the people you'll live with, or anyone else, to see the property with you? Get one link and share it with all of them. Everyone who uses it joins the same call as a guest."}
+                : 'One link for everyone you want in the call.'}
             </p>
             {guest.status === 'error' ? <Alert variant="error">{guest.message}</Alert> : null}
             <Button

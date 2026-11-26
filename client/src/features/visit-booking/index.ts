@@ -1,5 +1,6 @@
 export { addDays, dayLabel, dayToDate, madridDay, madridTime } from './calendar'
 export { default as ConfirmationUnavailable } from './components/ConfirmationUnavailable'
+export { default as VisitBookedHeader } from './components/VisitBookedHeader'
 export { default as VisitBooking } from './components/VisitBooking'
 export { default as VisitConfirmation } from './components/VisitConfirmation'
 export { readConfirmationState, type VisitConfirmationState } from './confirmationState'

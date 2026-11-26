@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+import VisitBookedHeader from './VisitBookedHeader'
 import VisitConfirmation from './VisitConfirmation'
 
 // Shaped as in specs/visit-booking.md, "API": response 201 of POST /api/visits. It comes in UTC
@@ -27,29 +28,51 @@ describe('VisitConfirmation', () => {
     expect(screen.getByText('11:00 to 11:30, Madrid time')).toBeInTheDocument()
   })
 
-  it('thanks the visitor by name and moves the focus to the heading', () => {
+  it('shows the photo of the property when the calendar passed it on', () => {
+    render(
+      <VisitConfirmation
+        visit={bookedFromSpec}
+        photo={{ url: '/properties/property-01-cover.webp', altText: 'Bright bedroom' }}
+      />,
+    )
+
+    expect(screen.getByRole('img', { name: 'Bright bedroom' })).toHaveAttribute(
+      'src',
+      '/properties/property-01-cover.webp',
+    )
+  })
+
+  it('shows the visit without a photo when there is none', () => {
     render(<VisitConfirmation visit={bookedFromSpec} />)
+
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    expect(screen.getByText('Bright apartment in Gràcia')).toBeInTheDocument()
+  })
+
+  it('thanks the visitor by name and moves the focus to the heading', () => {
+    render(<VisitBookedHeader visitorName="Laura Gómez" />)
 
     const heading = screen.getByRole('heading', { level: 1, name: 'Your video visit is booked' })
     expect(heading).toHaveFocus()
-    expect(
-      screen.getByText('Thank you, Laura Gómez. An agent will show you the property live.'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Thank you, Laura Gómez.')).toBeInTheDocument()
   })
 
   it('tells the visitor about the safety call after the visit', () => {
     render(<VisitConfirmation visit={bookedFromSpec} />)
 
     expect(
-      screen.getByText(
-        "After the visit, Peephole will call you with one safety question. Answer with your phone's keypad.",
-      ),
+      screen.getByText('Peephole will call you with one safety question. Answer with your keypad.'),
     ).toBeInTheDocument()
   })
 
-  it('does not mention the SMS confirmation until the messages feature sends it', () => {
+  it('tells the visitor that the SMS confirmation is on its way, without a link', () => {
     render(<VisitConfirmation visit={bookedFromSpec} />)
 
-    expect(screen.queryByText(/SMS/)).not.toBeInTheDocument()
+    expect(screen.getByText('By SMS')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'A confirmation with these details is on its way to your phone. It never includes a link.',
+      ),
+    ).toBeInTheDocument()
   })
 })

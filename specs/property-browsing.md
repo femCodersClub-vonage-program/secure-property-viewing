@@ -20,22 +20,33 @@ People looking for an apartment arrive at Peephole wary of scams. The home page,
 Home page (A1):
 
 - [ ] It shows the headline, a link to the catalog, an entry point to "List my property" and the three trust points: verified agencies, video visits and secure communication
+- [ ] It shows up to four properties from `GET /api/properties`, the first two rentals and the first two sales with a photo, with links to the catalog for rent, for sale and complete. Its loading, empty and error states never hide the rest of the page
+- [ ] It explains the visit in four steps, each with the scam it stops: choosing a property, verifying the phone, the video visit and the [post-visit call](post-visit-call.md)
+- [ ] A section for owners repeats the entry point to "List my property"
 
 Catalog (A2):
 
 - [ ] It lists the active properties from `GET /api/properties`, each card with photo, title, neighborhood, price, bedrooms, size and the verified agency badge
 - [ ] The visitor can filter by all, rent or sale, and the filter is kept in the URL so a filtered catalog can be shared
+- [ ] The filters and the number of properties found stay on screen while the visitor scrolls
+- [ ] It shows 8 properties, and "Show more" adds 8 more each time. The map always has them all
 - [ ] A map of Barcelona next to the list shows one pin per property with coordinates. Selecting a pin shows the title and price, with a link to the details
 - [ ] It shows a loading state, an empty state with a way to clear the filters, and an error state with a way to try again
 
 Property details (A3):
 
 - [ ] It shows the photo gallery, title, price, neighborhood, bedrooms, size, floor, description, the verified agency badge and whether video visits are available
-- [ ] "Request a video visit" leads to journey A step 4
+- [ ] "Request a video visit" leads to journey A step 4. A property without video visits says so instead
+- [ ] It reminds the visitor never to pay anything before signing a contract
 - [ ] A property that does not exist shows a not found page with a way back to the catalog
 
 All three screens:
 
+- [ ] Motion on scroll is decorative, stops with `prefers-reduced-motion` and never hides content in a browser without it
+- [ ] A header, the same on every public page except the video room, links to the home page, the catalog, the "How it works" section and the agency sign-in, and marks the current page
+- [ ] A footer, on the same pages, says that the properties and the agency are fictional, repeats the main links, adds "List my property" and links the team to LinkedIn
+- [ ] A "Back to top" button, on the same pages, appears once the visitor has scrolled a whole screen
+- [ ] A link opens the next page at the top, and "How it works" opens the home page at that section
 - [ ] They use only design system components and tokens
 - [ ] They work with the keyboard alone, at 320 px wide and at 200% zoom
 - [ ] Every photo has the alternative text from the API, and gallery controls have accessible names and support keyboard use with visible focus
@@ -106,6 +117,7 @@ None.
 
 ### Client
 
+- A `public-site` feature with the header, the footer and the sections of the home page that have no data
 - Pages in `src/pages/` for the home page, the catalog and the details, registered in `routes.tsx`
 - A `property-browsing` feature with its `api.ts`, types and components, following the folder rules in `client/AGENTS.md`
 - The map uses `leaflet` with OpenStreetMap tiles, in issue #30. Coordinates are approximate, at neighborhood level, because the full address is only shown after booking a visit

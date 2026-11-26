@@ -13,7 +13,7 @@ Each color is used only in the role listed here. Never swap roles or add colors 
 | `--color-brand-primary` | `#92189E` | Primary buttons, active states, focus ring |
 | `--color-brand-secondary` | `#503454` | Supporting UI, secondary text |
 | `--color-brand-dark` | `#23122B` | Headings (h1, h2, h3), navbar, dark surfaces |
-| `--color-brand-accent` | `#FF0090` | Logo icon, decorative dots on dark backgrounds |
+| `--color-brand-accent` | `#FF0090` | Logo icon, decorative dots and icons, and the header and footer links of the public site, on `--color-brand-dark` only |
 | `--color-text-default` | `#0F0F0F` | Body text |
 | `--color-text-muted` | `#666666` | Supporting text, labels, placeholders |
 | `--color-text-light` | `#FFFFFF` | Text on dark background, dark mode |
@@ -39,7 +39,7 @@ Pairs already verified against WCAG 2.1 AA:
 | `#666666` | `#FFFFFF` | 5.74:1 | Muted text — passes AA for normal text |
 | `#FFFFFF` | `#92189E` | 7.38:1 | White on primary button — passes AA |
 | `#FF0090` | `#FFFFFF` | 3.71:1 | Accent on white — large text and UI components only (3:1 threshold). Not used as body text |
-| `#FF0090` | `#23122B` | — | Accent dot on dark nav — decorative only, not text |
+| `#FF0090` | `#23122B` | 4.74:1 | Header and footer links of the public site, and decorative dots and icons — passes AA for normal text |
 | `#1A7D52` | `#FFFFFF` | 4.66:1 | Success — passes AA for normal text |
 | `#B91C1C` | `#FFFFFF` | 6.31:1 | Error — passes AA for normal text |
 | `#92400E` | `#FFFFFF` | 7.06:1 | Warning — passes AA for normal text |
@@ -99,7 +99,9 @@ The base unit is `0.25rem` (4px). The scale follows Tailwind's default steps, ex
 
 Dividers and cards use `1px solid var(--color-border)`. Form fields use `1px solid var(--color-border-input)`, so they meet the 3:1 contrast for interface components.
 
-`Card` has a `dark` variant for a card that has to stand out from the page, such as the confirmed visit on A6: `--color-brand-dark` background, no border and white text (17.61:1). Only text in `--color-text-light` and decorative `--color-brand-accent` dots go inside it, and no interactive elements, so the common focus ring is never needed on the dark background.
+`Card` has a `dark` variant for a card that has to stand out from the page, such as the confirmed visit on A6: `--color-brand-dark` background, no border and white text (17.61:1). Only text in `--color-text-light`, decorative `--color-brand-accent` dots or icons, and a photo go inside it, and no interactive elements, so the common focus ring is never needed on the dark background.
+
+A `flush` `Card` has no inner padding, so a photo reaches its edges, as in the property cards, or so its content sets its own padding, as in the booking steps.
 
 A field with an error (`aria-invalid`) uses `2px solid var(--color-error)`. The wider border keeps the error visible without relying on color alone, and the message under the field says what went wrong.
 
@@ -115,7 +117,7 @@ A field with an error (`aria-invalid`) uses `2px solid var(--color-error)`. The 
 | Token | Value | Use |
 | :---- | :---- | :---- |
 | `--shadow-card` | `0 2px 10px rgba(0, 0, 0, 0.08)` | Cards |
-| `--shadow-button` | `0 4px 16px rgba(146, 24, 158, 0.30)` | Primary button hover |
+| `--shadow-button` | `0 4px 16px rgba(146, 24, 158, 0.30)` | Primary button hover, and the back to top button |
 
 ## Focus
 
@@ -125,7 +127,9 @@ Every interactive element shows a focus ring using `outline-2 outline-offset-2`.
 | :---- | :---- | :---- |
 | All elements except danger button | `outline-brand-primary` | 7.38:1 on white — passes AA |
 | Danger button | `outline-error` | 6.31:1 on white — passes AA |
-| Elements on dark navigation (`bg-brand-dark`) | `outline-white` | 17.61:1 on `#23122B` — passes AA |
+| Elements on dark navigation (`bg-brand-dark`) | `outline-text-light` | 17.61:1 on `#23122B` — passes AA |
+
+On a dark surface, a `Link` that looks like a button uses the `button-on-dark` or `outline-on-dark` variant, such as the two in the hero of the home page: the same shape, with the white focus ring.
 
 ## Map
 
@@ -135,6 +139,49 @@ The catalog map (`PropertyMap` in the `property-browsing` feature) uses Leaflet 
 - **Focus:** pins and the map use the common `outline-brand-primary` focus ring
 - **Popup:** the title in `font-display text-lg` and `--color-brand-dark`, the price in `--color-brand-primary`, and a `Link` to the details, whose accessible name includes the title
 - **Leaflet's stylesheet** is imported in `src/index.css` inside `layer(components)`, so the design system's utilities win over Leaflet's own colors and sizes. Leaflet's controls (zoom buttons, the popup's close button and the attribution) keep its own look, which is not made of our tokens: it is the one exception to the design system, because restyling them would mean overriding a third-party stylesheet
+
+## Public site on dark surfaces
+
+The header and the footer of the public site, and the four steps of the home page (`SiteHeader`, `SiteFooter` and `HowItWorks` in the `public-site` feature) are on `--color-brand-dark`. `PublicLayout` puts the header and the footer on every public page, except the video room, where the call needs the whole screen.
+
+- The navigation links of the header and the footer (`SiteNavLink`) are white, and `--color-brand-accent` and underlined on hover and on the current page, which also has `aria-current="page"`
+- Each person of the team is a `TeamLink` to LinkedIn: the name in `--color-brand-accent`, underlined on hover, and the role under it in white. No photo is loaded from another site, so no visitor's IP is sent there
+- `--color-brand-accent` has 4.74:1 on `--color-brand-dark`, so it passes AA for text there. These links are its only use as text. Both components have a white focus outline and are only for dark surfaces. Links on white keep `--color-brand-primary`
+- Each of the four steps is a card with a `--color-text-light` border at 20% on `--color-brand-dark` at 70%, with white text. Its number is white, bold and `text-2xl`, on a circle with a gradient from `--color-brand-primary` (7.38:1) to `--color-brand-accent` (3.71:1, enough for large text). The shield icon next to the scam it stops is decorative, in `--color-brand-accent`
+- Behind the steps there is a photo under `--color-brand-dark` at 85%. Over pure white, the worst case, the text has at least 9.4:1 without counting the card's own background
+
+## Property details
+
+From `lg` up, the photo and the panel with the title, the price and "Request a video visit" are side by side and have the same height. Below it, the panel goes under the photo.
+
+- `PhotoGallery` has its buttons and the photo number over the photo, on a `--color-surface-page` pill, so they and their focus ring show over any photo
+- Each fact, such as the size, is an icon in `--color-brand-primary` and its text on `--color-surface-input`
+
+## Booking a visit
+
+From `lg` up, the calendar, the times and the visit are three cards of the same height (`StepCard`), with the property above the visit. On a phone they are one under the other, with the property first. Each one has its number on the same gradient circle as the steps of the home page.
+
+- The times show one part of the day, in four columns, behind two buttons like the filters of the catalog. Each button says how many free times it has, and is disabled when it has none
+- The phone verification and the visit to confirm (`VisitToConfirm`) are side by side from `lg` up, with the same height: the photo grows when the verification is taller.
+- The confirmation has a photo header like the catalog's, with a white check on the gradient circle. Under it, from `lg` up, the visit in a `dark` `Card` and the room links in a default one are side by side, with the same height. The icons of the visit are decorative, in `--color-brand-accent`
+- The other states, such as an error, keep one narrow column (`max-w-lg`)
+
+## Back to top
+
+`PublicLayout` has a round "Back to top" button (`BackToTop`) on every public page, in the bottom right corner, once the visitor has scrolled a whole screen.
+
+- `--color-brand-primary` with a white arrow (7.38:1) and a white border, so its shape shows on the dark footer too
+- Its focus is a white outline inside a `--color-brand-dark` ring, so it shows on white and on dark
+- It sits above the map's attribution, which the license asks to keep visible. The scroll is smooth, or instant with `prefers-reduced-motion`, and the focus goes to the top of the page
+
+## Motion
+
+Two CSS utilities in `src/index.css`, with no JavaScript and no dependency, for any page of the public site.
+
+- `parallax`: a decorative photo moves more slowly than the page. Use it through `ParallaxImage`, never on an image that carries information
+- `reveal`: a block fades in and moves up 2.5rem as it enters the screen. Never on the headline of a page, on forms or on messages
+- Both only run with `prefers-reduced-motion: no-preference` and where the browser supports scroll-driven animations. Otherwise the content is shown still and complete
+- A parent with `overflow-hidden` breaks them, because they would follow it instead of the page. Use `overflow-clip`
 
 ## Agency dashboard
 

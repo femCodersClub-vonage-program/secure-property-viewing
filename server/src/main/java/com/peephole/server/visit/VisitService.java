@@ -1,6 +1,7 @@
 package com.peephole.server.visit;
 
 import com.peephole.server.common.FieldValidationException;
+import com.peephole.server.message.MessageService;
 import com.peephole.server.phoneverification.PhoneVerificationInvalidException;
 import com.peephole.server.phoneverification.PhoneVerificationPurpose;
 import com.peephole.server.phoneverification.PhoneVerificationService;
@@ -34,6 +35,7 @@ public class VisitService {
     private final VisitSlotRepository slotRepository;
     private final PhoneVerificationService phoneVerificationService;
     private final PropertyService propertyService;
+    private final MessageService messageService;
     private final Clock clock;
     private static final ZoneId MADRID = ZoneId.of("Europe/Madrid");
 
@@ -43,12 +45,14 @@ public class VisitService {
             VisitSlotRepository slotRepository,
             PhoneVerificationService phoneVerificationService,
             PropertyService propertyService,
+            MessageService messageService,
             Clock clock) {
         this.repository = repository;
         this.queries = queries;
         this.slotRepository = slotRepository;
         this.phoneVerificationService = phoneVerificationService;
         this.propertyService = propertyService;
+        this.messageService = messageService;
         this.clock = clock;
     }
 
@@ -114,7 +118,7 @@ public class VisitService {
             throw mapConstraintViolation(exception);
         }
 
-        saveConfirmationMessages(visit);
+        saveConfirmationMessages(visit, now);
         return new VisitBookingResponse(
                 visit.getId(),
                 inMadrid(slot.getStartsAt()),
@@ -196,6 +200,13 @@ public class VisitService {
         return queries.findJoinedEndedBetween(after, upTo);
     }
 
+    /** The visitor's phone, the property's title and the start of the visit, for its confirmation SMS. */
+    @Transactional(readOnly = true)
+    public VisitForMessage forMessage(long visitId) {
+        return queries.findForMessage(visitId)
+                .orElseThrow(() -> new IllegalStateException("Visit " + visitId + " was not found"));
+    }
+
     private BookedVisit toBookedVisit(Visit visit) {
         return new BookedVisit(
                 visit.getId(),
@@ -233,8 +244,8 @@ public class VisitService {
         return exception;
     }
 
-    private void saveConfirmationMessages(Visit visit) {
-        // The messages feature is not in dev yet; its transactional call belongs here.
+    private void saveConfirmationMessages(Visit visit, OffsetDateTime now) {
+        messageService.scheduleVisitConfirmation(visit.getId(), now);
     }
 
     private static OffsetDateTime inMadrid(OffsetDateTime value) {

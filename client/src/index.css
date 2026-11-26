@@ -25,7 +25,7 @@
   --color-brand-primary: #92189e; /* primary buttons, active states, focus ring */
   --color-brand-secondary: #503454; /* supporting UI, secondary text */
   --color-brand-dark: #23122b; /* headings (h1, h2, h3), navbar, dark surfaces */
-  --color-brand-accent: #ff0090; /* logo icon, decorative dots on dark backgrounds */
+  --color-brand-accent: #ff0090; /* logo icon, decorative dots and icons, and the public site links on brand-dark */
 
   /* Text */
   --color-text-default: #0f0f0f;
@@ -80,4 +80,49 @@
   --font-dashboard-body: 'Inter', system-ui, sans-serif;
 
   --shadow-dashboard-highlight: 0 8px 24px rgba(255, 201, 60, 0.35);
+}
+
+/* ── Scroll motion ──────────────────────────────────────────────────────── */
+
+/* Only for people who accept motion, in browsers with scroll-driven animations. Without them the
+   content is simply there, with no JavaScript and no library */
+@utility parallax {
+  top: 0;
+  height: 100%;
+
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      top: -10%;
+      height: 120%;
+      animation: parallax linear both;
+      animation-timeline: view();
+    }
+  }
+}
+
+@utility reveal {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      animation: reveal ease-out both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+  }
+}
+
+/* 8% of an image 20% taller than its frame: it never leaves a gap */
+@keyframes parallax {
+  from {
+    transform: translateY(-8%);
+  }
+  to {
+    transform: translateY(8%);
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(2.5rem);
+  }
 }

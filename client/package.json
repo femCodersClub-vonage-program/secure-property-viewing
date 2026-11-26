@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
-    "@vonage/client-sdk-video": "2.35.2",
+    "@vonage/client-sdk-video": "2.36.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.66.0",
     "react": "^19.3.1",

@@ -40,6 +40,9 @@ const json = (body: unknown, status: number) =>
 const problem = (status: number, code: string, detail: string, errors?: Record<string, string>) =>
   json({ title: 'Error', status, detail, code, errors }, status)
 
+// vi.waitFor doesn't follow the asyncUtilTimeout of test-setup.ts, and its default is one second
+const waitUntil = (callback: () => void) => vi.waitFor(callback, { timeout: 5000 })
+
 const fetchMock = vi.fn<typeof fetch>()
 
 beforeEach(() => {
@@ -71,7 +74,7 @@ async function sendCodeTo(phone: string) {
   fireEvent.click(screen.getByRole('button', { name: 'Send code' }))
   await screen.findByRole('textbox', { name: 'Code from the SMS' })
   // The countdown starts in an effect: moving the clock before it exists would skip it
-  await vi.waitFor(() => expect(vi.getTimerCount()).toBeGreaterThan(0))
+  await waitUntil(() => expect(vi.getTimerCount()).toBeGreaterThan(0))
 }
 
 function typeCode(code: string) {
@@ -88,9 +91,9 @@ function passTime(milliseconds: number) {
 }
 
 // The body also contains the message, so check that the focus did not fall back to it.
-// vi.waitFor, not waitFor: moving the focus changes no DOM, and setInterval is faked here
+// waitUntil, not waitFor: moving the focus changes no DOM, and setInterval is faked here
 async function expectFocusOnTheMessage() {
-  await vi.waitFor(() => {
+  await waitUntil(() => {
     expect(document.activeElement).not.toBe(document.body)
     expect(document.activeElement).toContainElement(screen.getByRole('alert'))
   })
@@ -234,12 +237,12 @@ describe('PhoneVerification', () => {
     render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} />)
 
     await sendCodeTo('+34600000000')
-    await vi.waitFor(() =>
+    await waitUntil(() =>
       expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus(),
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'Change the number' }))
-    await vi.waitFor(() =>
+    await waitUntil(() =>
       expect(screen.getByRole('textbox', { name: 'Phone number' })).toHaveFocus(),
     )
   })
@@ -300,7 +303,7 @@ describe('PhoneVerification', () => {
     const field = await screen.findByRole('textbox', { name: 'Code from the SMS' })
     await waitFor(() => expect(field).toHaveAttribute('aria-invalid', 'true'))
     expect(field).toHaveAccessibleDescription(new RegExp(CODE_INVALID))
-    await vi.waitFor(() => expect(field).toHaveFocus())
+    await waitUntil(() => expect(field).toHaveFocus())
 
     typeCode('482931')
     await waitFor(() =>
@@ -373,7 +376,7 @@ describe('PhoneVerification', () => {
     answerNewCode(
       json({ id: 43, status: 'PENDING', resendAvailableAt: '2026-11-10T11:01:04+01:00' }, 201),
     )
-    await vi.waitFor(() =>
+    await waitUntil(() =>
       expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus(),
     )
   })
@@ -412,7 +415,7 @@ describe('PhoneVerification', () => {
     const field = screen.getByRole('textbox', { name: 'Phone number' })
     await waitFor(() => expect(field).toHaveAttribute('aria-invalid', 'true'))
     expect(field).toHaveAccessibleDescription(/must be a phone number in international format/)
-    await vi.waitFor(() => expect(field).toHaveFocus())
+    await waitUntil(() => expect(field).toHaveFocus())
   })
 
   it.each([
@@ -481,13 +484,13 @@ describe('PhoneVerification with Silent Authentication', () => {
 
     sendNumber('+34 600 000 000')
 
-    await vi.waitFor(() => expect(openCheckUrl).toHaveBeenCalledWith(CHECK_URL))
+    await waitUntil(() => expect(openCheckUrl).toHaveBeenCalledWith(CHECK_URL))
     expect(sentBody(0)).toEqual({ phone: '+34600000000', purpose: 'VISIT', silentAuth: true })
     expect(screen.getByRole('status')).toHaveTextContent(
       'Checking your number with your mobile operator…',
     )
     // The form and its button are gone, so the focus must not fall back to the page body
-    await vi.waitFor(() =>
+    await waitUntil(() =>
       expect(screen.getByRole('heading', { name: 'Checking your number' })).toHaveFocus(),
     )
     expect(JSON.parse(sessionStorage.getItem('peephole.silent-check') ?? 'null')).toEqual({
@@ -505,7 +508,7 @@ describe('PhoneVerification with Silent Authentication', () => {
 
     sendNumber('+990123400')
 
-    await vi.waitFor(() => expect(openCheckUrl).toHaveBeenCalled())
+    await waitUntil(() => expect(openCheckUrl).toHaveBeenCalled())
     expect(sentBody(0)).toEqual({ phone: '+990123400', purpose: 'VISIT', silentAuth: true })
   })
 
@@ -535,7 +538,7 @@ describe('PhoneVerification with Silent Authentication', () => {
     expect(sentBody(0)).toEqual({ phone: '+34600000000', purpose: 'VISIT', silentAuth: true })
     expect(openCheckUrl).not.toHaveBeenCalled()
     expect(sessionStorage.getItem('peephole.silent-check')).toBeNull()
-    await vi.waitFor(() =>
+    await waitUntil(() =>
       expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus(),
     )
   })
@@ -551,7 +554,7 @@ describe('PhoneVerification with Silent Authentication', () => {
     passTime(32_000)
     fireEvent.click(screen.getByRole('button', { name: 'Send a new code' }))
 
-    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+    await waitUntil(() => expect(fetchMock).toHaveBeenCalledTimes(2))
     expect(sentBody(1)).toEqual({ phone: '+34600000000', purpose: 'VISIT' })
   })
 
@@ -562,13 +565,14 @@ describe('PhoneVerification with Silent Authentication', () => {
       .mockResolvedValueOnce(json({ id: 42, status: 'PENDING' }, 200))
     render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} formToKeep={visitForm} />)
     sendNumber('+34600000000')
-    await vi.waitFor(() => expect(openCheckUrl).toHaveBeenCalled())
+    // act, because the check URL opens before React listens to the page coming back
+    await act(() => waitUntil(() => expect(openCheckUrl).toHaveBeenCalled()))
 
     // A first load is not a page restored from the cache, so it does nothing
     window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: false }))
     window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }))
 
-    await vi.waitFor(() =>
+    await waitUntil(() =>
       expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus(),
     )
     expect(fetchMock).toHaveBeenCalledTimes(2)
@@ -588,7 +592,7 @@ describe('PhoneVerification with Silent Authentication', () => {
 
     sendNumber('+34600000000')
 
-    await vi.waitFor(() =>
+    await waitUntil(() =>
       expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus(),
     )
     expect(openCheckUrl).not.toHaveBeenCalled()
@@ -608,7 +612,7 @@ describe('PhoneVerification with Silent Authentication', () => {
       </StrictMode>,
     )
 
-    await vi.waitFor(() =>
+    await waitUntil(() =>
       expect(onVerified).toHaveBeenCalledWith({ verificationId: 42, phone: '+34600000000' }),
     )
     // Vonage checks the silent code only once, so a second call would always fail
@@ -624,7 +628,7 @@ describe('PhoneVerification with Silent Authentication', () => {
     )
     render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} resumed={silentCodeBack()} />)
 
-    await vi.waitFor(() =>
+    await waitUntil(() =>
       expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus(),
     )
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
@@ -647,7 +651,7 @@ describe('PhoneVerification with Silent Authentication', () => {
       "Your mobile operator couldn't confirm this number. Check it and start again.",
     )
     const startAgain = screen.getByRole('button', { name: 'Start again' })
-    await vi.waitFor(() => expect(startAgain).toHaveFocus())
+    await waitUntil(() => expect(startAgain).toHaveFocus())
     expect(screen.queryByRole('button', { name: 'Send a new code' })).not.toBeInTheDocument()
 
     fireEvent.click(startAgain)
@@ -724,7 +728,7 @@ describe('PhoneVerification, errors from the silent check', () => {
     )
     render(<PhoneVerification purpose="VISIT" onVerified={vi.fn()} resumed={silentCodeBack()} />)
 
-    await vi.waitFor(() =>
+    await waitUntil(() =>
       expect(screen.getByRole('textbox', { name: 'Code from the SMS' })).toHaveFocus(),
     )
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
@@ -758,7 +762,7 @@ describe('PhoneVerification, errors from the silent check', () => {
     )
 
     const startAgain = await screen.findByRole('button', { name: 'Start again' })
-    await vi.waitFor(() => expect(startAgain).toHaveFocus())
+    await waitUntil(() => expect(startAgain).toHaveFocus())
     expect(screen.queryByRole('button', { name: 'Send a new code' })).not.toBeInTheDocument()
   })
 })

@@ -17,7 +17,10 @@ function VisitCalendarPage() {
       return
     }
     // `replace`, so neither "back" nor a reload sends the single-use code again
-    void navigate({ pathname: location.pathname, search: location.search }, { replace: true })
+    void navigate(
+      { pathname: location.pathname, search: location.search },
+      { replace: true, preventScrollReset: true },
+    )
   }, [location.hash, location.pathname, location.search, navigate])
 
   if (!Number.isInteger(propertyId) || propertyId <= 0) {
@@ -25,14 +28,15 @@ function VisitCalendarPage() {
   }
 
   return (
-    <main className="mx-auto flex max-w-lg flex-col gap-6 px-4 py-8">
+    <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8 sm:px-10">
+      <title>Choose a time for your visit · Peephole</title>
       {/* The key starts the screen afresh, loading state included, when the property changes */}
       <VisitBooking
         key={propertyId}
         propertyId={propertyId}
         resumedCheck={resumedCheck}
-        onBooked={(visit) => {
-          const state: VisitConfirmationState = { visit }
+        onBooked={(visit, photo) => {
+          const state: VisitConfirmationState = { visit, photo }
           void navigate(`/visits/${visit.visitId}/confirmation`, { state })
         }}
       />

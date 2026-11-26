@@ -42,13 +42,14 @@ function CopyableLink({ id, label, url, copyLabel, buttonVariant, focusOnShow = 
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 sm:grid sm:grid-cols-[1fr_auto] sm:items-end sm:gap-2">
       <FormField id={id} label={label}>
         {(props) => (
           <Input
             {...props}
             ref={inputRef}
             readOnly
+            className="min-h-12"
             value={url}
             onFocus={(event) => event.currentTarget.select()}
           />
@@ -58,7 +59,7 @@ function CopyableLink({ id, label, url, copyLabel, buttonVariant, focusOnShow = 
         <Copy aria-hidden="true" className="size-5" />
         {copyLabel}
       </Button>
-      <p role="status" className="font-body text-sm text-text-default">
+      <p role="status" className="font-body text-sm min-h-5 text-text-default sm:col-span-2">
         {result === 'copied'
           ? 'Copied.'
           : result === 'selected'

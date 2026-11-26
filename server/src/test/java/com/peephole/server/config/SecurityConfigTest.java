@@ -35,13 +35,14 @@ class SecurityConfigTest {
         mockMvc.perform(get("/api/properties/999999")).andExpect(status().isNotFound());
     }
 
+    // Without a CSRF token, the request still reaches the webhook, which rejects it for its signature instead
     @Test
     void doesNotRequireACsrfTokenForWebhooks() throws Exception {
         mockMvc.perform(post("/api/webhooks/messages/status")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("WEBHOOK_SIGNATURE_INVALID"));
     }
 
     @Test

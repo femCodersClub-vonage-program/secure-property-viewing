@@ -1,3 +1,5 @@
+export type PropertyPhoto = { url: string; altText: string }
+
 /** The fields of GET /api/properties/{id} that the calendar shows in its summary. */
 export type PropertySummary = {
   id: number
@@ -7,7 +9,7 @@ export type PropertySummary = {
   area: string
   bedrooms: number
   agency: { name: string; verified: boolean }
-  images: { url: string; altText: string }[]
+  images: PropertyPhoto[]
 }
 
 /** A free 30-minute slot from GET /api/properties/{id}/slots, with its Madrid offset. */

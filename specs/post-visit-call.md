@@ -139,4 +139,4 @@ With `VOICE_CALLS_ENABLED=true`, the server refuses to start when a Voice variab
 ### Client
 
 - In D1, a "Visits to review" card at the top, before the next visit card, when `alerts` is not empty. Each row shows the visitor's name, the property, the visit time and when it was reported, in Madrid time, with a warning icon and the text "Asked for money before signing", so it doesn't rely on color. It lives in the `agency-dashboard` feature and uses its existing components
-- In A6, one sentence under the confirmation: "After the visit, Peephole will call you with one safety question. Answer with your phone's keypad."
+- In A6, one of the details of the visit, "After the visit": "Peephole will call you with one safety question. Answer with your keypad."

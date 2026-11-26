@@ -19,15 +19,17 @@ import {
   monthsBetween,
 } from '../calendar'
 import { readSavedVisitForm, type SavedVisitForm } from '../savedVisitForm'
-import type { BookedVisit, PropertySummary as Property, Slot } from '../types'
+import type { BookedVisit, PropertyPhoto, PropertySummary as Property, Slot } from '../types'
 import MonthCalendar from './MonthCalendar'
 import PropertySummary from './PropertySummary'
+import StepCard from './StepCard'
 import TimeList from './TimeList'
+import VisitToConfirm from './VisitToConfirm'
 
 type Props = {
   propertyId: number
   /** Called with the confirmed visit, so the page can open the confirmation screen (A6). */
-  onBooked: (visit: BookedVisit) => void
+  onBooked: (visit: BookedVisit, photo: PropertyPhoto | undefined) => void
   /** A silent check the visitor came back from, with the form saved before it. */
   resumedCheck?: ResumedSilentCheck
 }
@@ -46,6 +48,7 @@ type Step = 'calendar' | 'verify' | 'booking'
 type Notice = { variant: 'warning' | 'error'; text: string }
 
 const NAME_MAX_LENGTH = 100
+const narrowColumn = 'mx-auto w-full max-w-lg'
 const pageHeading = 'font-display text-3xl font-bold text-balance text-brand-dark'
 
 function errorMessage(error: unknown): string {
@@ -136,7 +139,7 @@ function VisitBooking({ propertyId, onBooked, resumedCheck }: Props) {
 
   if (load.status === 'not-found') {
     return (
-      <section className="flex flex-col items-start gap-4">
+      <section className={`${narrowColumn} flex flex-col items-start gap-4`}>
         <h1 className={pageHeading}>This property is not available</h1>
         <p className="font-body text-text-default">
           It may have been rented or sold, or the link may be wrong.
@@ -148,7 +151,7 @@ function VisitBooking({ propertyId, onBooked, resumedCheck }: Props) {
 
   if (load.status === 'error') {
     return (
-      <section className="flex flex-col items-start gap-4">
+      <section className={`${narrowColumn} flex flex-col items-start gap-4`}>
         <h1 className={pageHeading}>We couldn't load the free times</h1>
         <Alert variant="error">{load.message}</Alert>
         <Button
@@ -170,7 +173,7 @@ function VisitBooking({ propertyId, onBooked, resumedCheck }: Props) {
   // From a restored silent check the verification finishes first, even if its time was taken
   if (slots.length === 0 && step === 'calendar') {
     return (
-      <div className="flex flex-col gap-6">
+      <div className={`${narrowColumn} flex flex-col gap-6`}>
         {summary}
         <section className="flex flex-col items-center gap-4 text-center">
           <span
@@ -216,7 +219,7 @@ function VisitBooking({ propertyId, onBooked, resumedCheck }: Props) {
         phone: verifiedPhone.phone,
         phoneVerificationId: verifiedPhone.verificationId,
       })
-      onBooked(visit)
+      onBooked(visit, property.images[0])
     } catch (error) {
       const code = error instanceof ApiError ? error.code : undefined
       if (code === 'PHONE_VERIFICATION_INVALID') {
@@ -264,7 +267,7 @@ function VisitBooking({ propertyId, onBooked, resumedCheck }: Props) {
 
   if (step === 'booking') {
     return (
-      <h1 ref={headingRef} tabIndex={-1} className={pageHeading}>
+      <h1 ref={headingRef} tabIndex={-1} className={`${narrowColumn} ${pageHeading}`}>
         Booking your visit…
       </h1>
     )
@@ -273,25 +276,31 @@ function VisitBooking({ propertyId, onBooked, resumedCheck }: Props) {
   if (step === 'verify' && selectedSlot) {
     return (
       <div className="flex flex-col gap-6">
-        <Button variant="link" className="self-start" onClick={() => goTo('calendar')}>
-          Back to the calendar
-        </Button>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col items-start gap-2">
+          <Button variant="link" className="px-0!" onClick={() => goTo('calendar')}>
+            <span aria-hidden="true">←</span>
+            Back to the calendar
+          </Button>
           <h1 ref={headingRef} tabIndex={-1} className={pageHeading}>
             Confirm your visit
           </h1>
-          <p className="font-body text-text-default">
-            {property.title}: {slotLabel(selectedSlot)}.
-          </p>
+          <p className="font-body text-text-muted">One last step: check that the phone is yours.</p>
         </div>
         {noticeBox}
-        <PhoneVerification
-          key={verificationAttempt}
-          purpose="VISIT"
-          formToKeep={{ propertyId, visitorName, slot: selectedSlot } satisfies SavedVisitForm}
-          resumed={pendingCheck}
-          onVerified={(verifiedPhone) => void book(selectedSlot, verifiedPhone)}
-        />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <PhoneVerification
+            key={verificationAttempt}
+            purpose="VISIT"
+            formToKeep={{ propertyId, visitorName, slot: selectedSlot } satisfies SavedVisitForm}
+            resumed={pendingCheck}
+            onVerified={(verifiedPhone) => void book(selectedSlot, verifiedPhone)}
+          />
+          <VisitToConfirm
+            property={property}
+            time={slotLabel(selectedSlot)}
+            visitorName={visitorName}
+          />
+        </div>
       </div>
     )
   }
@@ -307,11 +316,10 @@ function VisitBooking({ propertyId, onBooked, resumedCheck }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
-      <Link to={`/properties/${property.id}`} className="self-start">
-        Back to the property
-      </Link>
-      {summary}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col items-start gap-2">
+        <Link to={`/properties/${property.id}`} className="inline-block py-2.5">
+          <span aria-hidden="true">← </span>Back to the property
+        </Link>
         <h1 ref={headingRef} tabIndex={-1} className={pageHeading}>
           {rebooking ? 'Choose another time' : 'Choose a time for your video visit'}
         </h1>
@@ -320,58 +328,89 @@ function VisitBooking({ propertyId, onBooked, resumedCheck }: Props) {
         </p>
       </div>
       {noticeBox}
-      <MonthCalendar
-        month={month}
-        previousMonth={monthIndex > 0 ? months[monthIndex - 1] : undefined}
-        nextMonth={
-          monthIndex >= 0 && monthIndex < months.length - 1 ? months[monthIndex + 1] : undefined
-        }
-        freeDays={freeDays}
-        selectedDay={day}
-        onSelectDay={(picked) => {
-          setPickedDay(picked)
-          setSelectedSlotId(undefined)
-        }}
-        onShowMonth={setShownMonth}
-      />
-      <TimeList
-        day={day}
-        slots={slotsOfDay}
-        selectedSlotId={selectedSlotId}
-        onSelect={(slot) => setSelectedSlotId(slot.id)}
-      />
-      <FormField id="visitor-name" label="Your name" hint="The agency sees it with your visit.">
-        {(props) => (
-          <Input
-            {...props}
-            autoComplete="name"
-            maxLength={NAME_MAX_LENGTH}
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-          />
-        )}
-      </FormField>
-      <div className="flex flex-col gap-2 text-center">
-        <Button
-          disabled={missing !== undefined}
-          aria-describedby="booking-status"
-          onClick={handleContinue}
-          className="min-h-12"
+
+      {/* On a phone, one under the other. From lg, three columns: the property is above the last one */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:grid-rows-[auto_1fr]">
+        <div className="md:col-span-2 lg:col-span-1 lg:col-start-3">{summary}</div>
+
+        <StepCard
+          number={1}
+          title="Choose a day"
+          className="lg:col-start-1 lg:row-span-2 lg:row-start-1"
         >
-          {rebooking ? 'Book this time' : 'Continue'}
-        </Button>
-        <p id="booking-status" role="status" className="font-body text-sm text-text-default">
-          {missing
-            ? `${missing} to ${rebooking ? 'book your visit' : 'continue'}.`
-            : selectedSlot
-              ? `${slotLabel(selectedSlot)}.`
-              : null}
-        </p>
-        {rebooking ? null : (
-          <p className="font-body text-sm text-text-muted">
-            Next, we'll text you a code to check your phone.
+          <MonthCalendar
+            month={month}
+            previousMonth={monthIndex > 0 ? months[monthIndex - 1] : undefined}
+            nextMonth={
+              monthIndex >= 0 && monthIndex < months.length - 1 ? months[monthIndex + 1] : undefined
+            }
+            freeDays={freeDays}
+            selectedDay={day}
+            onSelectDay={(picked) => {
+              setPickedDay(picked)
+              setSelectedSlotId(undefined)
+            }}
+            onShowMonth={setShownMonth}
+          />
+        </StepCard>
+
+        <StepCard
+          number={2}
+          title="Choose a time"
+          className="lg:col-start-2 lg:row-span-2 lg:row-start-1"
+        >
+          <TimeList
+            day={day}
+            slots={slotsOfDay}
+            selectedSlotId={selectedSlotId}
+            onSelect={(slot) => setSelectedSlotId(slot.id)}
+          />
+        </StepCard>
+
+        <StepCard
+          number={3}
+          title="Your visit"
+          className="md:col-span-2 lg:col-span-1 lg:col-start-3"
+        >
+          <p className="rounded-sm bg-surface-input p-3 font-body text-text-default">
+            {selectedSlot
+              ? `${dayLabel(madridDay(selectedSlot.startsAt))}, ${madridTime(selectedSlot.startsAt)}`
+              : 'No time chosen yet'}
           </p>
-        )}
+          <FormField id="visitor-name" label="Your name" hint="The agency sees it with your visit.">
+            {(props) => (
+              <Input
+                {...props}
+                autoComplete="name"
+                maxLength={NAME_MAX_LENGTH}
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+              />
+            )}
+          </FormField>
+          <div className="mt-auto flex flex-col gap-2 text-center">
+            <Button
+              disabled={missing !== undefined}
+              aria-describedby="booking-status"
+              onClick={handleContinue}
+              className="min-h-12"
+            >
+              {rebooking ? 'Book this time' : 'Continue'}
+            </Button>
+            <p id="booking-status" role="status" className="font-body text-sm text-text-default">
+              {missing
+                ? `${missing} to ${rebooking ? 'book your visit' : 'continue'}.`
+                : selectedSlot
+                  ? `${slotLabel(selectedSlot)}.`
+                  : null}
+            </p>
+            {rebooking ? null : (
+              <p className="font-body text-sm text-text-muted">
+                Next, we'll text you a code to check your phone.
+              </p>
+            )}
+          </div>
+        </StepCard>
       </div>
     </div>
   )

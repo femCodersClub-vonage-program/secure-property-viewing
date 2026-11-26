@@ -105,6 +105,34 @@ describe('CatalogPage', () => {
     expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true')
   })
 
+  it('says how many properties there are', async () => {
+    fetchMock.mockReturnValue(Promise.resolve(json(propertiesFromSpec)))
+    renderCatalog()
+    expect(await screen.findByText('2 properties found.')).toBeInTheDocument()
+  })
+
+  it('starts short again when the filter changes', async () => {
+    const [property] = propertiesFromSpec
+    const many = Array.from({ length: 12 }, (_, index) => ({ ...property, id: index + 1 }))
+    fetchMock.mockImplementation(() => Promise.resolve(json(many)))
+    renderCatalog()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Show more' }))
+    expect(screen.getAllByRole('link', { name: /see the details/i })).toHaveLength(12)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Rent' }))
+    expect(await screen.findByText('Showing 8 of 12')).toBeInTheDocument()
+  })
+
+  it('puts every property on the map, not only the cards on screen', async () => {
+    const [property] = propertiesFromSpec
+    const many = Array.from({ length: 12 }, (_, index) => ({ ...property, id: index + 1 }))
+    fetchMock.mockReturnValue(Promise.resolve(json(many)))
+    renderCatalog()
+
+    expect(await screen.findByText('12 pins')).toBeInTheDocument()
+  })
+
   it('shows a loading state while fetching', () => {
     fetchMock.mockReturnValue(new Promise(() => {}))
     renderCatalog()

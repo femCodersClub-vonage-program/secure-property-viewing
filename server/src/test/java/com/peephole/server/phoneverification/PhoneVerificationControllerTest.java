@@ -34,6 +34,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.convention.TestBean;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -45,6 +46,8 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureMockMvc
 @Transactional
 @ExtendWith(OutputCaptureExtension.class)
+// Silent Authentication off and +990 numbers rejected, whatever server/.env says
+@TestPropertySource(properties = {"app.silent-auth.enabled=false", "app.silent-auth.virtual-operator=false"})
 class PhoneVerificationControllerTest {
 
     private static final String PATH = "/api/phone-verifications";

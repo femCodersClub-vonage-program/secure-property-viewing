@@ -143,6 +143,51 @@ class VonageConfigTest {
                 .isFalse();
     }
 
+    // Messages
+
+    @Test
+    void refusesToSendWhileSendingIsOffAndNeedsNoMessagesVariables() {
+        MessageSender sender = config.messageSender(false, "", "", "");
+
+        assertThatThrownBy(() -> sender.sendSms("+34600000001", "Text", "42"))
+                .isInstanceOf(MessageSendException.class)
+                .hasMessageContaining("MESSAGES_SENDING_ENABLED");
+    }
+
+    @Test
+    void buildsTheMessageSenderWithValidCredentialsWhenSendingIsOn() throws Exception {
+        assertThat(config.messageSender(true, APPLICATION_ID, privateKey(), "Peephole"))
+                .isInstanceOf(VonageMessageSender.class);
+    }
+
+    @Test
+    void namesEachMissingMessagesVariableWhenSendingIsOn() throws Exception {
+        assertThatThrownBy(() -> config.messageSender(true, APPLICATION_ID, privateKey(), " "))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageStartingWith("VONAGE_MESSAGES_FROM is not set");
+        assertThatThrownBy(() -> config.messageSender(true, "", privateKey(), "Peephole"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageStartingWith("VONAGE_MESSAGES_APPLICATION_ID is not set");
+        assertThatThrownBy(() -> config.messageSender(true, APPLICATION_ID, "", "Peephole"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageStartingWith("VONAGE_MESSAGES_PRIVATE_KEY is not set");
+    }
+
+    @Test
+    void requiresTheMessagesSignatureSecretWhenSendingIsOn() {
+        assertThatThrownBy(() -> config.messagesWebhookReader(true, " "))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageStartingWith("VONAGE_MESSAGES_SIGNATURE_SECRET is not set");
+    }
+
+    @Test
+    void rejectsEveryMessagesWebhookWhileTheSecretIsMissing() {
+        MessagesWebhookReader reader = config.messagesWebhookReader(false, "");
+
+        assertThat(reader.isSignedByVonage(TestVoiceWebhookTokens.authorizationFor("any-secret", "{}"), "{}"))
+                .isFalse();
+    }
+
     private static String privateKey() throws Exception {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048);

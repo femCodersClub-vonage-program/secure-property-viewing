@@ -1,23 +1,10 @@
 import { House, ShieldCheck } from 'lucide-react'
 import { Card } from '../../../components/ui'
+import { propertyLine } from '../propertyLine'
 import type { PropertySummary as Property } from '../types'
-
-const euros = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 })
-
-// Formatted for Spain, as the property browsing spec asks: "950 €/month"
-function price(property: Property): string {
-  const amount = `${euros.format(property.priceEuros)} €`
-  return property.operation === 'RENT' ? `${amount}/month` : amount
-}
 
 function PropertySummary({ property }: { property: Property }) {
   const photo = property.images[0]
-  const bedrooms =
-    property.bedrooms === 0
-      ? 'Studio'
-      : property.bedrooms === 1
-        ? '1 bedroom'
-        : `${property.bedrooms} bedrooms`
 
   return (
     <Card className="flex items-center gap-4">
@@ -37,9 +24,7 @@ function PropertySummary({ property }: { property: Property }) {
       )}
       <div className="flex min-w-0 flex-col gap-1">
         <p className="font-body font-bold text-brand-dark">{property.title}</p>
-        <p className="font-body text-sm text-text-muted">
-          {property.area} · {price(property)} · {bedrooms}
-        </p>
+        <p className="font-body text-sm text-text-muted">{propertyLine(property)}</p>
         {property.agency.verified ? (
           <p className="flex items-center gap-1 font-body text-sm font-bold text-success">
             <ShieldCheck aria-hidden="true" className="size-4" />

@@ -22,7 +22,7 @@ const propertyFromSpec = {
   description: '...',
   videoVisitAvailable: true,
   agency: { name: 'Demo agency', verified: true },
-  images: [],
+  images: [{ url: 'https://example.com/cover.webp', altText: 'Bright living room' }],
 }
 
 // Shaped as in specs/visit-booking.md, "API". One slot comes in UTC, to check it is shown in Madrid time
@@ -173,8 +173,41 @@ describe('VisitBooking', () => {
     )
     // Sent as 10:30 UTC
     expect(screen.getByRole('button', { name: 'Thursday 19 November, 11:30' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Morning' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Afternoon' })).toBeInTheDocument()
+    const morning = screen.getByRole('button', { name: 'Morning (1)' })
+    const afternoon = screen.getByRole('button', { name: 'Afternoon (1)' })
+    expect(morning).toHaveAttribute('aria-pressed', 'true')
+    expect(
+      screen.queryByRole('button', { name: 'Thursday 19 November, 17:00' }),
+    ).not.toBeInTheDocument()
+
+    fireEvent.click(afternoon)
+    expect(afternoon).toHaveAttribute('aria-pressed', 'true')
+    expect(morning).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: 'Thursday 19 November, 17:00' })).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Thursday 19 November, 11:30' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('keeps the chosen time when the visitor looks at the other part of the day', async () => {
+    serveCalendar()
+    renderBooking()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Thursday 19 November' }))
+    expect(screen.getByText('No time chosen yet')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Thursday 19 November, 11:30' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Afternoon (1)' }))
+
+    expect(screen.getByText('Thursday 19 November, 11:30')).toBeInTheDocument()
+  })
+
+  it('cannot open a part of the day with no free times', async () => {
+    serveCalendar()
+    renderBooking()
+
+    expect(await screen.findByRole('button', { name: 'Morning (2)' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Afternoon (0)' })).toBeDisabled()
   })
 
   it('keeps Continue disabled and says what is missing until a time and a name are chosen', async () => {
@@ -234,12 +267,14 @@ describe('VisitBooking', () => {
 
     await chooseTimeAndName('Wednesday 18 November, 10:30')
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
-    expect(
-      await screen.findByText('Apartment in Gràcia: Wednesday 18 November, from 10:30 to 11:00.'),
-    ).toBeInTheDocument()
+    const visit = within(await screen.findByRole('region', { name: 'Apartment in Gràcia' }))
+    expect(visit.getByText('Wednesday 18 November, from 10:30 to 11:00')).toBeInTheDocument()
+    expect(visit.getByText('For Laura Gómez, in Madrid time')).toBeInTheDocument()
     await verifyPhone()
 
-    await waitFor(() => expect(onBooked).toHaveBeenCalledWith(bookedFromSpec))
+    await waitFor(() =>
+      expect(onBooked).toHaveBeenCalledWith(bookedFromSpec, propertyFromSpec.images[0]),
+    )
     // The page opens the confirmation (A6): until then, the screen still says it is booking
     expect(
       screen.getByRole('heading', { level: 1, name: 'Booking your visit…' }),
@@ -258,12 +293,12 @@ describe('VisitBooking', () => {
 
     await chooseTimeAndName('Wednesday 18 November, 10:30')
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
-    await vi.waitFor(() =>
+    await waitFor(() =>
       expect(screen.getByRole('heading', { level: 1, name: 'Confirm your visit' })).toHaveFocus(),
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'Back to the calendar' }))
-    await vi.waitFor(() =>
+    await waitFor(() =>
       expect(
         screen.getByRole('heading', { level: 1, name: 'Choose a time for your video visit' }),
       ).toHaveFocus(),
@@ -276,7 +311,7 @@ describe('VisitBooking', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Next month' }))
 
-    await vi.waitFor(() =>
+    await waitFor(() =>
       expect(screen.getByRole('heading', { name: 'December 2026' })).toHaveFocus(),
     )
   })
@@ -350,7 +385,9 @@ describe('VisitBooking', () => {
     expect(screen.getByRole('textbox', { name: 'Your name' })).toHaveValue('Laura Gómez')
 
     fireEvent.click(screen.getByRole('button', { name: 'Book this time' }))
-    await waitFor(() => expect(onBooked).toHaveBeenCalledWith(bookedFromSpec))
+    await waitFor(() =>
+      expect(onBooked).toHaveBeenCalledWith(bookedFromSpec, propertyFromSpec.images[0]),
+    )
     expect(callsTo('POST /api/phone-verifications')).toHaveLength(1)
   })
 
@@ -372,7 +409,7 @@ describe('VisitBooking', () => {
     expect(alert).toHaveTextContent(
       'Someone has just booked Wednesday 18 November at 10:00. Your phone is still verified, so you can book another time straight away.',
     )
-    await vi.waitFor(() => expect(document.activeElement).toContainElement(alert))
+    await waitFor(() => expect(document.activeElement).toContainElement(alert))
     expect(
       screen.getByRole('heading', { level: 1, name: 'Choose another time' }),
     ).toBeInTheDocument()
@@ -384,7 +421,9 @@ describe('VisitBooking', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Wednesday 18 November, 10:30' }))
     fireEvent.click(screen.getByRole('button', { name: 'Book this time' }))
 
-    await waitFor(() => expect(onBooked).toHaveBeenCalledWith(bookedFromSpec))
+    await waitFor(() =>
+      expect(onBooked).toHaveBeenCalledWith(bookedFromSpec, propertyFromSpec.images[0]),
+    )
     expect(bodyOf(callsTo('POST /api/visits')[1])).toMatchObject({
       slotId: 302,
       phoneVerificationId: 42,
@@ -415,9 +454,25 @@ describe('VisitBooking', () => {
     )
     await verifyPhone()
 
-    await waitFor(() => expect(onBooked).toHaveBeenCalledWith(bookedFromSpec))
+    await waitFor(() =>
+      expect(onBooked).toHaveBeenCalledWith(bookedFromSpec, propertyFromSpec.images[0]),
+    )
     // The rejected verification is never sent again
     expect(bodyOf(callsTo('POST /api/visits')[1])).toMatchObject({ phoneVerificationId: 43 })
+  })
+
+  it('opens the times on the afternoon when the day has none in the morning', async () => {
+    serveCalendar([slotsFromSpec[3]])
+    renderBooking()
+
+    expect(
+      await screen.findByRole('button', { name: 'Thursday 19 November, 17:00' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Afternoon (1)' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    expect(screen.getByRole('button', { name: 'Morning (0)' })).toBeDisabled()
   })
 
   it('keeps the chosen time and name when the visitor goes back from the verification', async () => {
@@ -492,5 +547,14 @@ describe('from the calendar to the confirmation', () => {
     ).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/visits/18/confirmation')
     expect(screen.getByText('Fictional demo address 01, Barcelona')).toBeInTheDocument()
+    expect(await screen.findByText('Your link is ready.')).toBeInTheDocument()
+    expect(
+      screen.getByRole('img', { name: propertyFromSpec.images[0].altText }),
+    ).toBeInTheDocument()
+    // Kept for a reload of the confirmation
+    expect(router.state.location.state).toMatchObject({
+      photo: propertyFromSpec.images[0],
+      roomLinksCreated: true,
+    })
   })
 })

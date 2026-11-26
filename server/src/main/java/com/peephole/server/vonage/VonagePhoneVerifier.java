@@ -39,31 +39,35 @@ public class VonagePhoneVerifier implements PhoneVerifier {
 
     @Override
     public String start(String phone) {
-        return send(() -> VerificationRequest.builder()
-                        .brand(BRAND)
-                        .addWorkflow(new SmsWorkflow(phone))
-                        .codeLength(CODE_LENGTH)
-                        .channelTimeout(CHANNEL_TIMEOUT_SECONDS)
-                        .build())
+        return send(
+                        () -> VerificationRequest.builder()
+                                .brand(BRAND)
+                                .addWorkflow(new SmsWorkflow(phone))
+                                .codeLength(CODE_LENGTH)
+                                .channelTimeout(CHANNEL_TIMEOUT_SECONDS)
+                                .build(),
+                        false)
                 .getRequestId()
                 .toString();
     }
 
     @Override
     public SilentAuthStart startWithSilentAuth(String phone, String redirectUrl, boolean smsFallback) {
-        VerificationResponse response = send(() -> {
-            VerificationRequest.Builder builder = VerificationRequest.builder()
-                    .brand(BRAND)
-                    .addWorkflow(SilentAuthWorkflow.builder(phone)
-                            .redirectUrl(redirectUrl)
-                            .build());
-            if (smsFallback) {
-                builder.addWorkflow(new SmsWorkflow(phone))
-                        .codeLength(CODE_LENGTH)
-                        .channelTimeout(CHANNEL_TIMEOUT_SECONDS);
-            }
-            return builder.build();
-        });
+        VerificationResponse response = send(
+                () -> {
+                    VerificationRequest.Builder builder = VerificationRequest.builder()
+                            .brand(BRAND)
+                            .addWorkflow(SilentAuthWorkflow.builder(phone)
+                                    .redirectUrl(redirectUrl)
+                                    .build());
+                    if (smsFallback) {
+                        builder.addWorkflow(new SmsWorkflow(phone))
+                                .codeLength(CODE_LENGTH)
+                                .channelTimeout(CHANNEL_TIMEOUT_SECONDS);
+                    }
+                    return builder.build();
+                },
+                true);
         Optional<String> checkUrl = Optional.ofNullable(response.getCheckUrl()).map(URI::toString);
         return new SilentAuthStart(response.getRequestId().toString(), checkUrl);
     }
@@ -129,22 +133,24 @@ public class VonagePhoneVerifier implements PhoneVerifier {
     }
 
     // The request is built inside the try: the SDK checks the number while building it, and its message includes the
-    // number, so it is dropped
-    private VerificationResponse send(Supplier<VerificationRequest> request) {
+    // number, so it is dropped. A 412 means the operator has not accepted Peephole's profile, which only matters for
+    // the silent check, so an SMS-only start answers it as any other error, as it did before Silent Authentication
+    private VerificationResponse send(Supplier<VerificationRequest> request, boolean silentAuth) {
         try {
             return verify2Client.sendVerification(request.get());
         } catch (IllegalArgumentException exception) {
             throw new PhoneNumberRejectedException();
         } catch (VerifyResponseException exception) {
-            throw switch (exception.getStatusCode()) {
+            int status = exception.getStatusCode();
+            if (status == 412 && silentAuth) {
+                throw new SilentAuthUnavailableException();
+            }
+            throw switch (status) {
                 case 409 -> new ConcurrentVerificationException();
-                case 412 -> new SilentAuthUnavailableException();
                 case 422 -> rejectedNumberOrSystemError(exception);
                 case 429 ->
                     new PhoneVerifierException("Vonage's rate limit was reached when starting a verification (429)");
-                default ->
-                    new PhoneVerifierException(
-                            "Vonage answered " + exception.getStatusCode() + " when starting a verification");
+                default -> new PhoneVerifierException("Vonage answered " + status + " when starting a verification");
             };
         } catch (VonageClientException exception) {
             throw new PhoneVerifierException("Could not reach Vonage to start a verification");

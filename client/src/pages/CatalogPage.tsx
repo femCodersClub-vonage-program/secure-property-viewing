@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
-import { Alert, Button } from '../components/ui'
+import { Alert, Button, ParallaxImage } from '../components/ui'
 import {
-  PropertyCard,
+  PropertyList,
   PropertyMap,
   getProperties,
   type Operation,
@@ -58,12 +58,25 @@ function CatalogPage() {
 
   return (
     <main>
-      <div className="sticky top-0 z-10 bg-surface-page border-b border-border px-4 py-4 flex flex-col gap-3">
-        <div className="mx-auto w-full max-w-7xl flex flex-col gap-3">
-          <h1 className="font-display text-3xl font-bold text-brand-dark text-balance">
+      <section aria-labelledby="catalog-heading" className="relative bg-brand-dark">
+        <ParallaxImage src="/properties/property-19-cover.webp" />
+        {/* Keeps the white text above 9:1 over any part of the photo */}
+        <div className="absolute inset-0 bg-brand-dark/85" />
+        <div className="relative mx-auto w-full max-w-7xl px-4 py-10 flex flex-col gap-3 sm:px-10 sm:py-14">
+          <h1
+            id="catalog-heading"
+            className="font-display text-3xl font-bold text-text-light text-balance sm:text-4xl"
+          >
             Properties in Barcelona
           </h1>
+          <p className="font-body text-lg text-text-light/90">
+            For rent and for sale, from verified agencies.
+          </p>
+        </div>
+      </section>
 
+      <div className="sticky top-0 z-10 bg-surface-page border-b border-border py-4">
+        <div className="mx-auto w-full max-w-7xl px-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 sm:px-10">
           <div role="group" aria-label="Filter by operation" className="flex gap-2 flex-wrap">
             {OPERATIONS.map(({ label, value }) => (
               <Button
@@ -76,10 +89,18 @@ function CatalogPage() {
               </Button>
             ))}
           </div>
+
+          <p className="font-body text-sm text-text-muted" aria-live="polite" aria-atomic="true">
+            {state.status === 'success' && state.data.length === 0
+              ? 'No properties found.'
+              : state.status === 'success'
+                ? `${state.data.length} ${state.data.length === 1 ? 'property' : 'properties'} found.`
+                : ''}
+          </p>
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 flex flex-col gap-section">
+      <div className="mx-auto max-w-7xl px-4 py-8 flex flex-col gap-section sm:px-10">
         {state.status === 'loading' && (
           <p className="font-body text-text-muted" aria-live="polite">
             Loading properties…
@@ -93,14 +114,6 @@ function CatalogPage() {
           </div>
         )}
 
-        <p className="sr-only" aria-live="polite" aria-atomic="true">
-          {state.status === 'success' && state.data.length === 0
-            ? 'No properties found.'
-            : state.status === 'success'
-              ? `${state.data.length} ${state.data.length === 1 ? 'property' : 'properties'} found.`
-              : ''}
-        </p>
-
         {state.status === 'success' && state.data.length === 0 && (
           <div className="flex flex-col gap-4 items-start">
             <p className="font-body text-text-default">No properties match the current filter.</p>
@@ -112,19 +125,10 @@ function CatalogPage() {
 
         {state.status === 'success' && state.data.length > 0 && (
           <div className="flex flex-col lg:flex-row lg:items-start gap-6">
-            <ul
-              className="flex flex-col gap-6 pb-[33vh] lg:pb-0 lg:w-96 lg:shrink-0"
-              aria-label="Properties"
-            >
-              {state.data.map((property) => (
-                <li key={property.id} className="flex w-full">
-                  <PropertyCard property={property} />
-                </li>
-              ))}
-            </ul>
+            <PropertyList key={operation ?? 'ALL'} properties={properties} />
 
-            <div className="fixed bottom-0 left-0 right-0 lg:static lg:sticky lg:top-4 lg:flex-1">
-              <PropertyMap properties={properties} className="h-[33vh] lg:h-[calc(100vh-6rem)]" />
+            <div className="sticky bottom-0 -mx-4 sm:-mx-10 lg:top-24 lg:bottom-auto lg:mx-0 lg:flex-1">
+              <PropertyMap properties={properties} className="h-[33vh] lg:h-[calc(100vh-7rem)]" />
             </div>
           </div>
         )}

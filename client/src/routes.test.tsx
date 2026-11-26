@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { SYSTEM_ERROR_MESSAGE } from './lib/http'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -6,6 +6,8 @@ import { routes } from './routes'
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+  Reflect.deleteProperty(Element.prototype, 'scrollIntoView')
 })
 
 const renderAt = (path: string) => {
@@ -29,12 +31,16 @@ const signedInFetch = () =>
 
 describe('routes', () => {
   it('shows the home page at the root path', () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(() => new Promise(() => {})),
+    )
     renderAt('/')
 
     expect(
       screen.getByRole('heading', {
         level: 1,
-        name: 'Find your next home in Catalonia, without scams.',
+        name: 'Find your next home in Barcelona, without scams.',
       }),
     ).toBeInTheDocument()
   })
@@ -116,6 +122,144 @@ describe('routes', () => {
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'See other properties' })).toHaveAttribute('href', '/')
     expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    '/',
+    '/properties',
+    '/properties/7',
+    '/properties/7/visit',
+    '/visits/18/confirmation',
+    '/verification/return',
+    '/does-not-exist',
+  ])('shows %s between the header and the footer of the public site', (path) => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(() => new Promise(() => {})),
+    )
+    renderAt(path)
+
+    expect(screen.getByRole('banner')).toBeInTheDocument()
+    expect(screen.getByRole('main')).toBeInTheDocument()
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument()
+  })
+
+  it('goes back to the header of the page with "Back to top"', () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(() => new Promise(() => {})),
+    )
+    renderAt('/')
+
+    vi.stubGlobal('scrollY', window.innerHeight + 1)
+    fireEvent.scroll(window)
+    fireEvent.click(screen.getByRole('button', { name: 'Back to top' }))
+
+    expect(document.body).not.toHaveFocus()
+    expect(document.activeElement).toContainElement(screen.getByRole('banner'))
+  })
+
+  it.each(['/visits/room', '/agency/sign-in'])('shows %s without them', (path) => {
+    renderAt(path)
+
+    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument()
+    expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
+  })
+
+  it('opens the next page at the top', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(() => new Promise(() => {})),
+    )
+    const scrollTo = vi.spyOn(window, 'scrollTo')
+    renderAt('/')
+    scrollTo.mockClear()
+
+    const footer = within(screen.getByRole('contentinfo'))
+    fireEvent.click(footer.getByRole('link', { name: 'Properties' }))
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Properties in Barcelona' }),
+    ).toBeInTheDocument()
+    expect(scrollTo).toHaveBeenCalledWith(0, 0)
+  })
+
+  it('opens the home page at the four steps from any other page', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(() => new Promise(() => {})),
+    )
+    const scrolledIds: string[] = []
+    // jsdom does not implement it
+    Element.prototype.scrollIntoView = function (this: Element) {
+      scrolledIds.push(this.id)
+    }
+    renderAt('/properties')
+
+    const header = within(screen.getByRole('banner'))
+    fireEvent.click(header.getByRole('link', { name: 'How it works' }))
+
+    await waitFor(() => expect(scrolledIds).toEqual(['how-it-works']))
+  })
+
+  it.each(['banner', 'contentinfo'])(
+    'moves the focus to the four steps from the link of the %s, every time it is pressed',
+    async (landmark) => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn<typeof fetch>(() => new Promise(() => {})),
+      )
+      Element.prototype.scrollIntoView = () => undefined
+      renderAt('/properties')
+      const pressLink = () => {
+        const link = within(screen.getByRole(landmark)).getByRole('link', { name: 'How it works' })
+        link.focus()
+        fireEvent.click(link)
+      }
+      const steps = { level: 2, name: 'Four steps, and the scam each one stops' }
+
+      pressLink()
+      await waitFor(() => expect(screen.getByRole('heading', steps)).toHaveFocus())
+
+      pressLink()
+      await waitFor(() => expect(screen.getByRole('heading', steps)).toHaveFocus())
+    },
+  )
+
+  it('takes the focus to the top when a link in the footer opens the next page', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(() => new Promise(() => {})),
+    )
+    renderAt('/')
+
+    const link = within(screen.getByRole('contentinfo')).getByRole('link', { name: 'Properties' })
+    link.focus()
+    fireEvent.click(link)
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Properties in Barcelona' }),
+    ).toBeInTheDocument()
+    await waitFor(() => expect(link).not.toHaveFocus())
+    expect(document.body).not.toHaveFocus()
+    expect(document.activeElement).toContainElement(screen.getByRole('banner'))
+  })
+
+  it('leaves the focus on the link in the header that opens the next page', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(() => new Promise(() => {})),
+    )
+    renderAt('/')
+
+    const link = within(screen.getByRole('banner')).getByRole('link', { name: 'Properties' })
+    link.focus()
+    fireEvent.click(link)
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Properties in Barcelona' }),
+    ).toBeInTheDocument()
+    expect(link).toHaveFocus()
   })
 
   it('shows the not found page for an unknown path', () => {
