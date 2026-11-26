@@ -136,3 +136,5 @@ None directly. Phone verification calls the Verify API, as described in its own 
 - Operation and property type use choice buttons with `aria-pressed`, the visit calendar pattern in [Form fields](../docs/design-system.md#form-fields), instead of `Radio`
 - B4 is the verification screen from the phone verification feature, opened with the `LISTING_REQUEST` purpose and the phone from B2
 - The form is kept through the silent check, which reloads the page, as described in the [silent authentication spec](silent-authentication.md)
+- The owner's name needs at least one letter and no digits. This rule is only in the client, to help the owner: the server only checks that the name is not empty and has at most 100 characters
+- Price, size, bedrooms and floor accept digits only, so "250.000" is never read as 250. Price and size go up to 2147483647, the largest value of the server's Java `Integer`
