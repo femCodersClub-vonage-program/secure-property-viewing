@@ -7,9 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.annotation.DirtiesContext;
 
-// server/.env can turn the calls on to try them locally, and the tests read it too
-@SpringBootTest
+// Turns the calls on as server/.env would, so the test fails on every machine if the test configuration stops
+// keeping them off. Its context is closed afterwards, so it doesn't hold database connections for the rest of the run
+@SpringBootTest(properties = "VOICE_CALLS_ENABLED=true")
+@DirtiesContext
 class TestsNeverPlaceCallsTest {
 
     @Autowired
