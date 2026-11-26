@@ -25,12 +25,12 @@ describe('AgencyListingRequestPage', () => {
     },
   )
 
-  // With the real sample data: the request of the id in the address arrives after its short wait
+  // With the real sample data, which mirrors the server seed: the request arrives after its short wait
   it('shows the request of the id in the address', async () => {
-    renderAt('/agency/listing-requests/18')
+    renderAt('/agency/listing-requests/900001')
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Apartment in Gràcia' }),
+      await screen.findByRole('heading', { level: 1, name: 'Bright flat near Plaça del Sol' }),
     ).toBeInTheDocument()
   })
 })

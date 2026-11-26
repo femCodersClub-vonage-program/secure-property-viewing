@@ -245,7 +245,7 @@ D2 and D5 are tables, and the next visits in D1 follow the same rules.
 - Rows separated by a `--color-border` line, with no zebra stripes and no shadow on each row
 - Dates and amounts right-aligned with `tabular-nums`
 - The row links to its details through a real link on its main text, such as the property title in D2, not by making the whole row clickable
-- In D2 the status filters (pending, approved, rejected) use the design system tabs, and the selected tab is kept in the address as `?status=`, so going back from D3 returns to it
+- In D2 the status filters (pending, approved, rejected) use the design system tabs. The selected tab is kept in the address as `?status=`, so the browser's Back button from D3 returns to it
 - In D2 the property cell shows the title as the link and, under it, the operation and the price in `text-sm` and `--color-text-muted`, such as "Rent · 1200 €/month"
 - On mobile each row becomes a stacked item with its label and value, instead of a table with horizontal scroll
 - In D1 the next visit's row has a 15% `--color-dashboard-highlight` tint and a "Next" label (`NextLabel`, bold `--color-brand-dark` text on mango) next to its time, so it does not rely on color alone. Other tables have no tinted rows
@@ -330,12 +330,13 @@ D4 shows the visits of one week, from Monday to Sunday in `Europe/Madrid`, and o
 
 D3 shows one listing request and lets the agent approve or reject it.
 
-- Above the page heading, a "Back to listing requests" link to D2. The heading (`h1`) is the property title, with the request's status badge next to it. While the request loads, fails or does not exist, the heading is "Request details"
+- Above the page heading, a "Back to listing requests" link to the D2 tab of the request's status, so after a review it opens the tab where the request is now. The heading (`h1`) is the property title, with the request's status badge next to it. While the request loads, fails or does not exist, the heading is "Request details"
 - Three cards, each a `section` named by its `h2`, styled like "Next visits" in D1: Review and Owner side by side from `lg`, and Property below them at full width. Their details are label and value pairs (`dl`), with the label in `text-sm`, bold, in `--color-text-muted`, like the table headers
-- The Review card shows when the request was received and reviewed ("Not reviewed yet" until then), the reason of a rejected request and the actions. The owner's phone is a `tel:` link
+- The Review card shows when the request was received and reviewed ("Not reviewed yet" until then), the reason of a rejected request and the actions. The owner's phone is a `tel:` link. The owner and the agent write the title, the address, the description and the reason, so the screen breaks long words (`wrap-anywhere`) to fit 320 px, and the description and the reason keep their line breaks
 - "Approve and publish" is a `primary` button and "Reject" a `secondary` one. While a review is sent, its button shows the loading state and the other one is disabled
 - "Reject" replaces both buttons with a form: a "Reason for rejecting" field (`Textarea`) with the hint "Up to 1,000 characters. The owner can ask to see it.", a `danger` "Reject request" button and a `secondary` "Cancel" button. The focus moves into the field when the form opens, and back to "Reject" after "Cancel". An empty reason, or one longer than 1,000 characters once trimmed, shows its message under the field and sends nothing, with the same rules the server applies
 - After a review, a message under the heading says what happened, and the focus moves to the heading, because the button that was pressed is no longer available. Its color follows the status badges: `success` for "Request approved and published.", the neutral `info` variant for "Request rejected.", because a rejection is a decision and not an error, `warning` with the server's message when someone else reviewed the request first (`409`), and `error` for any other failure. After a review or a `409`, the request is loaded again, so the buttons and the review date show its new state
+- If loading the request again after a review fails, the screen keeps the request, its new status and the message, because the review was saved
 
 ### States
 

@@ -38,12 +38,21 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
-// Label and value, styled like the table headers and cells (docs/design-system.md → Tables)
-function Detail({ label, children }: { label: string; children: ReactNode }) {
+// Label and value, styled like the table headers and cells (docs/design-system.md → Tables).
+// multiline keeps the line breaks the owner or the agent wrote
+function Detail({
+  label,
+  multiline = false,
+  children,
+}: {
+  label: string
+  multiline?: boolean
+  children: ReactNode
+}) {
   return (
     <div className="flex flex-col gap-0.5">
       <dt className="text-sm font-bold text-text-muted">{label}</dt>
-      <dd>{children}</dd>
+      <dd className={multiline ? 'whitespace-pre-line' : undefined}>{children}</dd>
     </div>
   )
 }
@@ -80,7 +89,11 @@ function RequestDetails({ id }: { id: number }) {
           setLoad({ status: 'not-found', message: errorMessage(error) })
           return
         }
-        setLoad({ status: 'error', message: errorMessage(error) })
+        // After a review the request is already on screen with its new status and message.
+        // A failed reload keeps them, instead of hiding a saved review behind an error
+        setLoad((current) =>
+          current.status === 'ready' ? current : { status: 'error', message: errorMessage(error) },
+        )
       })
     return () => controller.abort()
   }, [id, attempt])
@@ -157,8 +170,11 @@ function RequestDetails({ id }: { id: number }) {
   const { request } = load
 
   return (
-    <div className="flex flex-col gap-7">
-      <Link to="/agency/listing-requests" className="self-start">
+    // wrap-anywhere: the owner writes the title, the address and the description, and one long word
+    // must never push the screen wider than a 320 px phone (WCAG 1.4.10)
+    <div className="flex flex-col gap-7 wrap-anywhere">
+      {/* The tab where the request is now: after a review, it opens the tab of its new status */}
+      <Link to={`/agency/listing-requests?status=${request.status}`} className="self-start">
         Back to listing requests
       </Link>
 
@@ -184,7 +200,9 @@ function RequestDetails({ id }: { id: number }) {
             </Detail>
             {request.rejectionReason !== null && (
               <div className="sm:col-span-2">
-                <Detail label="Reason for rejecting">{request.rejectionReason}</Detail>
+                <Detail label="Reason for rejecting" multiline>
+                  {request.rejectionReason}
+                </Detail>
               </div>
             )}
           </dl>
@@ -219,7 +237,9 @@ function RequestDetails({ id }: { id: number }) {
           <Detail label="Size">{request.sizeM2} m²</Detail>
           <Detail label="Floor">{request.floor === null ? 'Not given' : request.floor}</Detail>
           <div className="sm:col-span-2 lg:col-span-3">
-            <Detail label="Description">{request.description}</Detail>
+            <Detail label="Description" multiline>
+              {request.description}
+            </Detail>
           </div>
         </dl>
       </Section>

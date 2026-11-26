@@ -20,23 +20,33 @@ const getMock = vi.mocked(getListingRequest)
 const approveMock = vi.mocked(approveListingRequest)
 const rejectMock = vi.mocked(rejectListingRequest)
 
-// specs/agency-dashboard.md, "API": GET /api/agency/listing-requests/{id}, before anyone reviews it
-const pending: ListingRequestDetails = {
+// specs/agency-dashboard.md, "API": response of GET /api/agency/listing-requests/{id}, verbatim
+const specExample: ListingRequestDetails = {
   id: 18,
-  status: 'PENDING',
+  status: 'REJECTED',
   ownerName: 'Ana Torres',
   ownerPhone: '+34600000000',
   title: 'Apartment in Gràcia',
-  description: 'Bright apartment with a balcony over a quiet street.',
+  description: '...',
   propertyType: 'APARTMENT',
   operation: 'RENT',
   area: 'Gràcia',
-  address: 'Carrer de Verdi 12',
+  address: '...',
   priceEuros: 1200,
   bedrooms: 3,
   sizeM2: 85,
   floor: 2,
   createdAt: '2026-11-10T11:00:00+01:00',
+  reviewedAt: '2026-11-11T09:30:00+01:00',
+  rejectionReason: '...',
+}
+
+// The same request before anyone reviews it, with readable texts to look for
+const pending: ListingRequestDetails = {
+  ...specExample,
+  status: 'PENDING',
+  description: 'Bright apartment with a balcony over a quiet street.',
+  address: 'Carrer de Verdi 12',
   reviewedAt: null,
   rejectionReason: null,
 }
@@ -81,6 +91,7 @@ function renderDetails() {
 
 const title = () => screen.findByRole('heading', { level: 1, name: 'Apartment in Gràcia' })
 const button = (name: string) => screen.getByRole('button', { name })
+const region = (name: string) => screen.getByRole('region', { name })
 
 beforeEach(() => {
   getMock.mockReset()
@@ -103,14 +114,14 @@ describe('RequestDetails', () => {
     renderDetails()
     await title()
 
-    const owner = screen.getByRole('region', { name: 'Owner' })
+    const owner = region('Owner')
     expect(within(owner).getByText('Ana Torres')).toBeInTheDocument()
     expect(within(owner).getByRole('link', { name: '+34600000000' })).toHaveAttribute(
       'href',
       'tel:+34600000000',
     )
 
-    const property = screen.getByRole('region', { name: 'Property' })
+    const property = region('Property')
     for (const text of [
       'Apartment',
       'Rent',
@@ -124,16 +135,50 @@ describe('RequestDetails', () => {
       expect(within(property).getByText(text)).toBeInTheDocument()
     }
 
-    const review = screen.getByRole('region', { name: 'Review' })
+    const review = region('Review')
     expect(within(review).getByText('Tuesday 10 November, 11:00')).toBeInTheDocument()
     expect(within(review).getByText('Not reviewed yet')).toBeInTheDocument()
     expect(screen.getByText('Pending')).toBeInTheDocument()
     expect(button('Approve and publish')).toBeEnabled()
     expect(button('Reject')).toBeEnabled()
+    // It opens the tab where the request is
     expect(screen.getByRole('link', { name: 'Back to listing requests' })).toHaveAttribute(
       'href',
-      '/agency/listing-requests',
+      '/agency/listing-requests?status=PENDING',
     )
+  })
+
+  it('shows the request of the spec example: floor, both dates and the reason', async () => {
+    getMock.mockResolvedValue(specExample)
+    renderDetails()
+    await title()
+
+    expect(within(region('Property')).getByText('2')).toBeInTheDocument()
+    const review = region('Review')
+    expect(within(review).getByText('Tuesday 10 November, 11:00')).toBeInTheDocument()
+    expect(within(review).getByText('Wednesday 11 November, 09:30')).toBeInTheDocument()
+    expect(within(review).getByText('...')).toBeInTheDocument()
+    expect(screen.getByText('Rejected')).toBeInTheDocument()
+  })
+
+  it.each([
+    { floor: null, shown: 'Not given' },
+    { floor: 0, shown: '0' },
+  ])('shows the floor $floor as "$shown"', async ({ floor, shown }) => {
+    getMock.mockResolvedValue({ ...pending, floor })
+    renderDetails()
+    await title()
+
+    expect(within(region('Property')).getByText(shown)).toBeInTheDocument()
+  })
+
+  it('shows a home with no separate bedroom as a studio', async () => {
+    getMock.mockResolvedValue({ ...pending, propertyType: 'STUDIO', bedrooms: 0 })
+    renderDetails()
+    await title()
+
+    // Once as the type and once as the bedrooms
+    expect(within(region('Property')).getAllByText('Studio')).toHaveLength(2)
   })
 
   it('shows when a rejected request was reviewed and why, and says why it cannot be reviewed again', async () => {
@@ -141,7 +186,7 @@ describe('RequestDetails', () => {
     renderDetails()
     await title()
 
-    const review = screen.getByRole('region', { name: 'Review' })
+    const review = region('Review')
     expect(within(review).getByText('Wednesday 11 November, 09:30')).toBeInTheDocument()
     expect(
       within(review).getByText('The address does not match the building in the photos.'),
@@ -166,12 +211,40 @@ describe('RequestDetails', () => {
     expect(notice).toHaveClass('text-success')
     expect(approveMock).toHaveBeenCalledWith(18)
     expect(screen.getByRole('heading', { level: 1, name: 'Apartment in Gràcia' })).toHaveFocus()
+    expect(screen.getByText('Approved')).toBeInTheDocument()
     expect(button('Approve and publish')).toHaveAccessibleDescription(
       'This request was already approved',
     )
     // Loading the request again brings when it was reviewed
-    const review = screen.getByRole('region', { name: 'Review' })
-    expect(await within(review).findByText('Wednesday 11 November, 09:30')).toBeInTheDocument()
+    expect(
+      await within(region('Review')).findByText('Wednesday 11 November, 09:30'),
+    ).toBeInTheDocument()
+  })
+
+  it('keeps the new status and its message when loading the request again fails', async () => {
+    getMock.mockResolvedValueOnce(pending).mockRejectedValueOnce(new TypeError('Failed to fetch'))
+    approveMock.mockResolvedValue({ propertyId: 101 })
+    renderDetails()
+    await title()
+
+    fireEvent.click(button('Approve and publish'))
+
+    await waitFor(() => expect(getMock).toHaveBeenCalledTimes(2))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Request approved and published.')
+    expect(button('Approve and publish')).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
+  })
+
+  it('disables both buttons while an approval is sent, so it cannot be sent twice', async () => {
+    getMock.mockResolvedValue(pending)
+    approveMock.mockReturnValue(new Promise(() => {}))
+    renderDetails()
+    await title()
+
+    fireEvent.click(button('Approve and publish'))
+
+    expect(button('Approve and publish')).toBeDisabled()
+    expect(button('Reject')).toBeDisabled()
   })
 
   it('asks for the reason before rejecting, and rejects with it trimmed', async () => {
@@ -184,6 +257,7 @@ describe('RequestDetails', () => {
 
     const reason = screen.getByRole('textbox', { name: 'Reason for rejecting' })
     expect(reason).toHaveFocus()
+    expect(reason).toBeRequired()
     expect(rejectMock).not.toHaveBeenCalled()
 
     fireEvent.click(button('Reject request'))
@@ -201,7 +275,24 @@ describe('RequestDetails', () => {
     expect(notice).toHaveClass('text-text-default')
     expect(notice).not.toHaveClass('text-error')
     expect(rejectMock).toHaveBeenCalledWith(18, 'Duplicated listing')
+    expect(screen.getByText('Rejected')).toBeInTheDocument()
     expect(button('Reject')).toHaveAccessibleDescription('This request was already rejected')
+  })
+
+  it('disables both buttons while a rejection is sent, so it cannot be sent twice', async () => {
+    getMock.mockResolvedValue(pending)
+    rejectMock.mockReturnValue(new Promise(() => {}))
+    renderDetails()
+    await title()
+
+    fireEvent.click(button('Reject'))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Reason for rejecting' }), {
+      target: { value: 'Duplicated listing' },
+    })
+    fireEvent.click(button('Reject request'))
+
+    expect(button('Reject request')).toBeDisabled()
+    expect(button('Cancel')).toBeDisabled()
   })
 
   it('refuses a reason longer than the server accepts, without sending it', async () => {
@@ -258,7 +349,7 @@ describe('RequestDetails', () => {
     expect(button('Reject')).toHaveFocus()
   })
 
-  it('says the request was already reviewed when the server answers 409, and loads it again', async () => {
+  it('says the request was already reviewed when approving answers 409, and loads it again', async () => {
     getMock.mockResolvedValueOnce(pending).mockResolvedValueOnce(rejected)
     approveMock.mockRejectedValue(alreadyReviewed)
     renderDetails()
@@ -274,6 +365,27 @@ describe('RequestDetails', () => {
       'This request was already rejected',
     )
     expect(getMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('says the request was already reviewed when rejecting answers 409, and closes the form', async () => {
+    getMock.mockResolvedValueOnce(pending).mockResolvedValueOnce(approved)
+    rejectMock.mockRejectedValue(alreadyReviewed)
+    renderDetails()
+    await title()
+
+    fireEvent.click(button('Reject'))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Reason for rejecting' }), {
+      target: { value: 'Duplicated listing' },
+    })
+    fireEvent.click(button('Reject request'))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'The listing request has already been approved or rejected.',
+    )
+    await waitFor(() =>
+      expect(button('Reject')).toHaveAccessibleDescription('This request was already approved'),
+    )
+    expect(screen.queryByRole('textbox', { name: 'Reason for rejecting' })).not.toBeInTheDocument()
   })
 
   it('shows the general error when a review fails, and leaves the buttons ready to try again', async () => {

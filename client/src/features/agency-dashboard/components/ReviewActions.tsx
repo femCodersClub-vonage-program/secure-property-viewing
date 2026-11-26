@@ -148,7 +148,8 @@ function ReviewActions({
   if (rejecting) {
     return (
       <form onSubmit={(event) => void reject(event)} noValidate className="flex flex-col gap-4">
-        {/* autoFocus: the field appears because the agent pressed "Reject", so the focus moves into it */}
+        {/* autoFocus: the field appears because the agent pressed "Reject", so the focus moves into it.
+            required tells assistive technology the reason is needed; noValidate leaves the messages to the form */}
         <FormField
           id={reasonId}
           label="Reason for rejecting"
@@ -159,6 +160,7 @@ function ReviewActions({
             <Textarea
               {...fieldProps}
               autoFocus
+              required
               rows={4}
               value={reason}
               onChange={(event) => setReason(event.target.value)}
