@@ -144,7 +144,7 @@ En Railway, `SILENT_AUTH_REDIRECT_URL` es la misma ruta en el dominio público d
 
 **El callback de estado de Verify.** Vonage avisa al servidor de cómo terminó una comprobación silenciosa con el webhook de estado, como describe la [spec de Silent Authentication](../specs/silent-authentication.md). En la aplicación de Mayleth, en el dashboard de Vonage, el callback de estado de Verify apunta a `/api/webhooks/verify/status` en el dominio público del servidor en Railway, y solo Mayleth lo cambia. En local, los callbacks no llegan a tu ordenador sin un túnel, y el flujo funciona igual: el cliente pide pasar al SMS, y Verify pasa al SMS por su cuenta a los 60 segundos. Nunca apuntes la aplicación compartida a tu propio túnel sin avisar al equipo, porque mientras tanto Railway deja de recibir los callbacks.
 
-**La llamada después de la visita.** La [llamada después de la visita](../specs/post-visit-call.md) está apagada por defecto, con `VOICE_CALLS_ENABLED=false`, así que el servidor arranca sin el grupo de Voice y nunca llama. Para probarla, pon estas variables y rellena el grupo de Voice con los valores de Irina del Drive:
+**La llamada después de la visita.** La [llamada después de la visita](../specs/post-visit-call.md) está apagada por defecto, con `VOICE_CALLS_ENABLED=false`, así que el servidor arranca sin el grupo de Voice y nunca llama. Los tests la mantienen apagada aunque `server/.env` la encienda. Para probarla, pon estas variables y rellena el grupo de Voice con los valores de Irina del Drive:
 
 | Variable | Valor |
 | :---- | :---- |

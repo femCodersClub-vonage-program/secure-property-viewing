@@ -217,7 +217,8 @@ class PostVisitCallDialerTest {
 
     @Test
     void placesNoCallsWhileCallsAreOff() {
-        // VOICE_CALLS_ENABLED is false in the tests, as by default, so the check that runs every minute doesn't exist
+        // The test configuration keeps the calls off, even when server/.env turns them on, so the check that runs
+        // every minute doesn't exist
         assertThat(context.getBeansOfType(PostVisitCallScheduler.class)).isEmpty();
     }
 
