@@ -45,14 +45,25 @@ describe('validateOwnerDetails', () => {
     expect(errors.ownerPhone).toMatch(/Spanish number/)
   })
 
-  it.each(['María José', "O'Connor", 'Anne-Marie', 'J. García'])('accepts the name %s', (name) => {
-    expect(validateOwnerDetails({ ...validForm, ownerName: name })).toEqual({})
-  })
+  it.each(['María José', "O'Connor", 'O’Connor', 'Anne-Marie', 'J. García'])(
+    'accepts the name %s',
+    (name) => {
+      expect(validateOwnerDetails({ ...validForm, ownerName: name })).toEqual({})
+    },
+  )
 
   it.each(['Ana 123', 'Ana@home'])('rejects the name %s', (name) => {
     expect(validateOwnerDetails({ ...validForm, ownerName: name }).ownerName).toBe(
       'Use only letters in your name, without numbers or symbols.',
     )
+  })
+})
+
+describe('the name limit', () => {
+  it('accepts a name of 100 characters, and no longer', () => {
+    expect(validateOwnerDetails({ ...validForm, ownerName: 'a'.repeat(100) })).toEqual({})
+    const errors = validateOwnerDetails({ ...validForm, ownerName: 'a'.repeat(101) })
+    expect(Object.keys(errors)).toEqual(['ownerName'])
   })
 })
 
@@ -93,6 +104,45 @@ describe('validatePropertyDetails', () => {
     })
 
     expect(Object.keys(errors).sort()).toEqual(['bedrooms', 'floor', 'sizeM2'])
+  })
+
+  it.each([
+    ['title', 'Enter a title.'],
+    ['description', 'Enter a description.'],
+    ['area', 'Enter the neighborhood.'],
+    ['address', 'Enter the address.'],
+  ] as const)('requires the %s, even when it only has spaces', (field, message) => {
+    expect(validatePropertyDetails({ ...validForm, [field]: ' ' })).toEqual({ [field]: message })
+  })
+
+  it.each([
+    ['bedrooms', ''],
+    ['bedrooms', '-1'],
+    ['sizeM2', ''],
+  ] as const)('rejects the %s "%s"', (field, value) => {
+    const errors = validatePropertyDetails({ ...validForm, [field]: value })
+
+    expect(Object.keys(errors)).toEqual([field])
+  })
+
+  // The limits in specs/owner-listing.md, "API"
+  it.each([
+    ['title', 255],
+    ['area', 100],
+    ['address', 255],
+    ['description', 5000],
+  ] as const)('accepts a %s of %i characters, and no longer', (field, max) => {
+    expect(validatePropertyDetails({ ...validForm, [field]: 'a'.repeat(max) })).toEqual({})
+    const errors = validatePropertyDetails({ ...validForm, [field]: 'a'.repeat(max + 1) })
+    expect(Object.keys(errors)).toEqual([field])
+  })
+
+  it.each(['-5', '100'])('accepts the floor %s, at the limit', (floor) => {
+    expect(validatePropertyDetails({ ...validForm, floor })).toEqual({})
+  })
+
+  it.each(['-6', '101'])('rejects the floor %s, past the limit', (floor) => {
+    expect(Object.keys(validatePropertyDetails({ ...validForm, floor }))).toEqual(['floor'])
   })
 
   it('rejects a description longer than 5,000 characters', () => {

@@ -12,8 +12,8 @@ function ListPropertyIntro() {
       aria-labelledby="list-property-title"
       className="grid grid-cols-1 items-center gap-10 md:grid-cols-2"
     >
-      <div className="relative h-60 w-full md:order-last lg:h-96">
-        <ParallaxImage src="/properties/interior-apartment-03.webp" className="rounded-lg" />
+      <div className="relative h-60 w-full overflow-clip rounded-lg md:order-last lg:h-96">
+        <ParallaxImage src="/properties/interior-apartment-03.webp" />
       </div>
 
       <div className="flex flex-col items-start gap-6">

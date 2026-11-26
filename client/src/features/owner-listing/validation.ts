@@ -15,8 +15,9 @@ export const MAX_LENGTH = {
 const SPANISH_NUMBER = /^[6-9]\d{8}$/
 // E.164, the same rule as the server: + and 7 to 15 digits, never starting with 0
 const E164_NUMBER = /^\+[1-9]\d{6,14}$/
-// Letters in any language (\p{L}, with accents as \p{M}), spaces, hyphens, apostrophes and dots
-const NAME_CHARACTERS = /^[\p{L}\p{M}\s'.-]+$/u
+// Letters in any language (\p{L}, with accents as \p{M}), spaces, hyphens, apostrophes and dots.
+// Phones often type the typographic apostrophe ’ (U+2019) instead of '
+const NAME_CHARACTERS = /^[\p{L}\p{M}\s'\u2019.-]+$/u
 
 /** The phone in E.164, such as +34612987654, or undefined when it is not valid. */
 export function toE164Phone(value: string): string | undefined {

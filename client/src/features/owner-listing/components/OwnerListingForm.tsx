@@ -20,6 +20,7 @@ import { LISTING_SUBMITTED_PATH } from '../paths'
 import type { ListingFormData, ListingStep } from '../types'
 import {
   validateOwnerDetails,
+  toE164Phone,
   validatePropertyDetails,
   type ListingFieldErrors,
 } from '../validation'
@@ -28,6 +29,9 @@ import PropertyDetailsStep from './PropertyDetailsStep'
 import StepIndicator from './StepIndicator'
 
 const pageHeading = 'font-display text-3xl font-bold text-balance text-brand-dark'
+
+const UNKNOWN_FIELD_MESSAGE =
+  "We couldn't send your request. Go back and check your property details, especially very large numbers, then verify your phone again."
 
 type Props = {
   resumedCheck?: ResumedSilentCheck
@@ -45,7 +49,7 @@ function OwnerListingForm({ resumedCheck }: Props) {
   const [errors, setErrors] = useState<ListingFieldErrors>({})
   const [notice, setNotice] = useState<string>()
   const [submitting, setSubmitting] = useState(false)
-  // A new number mounts a fresh verification screen, as when the server rejects the verification
+  // A new number mounts a fresh verification screen, once the previous one has been used
   const [verificationAttempt, setVerificationAttempt] = useState(0)
   const [stepChangedByOwner, setStepChangedByOwner] = useState(false)
   const progressRef = useRef<HTMLParagraphElement>(null)
@@ -69,6 +73,8 @@ function OwnerListingForm({ resumedCheck }: Props) {
 
   function goTo(next: ListingStep) {
     setPendingCheck(undefined)
+    // A notice belongs to the step it appeared on, and would keep the focus from the progress
+    setNotice(undefined)
     setStepChangedByOwner(true)
     setStep(next)
   }
@@ -90,7 +96,6 @@ function OwnerListingForm({ resumedCheck }: Props) {
     const found = validatePropertyDetails(data)
     setErrors(found)
     if (Object.keys(found).length === 0) {
-      setNotice(undefined)
       goTo('verification')
     }
   }
@@ -103,6 +108,9 @@ function OwnerListingForm({ resumedCheck }: Props) {
     }
     setSubmitting(true)
     setNotice(undefined)
+    // The verification screen is used up: after an error, a new one starts without the old check
+    setPendingCheck(undefined)
+    setVerificationAttempt((count) => count + 1)
     try {
       await submitListingRequest(request)
       // replace: "back" from the confirmation never returns to a form already sent
@@ -123,13 +131,14 @@ function OwnerListingForm({ resumedCheck }: Props) {
       // Each message goes next to its field, on the step where that field is
       const found = fromServerErrors(error.fieldErrors)
       setErrors(found)
+      // With no field to point at, the owner stays here and reads what to do
+      if (Object.keys(found).length === 0) {
+        setNotice(UNKNOWN_FIELD_MESSAGE)
+        return
+      }
       const ownerFieldFailed = OWNER_FIELDS.some((field) => found[field] !== undefined)
       goTo(ownerFieldFailed ? 'details' : 'property')
       return
-    }
-    if (error.code === 'PHONE_VERIFICATION_INVALID') {
-      setPendingCheck(undefined)
-      setVerificationAttempt((count) => count + 1)
     }
     setNotice(error.message)
   }
@@ -171,6 +180,7 @@ function OwnerListingForm({ resumedCheck }: Props) {
             <PhoneVerification
               key={verificationAttempt}
               purpose="LISTING_REQUEST"
+              initialPhone={toE164Phone(data.ownerPhone)}
               formToKeep={data}
               resumed={pendingCheck}
               onVerified={(verified) => void submit(verified)}

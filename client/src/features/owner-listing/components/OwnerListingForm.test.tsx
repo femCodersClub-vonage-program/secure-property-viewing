@@ -1,7 +1,15 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
 import { routes } from '../../../routes'
+import { openCheckUrl } from '../../phone-verification/silentAuth'
+
+// jsdom cannot leave the page, so opening the check URL is recorded instead
+vi.mock('../../phone-verification/silentAuth', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../phone-verification/silentAuth')>()),
+  openCheckUrl: vi.fn(),
+}))
 
 // Journey B through the real routes, with fetch answering as the server in specs/owner-listing.md
 
@@ -69,10 +77,10 @@ function type(label: string, value: string) {
   fireEvent.change(screen.getByRole('textbox', { name: label }), { target: { value } })
 }
 
-async function fillOwnerDetails() {
+async function fillOwnerDetails(phone = '612 987 654') {
   await screen.findByRole('heading', { name: 'Your details' })
   type('Full name', 'Ana Torres')
-  type('Phone number', '612 987 654')
+  type('Phone number', phone)
   fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
 }
 
@@ -92,10 +100,7 @@ async function fillPropertyDetails() {
 }
 
 async function verifyPhone() {
-  fireEvent.change(await screen.findByRole('textbox', { name: 'Phone number' }), {
-    target: { value: '+34612987654' },
-  })
-  fireEvent.click(screen.getByRole('button', { name: 'Send code' }))
+  fireEvent.click(await screen.findByRole('button', { name: 'Send code' }))
   fireEvent.change(await screen.findByRole('textbox', { name: 'Code from the SMS' }), {
     target: { value: '482931' },
   })
@@ -120,6 +125,7 @@ afterEach(() => {
   vi.useRealTimers()
   vi.unstubAllGlobals()
   fetchMock.mockReset()
+  vi.mocked(openCheckUrl).mockReset()
   sessionStorage.clear()
   document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/'
 })
@@ -150,12 +156,67 @@ describe('owner listing form', () => {
     expect(screen.getByText('Step 1 of 3: Details')).toBeInTheDocument()
   })
 
+  it('marks every field as required except the floor', async () => {
+    renderAt('/list-property/form')
+    await screen.findByRole('heading', { name: 'Your details' })
+    for (const name of ['Full name', 'Phone number']) {
+      expect(screen.getByRole('textbox', { name })).toBeRequired()
+    }
+
+    await fillOwnerDetails()
+    await screen.findByRole('heading', { name: 'Property details' })
+
+    const required = ['Title', 'Description', 'Neighborhood', 'Address', 'Price', 'Size (m²)']
+    for (const name of [...required, 'Bedrooms']) {
+      expect(screen.getByRole('textbox', { name })).toBeRequired()
+    }
+    expect(screen.getByRole('textbox', { name: 'Floor (optional)' })).not.toBeRequired()
+  })
+
+  it('stays on the property step and says how to fix each missing detail', async () => {
+    renderAt('/list-property/form')
+    await fillOwnerDetails()
+    await screen.findByRole('heading', { name: 'Property details' })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+
+    expect(screen.getByText('Step 2 of 3: Property')).toBeInTheDocument()
+    const messages = {
+      Title: 'Enter a title.',
+      Description: 'Enter a description.',
+      Neighborhood: 'Enter the neighborhood.',
+      Address: 'Enter the address.',
+      Price: 'Enter a price greater than 0, in whole euros.',
+      'Size (m²)': 'Enter the size in whole square meters, greater than 0.',
+      Bedrooms: 'Enter a whole number of bedrooms from 0 to 50. A studio has 0.',
+    }
+    for (const [name, message] of Object.entries(messages)) {
+      expect(screen.getByRole('textbox', { name })).toHaveAccessibleDescription(
+        expect.stringContaining(message),
+      )
+    }
+    expect(screen.getByRole('group', { name: 'Operation' })).toHaveAccessibleDescription(
+      'Choose rent or sale.',
+    )
+    expect(screen.getByRole('group', { name: 'Property type' })).toHaveAccessibleDescription(
+      'Choose the property type.',
+    )
+  })
+
   it('moves to the property step and puts the focus on the progress', async () => {
     renderAt('/list-property/form')
 
     await fillOwnerDetails()
 
     expect(await screen.findByText('Step 2 of 3: Property')).toHaveFocus()
+  })
+
+  it('opens the verification with the phone number from the details step', async () => {
+    renderAt('/list-property/form')
+    await fillOwnerDetails()
+    await fillPropertyDetails()
+
+    expect(await screen.findByRole('textbox', { name: 'Phone number' })).toHaveValue('+34612987654')
   })
 
   it('shows €/month for rent and € for sale', async () => {
@@ -185,6 +246,20 @@ describe('owner listing form', () => {
     expect(await screen.findByRole('textbox', { name: 'Title' })).toHaveValue('Apartment in Gràcia')
   })
 
+  it('keeps what was entered when the owner goes back from the verification', async () => {
+    renderAt('/list-property/form')
+    await fillOwnerDetails()
+    await fillPropertyDetails()
+    await screen.findByRole('button', { name: 'Send code' })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }))
+
+    expect(await screen.findByRole('textbox', { name: 'Title' })).toHaveValue('Apartment in Gràcia')
+    expect(screen.getByRole('button', { name: 'Rent' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }))
+    expect(await screen.findByRole('textbox', { name: 'Full name' })).toHaveValue('Ana Torres')
+  })
+
   it('sends the request of the spec once the phone is verified, then confirms it', async () => {
     serveVerification()
     serve('POST /api/listing-requests', () => json({ id: 18, status: 'PENDING' }, 201))
@@ -205,8 +280,29 @@ describe('owner listing form', () => {
     })
     expect(router.state.location.pathname).toBe('/list-property/submitted')
     // No account, so no request details: only the way back home
-    expect(screen.queryByRole('link', { name: /request details/i })).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Back to the home page' })).toHaveAttribute('href', '/')
+    const main = within(screen.getByRole('main'))
+    expect(main.queryByRole('button')).not.toBeInTheDocument()
+    expect(main.getAllByRole('link')).toEqual([
+      main.getByRole('link', { name: 'Back to the home page' }),
+    ])
+    expect(main.getByRole('link')).toHaveAttribute('href', '/')
+  })
+
+  it('lists the next steps in order after sending the request', async () => {
+    serveVerification()
+    serve('POST /api/listing-requests', () => json({ id: 18, status: 'PENDING' }, 201))
+    renderAt('/list-property/form')
+    await fillOwnerDetails()
+    await fillPropertyDetails()
+    await verifyPhone()
+    await screen.findByRole('heading', { name: 'Next steps' })
+
+    const steps = within(screen.getByRole('main')).getAllByRole('listitem')
+
+    expect(steps).toHaveLength(3)
+    expect(steps[0]).toHaveTextContent('Information review')
+    expect(steps[1]).toHaveTextContent('Agency contact')
+    expect(steps[2]).toHaveTextContent('Video call with the agency')
   })
 
   it('shows a field the server rejects next to it, keeping the rest of the data', async () => {
@@ -237,6 +333,33 @@ describe('owner listing form', () => {
     expect(screen.getByText('Step 2 of 3: Property')).toHaveFocus()
   })
 
+  it('goes back to the details step when the server rejects an owner field', async () => {
+    serveVerification()
+    serve('POST /api/listing-requests', () =>
+      json(
+        {
+          title: 'Invalid request',
+          status: 400,
+          detail: 'Some fields are not valid.',
+          code: 'VALIDATION_FAILED',
+          errors: { ownerPhone: 'Enter another phone number.' },
+        },
+        400,
+      ),
+    )
+    renderAt('/list-property/form')
+    await fillOwnerDetails()
+    await fillPropertyDetails()
+    await verifyPhone()
+
+    await screen.findByRole('heading', { name: 'Your details' })
+
+    expect(screen.getByRole('textbox', { name: 'Phone number' })).toHaveAccessibleDescription(
+      expect.stringContaining('Enter another phone number.'),
+    )
+    expect(screen.getByRole('textbox', { name: 'Full name' })).toHaveValue('Ana Torres')
+  })
+
   it('asks for a new verification when the server rejects the one used', async () => {
     serveVerification(42)
     serve('POST /api/listing-requests', () =>
@@ -259,13 +382,65 @@ describe('owner listing form', () => {
     await waitFor(() =>
       expect(screen.getByText('Verify your phone number again.')).toBeInTheDocument(),
     )
-    expect(await screen.findByRole('textbox', { name: 'Phone number' })).toHaveValue('')
+    expect(await screen.findByRole('textbox', { name: 'Phone number' })).toHaveValue('+34612987654')
+    expect(screen.getByText('Step 3 of 3: Verification')).toBeInTheDocument()
+
+    serveVerification(43)
+    serve('POST /api/listing-requests', () => json({ id: 18, status: 'PENDING' }, 201))
+    await verifyPhone()
+
+    await screen.findByRole('heading', { level: 1, name: 'Your request has been sent' })
+    expect(bodyOf(callsTo('POST /api/listing-requests')[1])).toEqual({
+      ...requestFromSpec,
+      phoneVerificationId: 43,
+    })
+  })
+
+  it('moves the focus to the progress when going back after a submit error', async () => {
+    serveVerification()
+    serve('POST /api/listing-requests', () => json({}, 500))
+    renderAt('/list-property/form')
+    await fillOwnerDetails()
+    await fillPropertyDetails()
+    await verifyPhone()
+    await screen.findByText(SYSTEM_ERROR_MESSAGE)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }))
+
+    expect(await screen.findByText('Step 2 of 3: Property')).toHaveFocus()
+    // The property step never shows the notice, so it is checked back on the verification
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    await screen.findByRole('button', { name: 'Send code' })
+    expect(screen.queryByText(SYSTEM_ERROR_MESSAGE)).not.toBeInTheDocument()
+  })
+
+  it('says what to do when the server rejects the request without naming a field', async () => {
+    serveVerification()
+    serve('POST /api/listing-requests', () =>
+      json(
+        {
+          title: 'Bad Request',
+          status: 400,
+          detail: 'The request body is invalid.',
+          code: 'VALIDATION_FAILED',
+          errors: {},
+        },
+        400,
+      ),
+    )
+    renderAt('/list-property/form')
+    await fillOwnerDetails()
+    await fillPropertyDetails()
+    await verifyPhone()
+
+    const message = await screen.findByText(/check your property details/)
+    expect(message.closest('[tabindex="-1"]')).toHaveFocus()
     expect(screen.getByText('Step 3 of 3: Verification')).toBeInTheDocument()
   })
 })
 
 describe('coming back from the silent check', () => {
-  it('sends the saved request with nothing to type again', async () => {
+  function saveSilentCheck() {
     const { phoneVerificationId: _id, ...withoutId } = requestFromSpec
     sessionStorage.setItem(
       STORAGE_KEY,
@@ -285,6 +460,24 @@ describe('coming back from the silent check', () => {
         },
       }),
     )
+  }
+
+  it('does not check the used code again when sending the request fails', async () => {
+    saveSilentCheck()
+    serve('POST /api/phone-verifications/42/silent-check', () =>
+      json({ id: 42, status: 'VERIFIED' }, 200),
+    )
+    serve('POST /api/listing-requests', () => json({}, 500))
+
+    renderAt('/verification/return#request_id=c11236f4&code=si9sfG')
+
+    expect(await screen.findByRole('textbox', { name: 'Phone number' })).toBeInTheDocument()
+    expect(screen.getByText(SYSTEM_ERROR_MESSAGE).closest('[tabindex="-1"]')).toHaveFocus()
+    expect(callsTo('POST /api/phone-verifications/42/silent-check')).toHaveLength(1)
+  })
+
+  it('sends the saved request with nothing to type again', async () => {
+    saveSilentCheck()
     serve('POST /api/phone-verifications/42/silent-check', () =>
       json({ id: 42, status: 'VERIFIED' }, 200),
     )
@@ -297,5 +490,52 @@ describe('coming back from the silent check', () => {
     ).toBeInTheDocument()
     expect(bodyOf(callsTo('POST /api/listing-requests')[0])).toEqual(requestFromSpec)
     expect(router.state.location.pathname).toBe('/list-property/submitted')
+  })
+})
+
+describe('from the form to the operator and back', () => {
+  it('saves the form before leaving, and sends it on the return', async () => {
+    serve('POST /api/phone-verifications', () =>
+      json(
+        {
+          id: 42,
+          status: 'PENDING',
+          resendAvailableAt: '2026-11-26T10:00:32+01:00',
+          checkUrl: 'https://api.nexmo.com/v2/verify/c11236f4/silent-auth/redirect',
+        },
+        201,
+      ),
+    )
+    renderAt('/list-property/form')
+    // A +990 number tries the silent check from any browser
+    await fillOwnerDetails('+990123400')
+    await fillPropertyDetails()
+    fireEvent.click(await screen.findByRole('button', { name: 'Send code' }))
+    await waitFor(() =>
+      expect(openCheckUrl).toHaveBeenCalledWith(
+        'https://api.nexmo.com/v2/verify/c11236f4/silent-auth/redirect',
+      ),
+    )
+    const saved: unknown = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? 'null')
+    expect(saved).toMatchObject({
+      verificationId: 42,
+      purpose: 'LISTING_REQUEST',
+      phone: '+990123400',
+      form: { ownerName: 'Ana Torres', title: 'Apartment in Gràcia', floor: '2' },
+    })
+    // Opening the check URL reloads the page: only what was saved survives
+    cleanup()
+
+    serve('POST /api/phone-verifications/42/silent-check', () =>
+      json({ id: 42, status: 'VERIFIED' }, 200),
+    )
+    serve('POST /api/listing-requests', () => json({ id: 18, status: 'PENDING' }, 201))
+    renderAt('/verification/return#request_id=c11236f4&code=si9sfG')
+
+    await screen.findByRole('heading', { level: 1, name: 'Your request has been sent' })
+    expect(bodyOf(callsTo('POST /api/listing-requests')[0])).toEqual({
+      ...requestFromSpec,
+      ownerPhone: '+990123400',
+    })
   })
 })
