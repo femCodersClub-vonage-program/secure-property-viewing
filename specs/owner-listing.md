@@ -132,5 +132,7 @@ None directly. Phone verification calls the Verify API, as described in its own 
 - Pages in `src/pages/` for B1, the form and B5, registered in `routes.tsx`
 - An `owner-listing` feature with its `api.ts`, types and components, following the folder rules in `client/AGENTS.md`
 - The form keeps its data in memory while the owner moves between B2, B3 and B4, so "Back" never loses what was entered
-- Fields use `FormField`, `Select`, `Textarea` and `Radio` from the design system, and errors use `Alert`
+- Fields use `FormField`, `Input` and `Textarea` from the design system, and errors that belong to no field use `Alert`
+- Operation and property type use choice buttons with `aria-pressed`, the visit calendar pattern in [Form fields](../docs/design-system.md#form-fields), instead of `Radio`
 - B4 is the verification screen from the phone verification feature, opened with the `LISTING_REQUEST` purpose and the phone from B2
+- The form is kept through the silent check, which reloads the page, as described in the [silent authentication spec](silent-authentication.md)
