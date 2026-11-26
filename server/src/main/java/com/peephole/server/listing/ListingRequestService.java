@@ -1,6 +1,7 @@
 package com.peephole.server.listing;
 
 import com.peephole.server.listing.dto.ListingRequestResponse;
+import com.peephole.server.listing.dto.ListingRequestSummaryResponse;
 import com.peephole.server.listing.dto.NewListingRequest;
 import com.peephole.server.phoneverification.PhoneVerificationInvalidException;
 import com.peephole.server.phoneverification.PhoneVerificationPurpose;
@@ -10,6 +11,8 @@ import com.peephole.server.property.PropertyType;
 import java.sql.SQLException;
 import java.time.Clock;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.util.List;
 import java.util.Objects;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -21,6 +24,7 @@ class ListingRequestService {
 
     private static final PhoneVerificationPurpose PURPOSE = PhoneVerificationPurpose.LISTING_REQUEST;
     private static final String VERIFICATION_USED_CONSTRAINT = "listing_request_phone_verification_id_key";
+    private static final ZoneId AGENCY_ZONE = ZoneId.of("Europe/Madrid");
 
     private final ListingRequestRepository repository;
     private final PhoneVerificationService phoneVerificationService;
@@ -63,6 +67,30 @@ class ListingRequestService {
         }
         return new ListingRequestResponse(
                 listingRequest.getId(), listingRequest.getStatus().name());
+    }
+
+    // Without a status, every request. The newest first in both cases
+    @Transactional(readOnly = true)
+    List<ListingRequestSummaryResponse> list(ListingRequestStatus status) {
+        List<ListingRequest> requests = status == null
+                ? repository.findAllByOrderByCreatedAtDescIdDesc()
+                : repository.findAllByStatusOrderByCreatedAtDescIdDesc(status);
+        return requests.stream().map(ListingRequestService::toSummary).toList();
+    }
+
+    private static ListingRequestSummaryResponse toSummary(ListingRequest request) {
+        return new ListingRequestSummaryResponse(
+                request.getId(),
+                request.getOwnerFullName(),
+                request.getTitle(),
+                request.getOperation().name(),
+                request.getPriceEuros(),
+                inAgencyZone(request.getCreatedAt()),
+                request.getStatus().name());
+    }
+
+    private static OffsetDateTime inAgencyZone(OffsetDateTime time) {
+        return time == null ? null : time.atZoneSameInstant(AGENCY_ZONE).toOffsetDateTime();
     }
 
     // The lock in validateVerified stops a double submit before this, but the UNIQUE constraint keeps the

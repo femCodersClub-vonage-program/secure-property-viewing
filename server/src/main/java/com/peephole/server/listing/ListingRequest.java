@@ -92,8 +92,28 @@ class ListingRequest {
         return id;
     }
 
+    String getOwnerFullName() {
+        return ownerFullName;
+    }
+
+    String getTitle() {
+        return title;
+    }
+
+    PropertyOperation getOperation() {
+        return operation;
+    }
+
+    Integer getPriceEuros() {
+        return priceEuros;
+    }
+
     ListingRequestStatus getStatus() {
         return status;
+    }
+
+    OffsetDateTime getCreatedAt() {
+        return createdAt;
     }
 
     record OwnerDetails(String fullName, String phone) {
