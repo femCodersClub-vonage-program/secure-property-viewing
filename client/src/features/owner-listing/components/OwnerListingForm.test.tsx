@@ -397,6 +397,24 @@ describe('owner listing form', () => {
     })
   })
 
+  it('keeps the verified number when the owner changes it on the verification', async () => {
+    serveVerification()
+    serve('POST /api/listing-requests', () => json({}, 500))
+    renderAt('/list-property/form')
+    await fillOwnerDetails()
+    await fillPropertyDetails()
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Phone number' }), {
+      target: { value: '+34600000000' },
+    })
+    await verifyPhone()
+    await screen.findByText(SYSTEM_ERROR_MESSAGE)
+
+    expect(screen.getByRole('textbox', { name: 'Phone number' })).toHaveValue('+34600000000')
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Back' }))
+    expect(await screen.findByRole('textbox', { name: 'Phone number' })).toHaveValue('+34600000000')
+  })
+
   it('moves the focus to the progress when going back after a submit error', async () => {
     serveVerification()
     serve('POST /api/listing-requests', () => json({}, 500))

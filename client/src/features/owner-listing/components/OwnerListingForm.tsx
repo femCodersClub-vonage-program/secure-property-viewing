@@ -98,6 +98,8 @@ function OwnerListingForm({ resumedCheck }: Props) {
   }
 
   async function submit(verified: VerifiedPhone) {
+    // The number can be changed on the verification, so B2 and the next one show the verified one
+    updateField('ownerPhone', verified.phone)
     const request = toListingRequest(data, verified)
     if (!request) {
       goTo('property')
