@@ -1,7 +1,11 @@
 import type { VerifiedPhone } from '../phone-verification'
 import type { ListingFormData, ListingRequest } from './types'
-import type { ListingFieldErrors } from './validation'
-
+import type { Operation, PropertyType } from '../property-browsing'
+import {
+  validateOwnerDetails,
+  validatePropertyDetails,
+  type ListingFieldErrors,
+} from './validation'
 // Every field starts empty, floor included
 export const EMPTY_FORM: ListingFormData = {
   ownerName: '',
@@ -62,4 +66,53 @@ export function toListingRequest(
     floor: data.floor.trim() === '' ? undefined : Number(data.floor),
     phoneVerificationId: verified.verificationId,
   }
+}
+
+const PROPERTY_TYPES: (PropertyType | '')[] = ['', 'APARTMENT', 'HOUSE', 'STUDIO']
+const OPERATIONS: (Operation | '')[] = ['', 'RENT', 'SALE']
+
+function isPropertyType(value: string): value is PropertyType | '' {
+  return PROPERTY_TYPES.some((type) => type === value)
+}
+
+function isOperation(value: string): value is Operation | '' {
+  return OPERATIONS.some((operation) => operation === value)
+}
+
+/**
+ * The form saved before the silent check reloaded the page, or undefined when it is missing,
+ * broken or incomplete. It never holds the SMS code.
+ */
+export function readSavedListingForm(saved: unknown): ListingFormData | undefined {
+  if (typeof saved !== 'object' || saved === null) return undefined
+
+  // unknown, not any: every value is checked before it is used
+  const values = new Map<string, unknown>(Object.entries(saved))
+  const allText = Object.keys(EMPTY_FORM).every((field) => typeof values.get(field) === 'string')
+  if (!allText) return undefined
+
+  // Every field is text now, so String() only gives it its type
+  const text = (field: keyof ListingFormData) => String(values.get(field))
+  const propertyType = text('propertyType')
+  const operation = text('operation')
+  if (!isPropertyType(propertyType) || !isOperation(operation)) return undefined
+
+  const form: ListingFormData = {
+    ownerName: text('ownerName'),
+    ownerPhone: text('ownerPhone'),
+    title: text('title'),
+    description: text('description'),
+    propertyType,
+    operation,
+    area: text('area'),
+    address: text('address'),
+    priceEuros: text('priceEuros'),
+    bedrooms: text('bedrooms'),
+    sizeM2: text('sizeM2'),
+    floor: text('floor'),
+  }
+
+  // It was saved on B4, so B2 and B3 were valid: anything else is an old or edited entry
+  const errors = { ...validateOwnerDetails(form), ...validatePropertyDetails(form) }
+  return Object.keys(errors).length === 0 ? form : undefined
 }

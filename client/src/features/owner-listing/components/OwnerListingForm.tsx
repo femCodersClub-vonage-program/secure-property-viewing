@@ -2,9 +2,20 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Alert, Button } from '../../../components/ui'
 import { ApiError, SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
-import { PhoneVerification, type VerifiedPhone } from '../../phone-verification'
+import {
+  clearSilentCheck,
+  PhoneVerification,
+  type ResumedSilentCheck,
+  type VerifiedPhone,
+} from '../../phone-verification'
 import { submitListingRequest } from '../api'
-import { EMPTY_FORM, OWNER_FIELDS, fromServerErrors, toListingRequest } from '../listingForm'
+import {
+  EMPTY_FORM,
+  OWNER_FIELDS,
+  fromServerErrors,
+  readSavedListingForm,
+  toListingRequest,
+} from '../listingForm'
 import { LISTING_SUBMITTED_PATH } from '../paths'
 import type { ListingFormData, ListingStep } from '../types'
 import {
@@ -18,11 +29,19 @@ import StepIndicator from './StepIndicator'
 
 const pageHeading = 'font-display text-3xl font-bold text-balance text-brand-dark'
 
+type Props = {
+  resumedCheck?: ResumedSilentCheck
+}
+
 // Holds the current step, the data and the errors of B2 to B4, so "Back" never loses what was entered
-function OwnerListingForm() {
+function OwnerListingForm({ resumedCheck }: Props) {
   const navigate = useNavigate()
-  const [step, setStep] = useState<ListingStep>('details')
-  const [data, setData] = useState<ListingFormData>(EMPTY_FORM)
+  const [restored] = useState(() =>
+    resumedCheck ? readSavedListingForm(resumedCheck.saved.form) : undefined,
+  )
+  const [step, setStep] = useState<ListingStep>(restored ? 'verification' : 'details')
+  const [data, setData] = useState<ListingFormData>(restored ?? EMPTY_FORM)
+  const [pendingCheck, setPendingCheck] = useState(restored ? resumedCheck : undefined)
   const [errors, setErrors] = useState<ListingFieldErrors>({})
   const [notice, setNotice] = useState<string>()
   const [submitting, setSubmitting] = useState(false)
@@ -41,7 +60,15 @@ function OwnerListingForm() {
     }
   }, [notice, step, stepChangedByOwner])
 
+  // A saved check whose form is missing or broken is useless, so it is deleted
+  useEffect(() => {
+    if (resumedCheck && !restored) {
+      clearSilentCheck()
+    }
+  }, [resumedCheck, restored])
+
   function goTo(next: ListingStep) {
+    setPendingCheck(undefined)
     setStepChangedByOwner(true)
     setStep(next)
   }
@@ -101,6 +128,7 @@ function OwnerListingForm() {
       return
     }
     if (error.code === 'PHONE_VERIFICATION_INVALID') {
+      setPendingCheck(undefined)
       setVerificationAttempt((count) => count + 1)
     }
     setNotice(error.message)
@@ -143,6 +171,8 @@ function OwnerListingForm() {
             <PhoneVerification
               key={verificationAttempt}
               purpose="LISTING_REQUEST"
+              formToKeep={data}
+              resumed={pendingCheck}
               onVerified={(verified) => void submit(verified)}
             />
           )}
