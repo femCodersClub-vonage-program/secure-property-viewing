@@ -15,9 +15,9 @@ export const MAX_LENGTH = {
 const SPANISH_NUMBER = /^[6-9]\d{8}$/
 // E.164, the same rule as the server: + and 7 to 15 digits, never starting with 0
 const E164_NUMBER = /^\+[1-9]\d{6,14}$/
-// Letters in any language (\p{L}, with accents as \p{M}), spaces, hyphens, apostrophes and dots.
-// Phones often type the typographic apostrophe ’ (U+2019) instead of '
-const NAME_CHARACTERS = /^[\p{L}\p{M}\s'\u2019.-]+$/u
+// A name needs a letter in any language and no digits: any punctuation can be part of it
+const LETTER = /\p{L}/u
+const DIGIT = /\p{Nd}/u
 
 const DIGITS = /^\d+$/
 const SIGNED_DIGITS = /^-?\d+$/
@@ -60,8 +60,8 @@ export function validateOwnerDetails(data: ListingFormData): ListingFieldErrors 
   const ownerName = checkText(data.ownerName, MAX_LENGTH.ownerName, 'your full name')
   if (ownerName) {
     errors.ownerName = ownerName
-  } else if (!NAME_CHARACTERS.test(data.ownerName.trim())) {
-    errors.ownerName = 'Use only letters in your name, without numbers or symbols.'
+  } else if (!LETTER.test(data.ownerName) || DIGIT.test(data.ownerName)) {
+    errors.ownerName = 'Enter your name with letters and without numbers.'
   }
 
   if (!toE164Phone(data.ownerPhone)) {

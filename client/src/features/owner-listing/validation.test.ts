@@ -45,16 +45,21 @@ describe('validateOwnerDetails', () => {
     expect(errors.ownerPhone).toMatch(/Spanish number/)
   })
 
-  it.each(['María José', "O'Connor", 'O’Connor', 'Anne-Marie', 'J. García'])(
-    'accepts the name %s',
-    (name) => {
-      expect(validateOwnerDetails({ ...validForm, ownerName: name })).toEqual({})
-    },
-  )
+  it.each([
+    'María José',
+    'María-José',
+    'Gal·la',
+    "O'Connor",
+    'O’Connor',
+    'Anne-Marie',
+    'J. García',
+  ])('accepts the name %s', (name) => {
+    expect(validateOwnerDetails({ ...validForm, ownerName: name })).toEqual({})
+  })
 
-  it.each(['Ana 123', 'Ana@home'])('rejects the name %s', (name) => {
+  it.each(['Ana 123', '...'])('rejects the name %s', (name) => {
     expect(validateOwnerDetails({ ...validForm, ownerName: name }).ownerName).toBe(
-      'Use only letters in your name, without numbers or symbols.',
+      'Enter your name with letters and without numbers.',
     )
   })
 })
