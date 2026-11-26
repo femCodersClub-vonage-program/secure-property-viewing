@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.jayway.jsonpath.JsonPath;
 import com.peephole.server.listing.dto.ListingRequestDetailsResponse;
+import com.peephole.server.listing.dto.RejectListingRequest;
 import jakarta.persistence.EntityManager;
 import java.time.Clock;
 import java.time.OffsetDateTime;
@@ -42,6 +43,7 @@ class AgencyListingRequestControllerTest {
     private static final String PASSWORD = "Listing-test-password-1";
     private static final OffsetDateTime TIME = OffsetDateTime.parse("2099-03-10T09:00:00Z");
     private static final OffsetDateTime REVIEW_TIME = OffsetDateTime.parse("2099-03-12T10:00:00Z");
+    private static final String REASON = "{\"reason\":\"The address is outside Barcelona\"}";
 
     @Autowired
     private MockMvc mockMvc;
@@ -322,10 +324,7 @@ class AgencyListingRequestControllerTest {
             .andExpect(jsonPath("$.status").value("APPROVED"))
             .andExpect(jsonPath("$.reviewedAt").value("2099-03-12T11:00:00+01:00"))
             .andExpect(jsonPath("$.rejectionReason").isEmpty());
-        entityManager.flush();
-        assertThat(jdbcTemplate.queryForObject(
-            "SELECT reviewed_by FROM listing_request WHERE id = ?", Long.class, id))
-            .isEqualTo(agentId);
+        assertThat(reviewerOf(id)).isEqualTo(agentId);
     }
 
     @Test
@@ -373,6 +372,110 @@ class AgencyListingRequestControllerTest {
             .andExpect(jsonPath("$.code").value("CSRF_TOKEN_INVALID"));
     }
 
+    // Rejecting (D3)
+
+    @Test
+    void rejectsAPendingRequestWithItsReason() throws Exception {
+        long id = insertListingRequest("Ana Torres", "PENDING", TIME);
+
+        reject(id, "{\"reason\":\"  The address is outside Barcelona  \"}")
+            .andExpect(status().isOk())
+            // Contract: the id and the new status
+            .andExpect(jsonPath("$.length()").value(2))
+            .andExpect(jsonPath("$.id").value(id))
+            .andExpect(jsonPath("$.status").value("REJECTED"));
+
+        details(id)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("REJECTED"))
+            .andExpect(jsonPath("$.reviewedAt").value("2099-03-12T11:00:00+01:00"))
+            .andExpect(jsonPath("$.rejectionReason").value("The address is outside Barcelona"));
+        assertThat(reviewerOf(id)).isEqualTo(agentId);
+        assertThat(jdbcTemplate.queryForObject(
+            "SELECT count(*) FROM property WHERE listing_request_id = ?", Integer.class, id))
+            .isZero();
+    }
+
+    @Test
+    void asksForAReasonBeforeRejecting() throws Exception {
+        long id = insertListingRequest("Ana Torres", "PENDING", TIME);
+
+        reject(id, "{}")
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+            .andExpect(jsonPath("$.errors.reason").exists());
+        reject(id, "{\"reason\":\"   \"}")
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+            .andExpect(jsonPath("$.errors.reason").exists());
+        reject(id, "{\"reason\":\"" + "x".repeat(1001) + "\"}")
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+            .andExpect(jsonPath("$.errors.reason").exists());
+
+        details(id).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("PENDING"));
+    }
+
+    @Test
+    void acceptsAReasonOfOneThousandCharacters() throws Exception {
+        long id = insertListingRequest("Ana Torres", "PENDING", TIME);
+
+        reject(id, "{\"reason\":\"" + "x".repeat(1000) + "\"}").andExpect(status().isOk());
+    }
+
+    @Test
+    void refusesToRejectARequestThatWasAlreadyReviewed() throws Exception {
+        long approved = insertListingRequest("Joan Puig", "APPROVED", TIME);
+        long rejected = insertListingRequest("Laia Vidal", "REJECTED", TIME);
+
+        reject(approved, REASON)
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value("LISTING_REQUEST_ALREADY_REVIEWED"));
+        reject(rejected, REASON)
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value("LISTING_REQUEST_ALREADY_REVIEWED"));
+
+        details(approved).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("APPROVED"));
+    }
+
+    @Test
+    void returnsNotFoundWhenRejectingAnUnknownRequest() throws Exception {
+        reject(999_999_999L, REASON)
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+    }
+
+    @Test
+    void rejectingRequiresASignedInUser() throws Exception {
+        long id = insertListingRequest("Ana Torres", "PENDING", TIME);
+
+        mockMvc.perform(post(PATH + "/" + id + "/reject")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(REASON))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"));
+    }
+
+    @Test
+    void rejectingRequiresACsrfToken() throws Exception {
+        long id = insertListingRequest("Ana Torres", "PENDING", TIME);
+
+        mockMvc.perform(post(PATH + "/" + id + "/reject")
+                .session(signIn())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(REASON))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.code").value("CSRF_TOKEN_INVALID"));
+    }
+
+    // The agency writes the reason, and it may name the owner
+    @Test
+    void neverPrintsTheRejectionReason() {
+        assertThat(new RejectListingRequest("Ana Torres sent the wrong address").toString())
+            .doesNotContain("Ana Torres");
+    }
+
     private ResultActions list(String query) throws Exception {
         return mockMvc.perform(get(PATH + query).session(signIn()));
     }
@@ -385,6 +488,14 @@ class AgencyListingRequestControllerTest {
         return mockMvc.perform(post(PATH + "/" + id + "/approve").with(csrf()).session(signIn()));
     }
 
+    private ResultActions reject(long id, String body) throws Exception {
+        return mockMvc.perform(post(PATH + "/" + id + "/reject")
+            .with(csrf())
+            .session(signIn())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(body));
+    }
+
     private long approvedPropertyId(long id) throws Exception {
         String body = approve(id)
             .andExpect(status().isOk())
@@ -392,6 +503,12 @@ class AgencyListingRequestControllerTest {
             .getResponse()
             .getContentAsString();
         return JsonPath.<Number>read(body, "$.propertyId").longValue();
+    }
+
+    // JPA writes the review when the transaction ends, so it is flushed before reading it with SQL
+    private Long reviewerOf(long id) {
+        entityManager.flush();
+        return jdbcTemplate.queryForObject("SELECT reviewed_by FROM listing_request WHERE id = ?", Long.class, id);
     }
 
     private MockHttpSession signIn() throws Exception {

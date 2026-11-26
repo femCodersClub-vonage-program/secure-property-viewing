@@ -5,7 +5,9 @@ import com.peephole.server.common.ProblemResponse;
 import com.peephole.server.config.OpenApiConfig;
 import com.peephole.server.listing.dto.ApprovedListingResponse;
 import com.peephole.server.listing.dto.ListingRequestDetailsResponse;
+import com.peephole.server.listing.dto.ListingRequestResponse;
 import com.peephole.server.listing.dto.ListingRequestSummaryResponse;
+import com.peephole.server.listing.dto.RejectListingRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,12 +15,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -130,5 +134,52 @@ class AgencyListingRequestController {
             schema = @Schema(implementation = ProblemResponse.class)))
     ApprovedListingResponse approve(@PathVariable long id, Authentication authentication) {
         return service.approve(id, SignedInAgency.idOf(authentication), SignedInAgency.userIdOf(authentication));
+    }
+
+    @PostMapping("/{id}/reject")
+    @Operation(
+        summary = "Reject a listing request",
+        description = "Marks the request REJECTED with the agency's reason, which the owner can ask for. Needs"
+            + " the X-XSRF-TOKEN header.")
+    @SecurityRequirement(name = OpenApiConfig.AGENCY_SESSION)
+    @ApiResponse(responseCode = "200", description = "The request was rejected")
+    @ApiResponse(
+        responseCode = "400",
+        description = "VALIDATION_FAILED: the reason is missing, blank or longer than 1000 characters",
+        content =
+        @Content(
+            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+            schema = @Schema(implementation = ProblemResponse.class)))
+    @ApiResponse(
+        responseCode = "401",
+        description = "AUTHENTICATION_REQUIRED: there is no session",
+        content =
+        @Content(
+            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+            schema = @Schema(implementation = ProblemResponse.class)))
+    @ApiResponse(
+        responseCode = "403",
+        description = "CSRF_TOKEN_INVALID: the X-XSRF-TOKEN header is missing or does not match the cookie",
+        content =
+        @Content(
+            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+            schema = @Schema(implementation = ProblemResponse.class)))
+    @ApiResponse(
+        responseCode = "404",
+        description = "NOT_FOUND: there is no listing request with this id",
+        content =
+        @Content(
+            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+            schema = @Schema(implementation = ProblemResponse.class)))
+    @ApiResponse(
+        responseCode = "409",
+        description = "LISTING_REQUEST_ALREADY_REVIEWED: the request was already approved or rejected",
+        content =
+        @Content(
+            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+            schema = @Schema(implementation = ProblemResponse.class)))
+    ListingRequestResponse reject(
+        @PathVariable long id, @Valid @RequestBody RejectListingRequest request, Authentication authentication) {
+        return service.reject(id, request.reason(), SignedInAgency.userIdOf(authentication));
     }
 }

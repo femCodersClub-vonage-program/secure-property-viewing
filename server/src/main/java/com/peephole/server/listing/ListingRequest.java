@@ -108,6 +108,13 @@ class ListingRequest {
         reviewedAt = now;
     }
 
+    void reject(long reviewerId, String reason, OffsetDateTime now) {
+        status = ListingRequestStatus.REJECTED;
+        reviewedBy = reviewerId;
+        rejectionReason = reason;
+        reviewedAt = now;
+    }
+
     Long getId() {
         return id;
     }

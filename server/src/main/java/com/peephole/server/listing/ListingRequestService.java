@@ -98,10 +98,7 @@ class ListingRequestService {
     // The property is published in the same transaction, so the request is never APPROVED without it
     @Transactional
     ApprovedListingResponse approve(long id, long agencyId, long reviewerId) {
-        ListingRequest request = repository.findWithLockById(id).orElseThrow(ListingRequestNotFoundException::new);
-        if (!request.isPending()) {
-            throw new ListingRequestAlreadyReviewedException();
-        }
+        ListingRequest request = pendingWithLock(id);
         long propertyId = propertyService.publish(new NewProperty(
             agencyId,
             request.getId(),
@@ -117,6 +114,22 @@ class ListingRequestService {
             request.getFloor()));
         request.approve(reviewerId, OffsetDateTime.now(clock));
         return new ApprovedListingResponse(propertyId);
+    }
+
+    @Transactional
+    ListingRequestResponse reject(long id, String reason, long reviewerId) {
+        ListingRequest request = pendingWithLock(id);
+        request.reject(reviewerId, reason, OffsetDateTime.now(clock));
+        return new ListingRequestResponse(request.getId(), request.getStatus().name());
+    }
+
+    // The lock makes a second agent reviewing the same request wait, and then find it already reviewed
+    private ListingRequest pendingWithLock(long id) {
+        ListingRequest request = repository.findWithLockById(id).orElseThrow(ListingRequestNotFoundException::new);
+        if (!request.isPending()) {
+            throw new ListingRequestAlreadyReviewedException();
+        }
+        return request;
     }
 
     private static ListingRequestSummaryResponse toSummary(ListingRequest request) {
