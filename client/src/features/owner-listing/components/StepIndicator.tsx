@@ -1,3 +1,4 @@
+import type { Ref } from 'react'
 import type { ListingStep } from '../types'
 
 // The steps in order, and the name the owner sees for each
@@ -10,14 +11,19 @@ const STEP_LABELS: Record<ListingStep, string> = {
 
 type Props = {
   current: ListingStep
+  ref?: Ref<HTMLParagraphElement>
 }
 
-function StepIndicator({ current }: Props) {
+function StepIndicator({ current, ref }: Props) {
   const currentNumber = STEP_ORDER.indexOf(current) + 1
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="font-body text-text-muted">
+      <p
+        ref={ref}
+        tabIndex={-1}
+        className="font-body text-text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary"
+      >
         Step {currentNumber} of {STEP_ORDER.length}: {STEP_LABELS[current]}
       </p>
       <ol aria-label="Form progress" className="flex flex-wrap gap-4">

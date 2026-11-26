@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Alert, Button } from '../../../components/ui'
 import { ApiError, SYSTEM_ERROR_MESSAGE } from '../../../lib/http'
@@ -28,6 +28,23 @@ function OwnerListingForm() {
   const [submitting, setSubmitting] = useState(false)
   // A new number mounts a fresh verification screen, as when the server rejects the verification
   const [verificationAttempt, setVerificationAttempt] = useState(0)
+  const [stepChangedByOwner, setStepChangedByOwner] = useState(false)
+  const progressRef = useRef<HTMLParagraphElement>(null)
+  const noticeRef = useRef<HTMLDivElement>(null)
+
+  // Each step replaces the button that was pressed, so the focus moves to the notice or the progress
+  useEffect(() => {
+    if (notice) {
+      noticeRef.current?.focus()
+    } else if (stepChangedByOwner) {
+      progressRef.current?.focus()
+    }
+  }, [notice, step, stepChangedByOwner])
+
+  function goTo(next: ListingStep) {
+    setStepChangedByOwner(true)
+    setStep(next)
+  }
 
   // Copies the form and changes only one field, so the rest stays as it was
   function updateField<K extends keyof ListingFormData>(field: K, value: ListingFormData[K]) {
@@ -38,7 +55,7 @@ function OwnerListingForm() {
     const found = validateOwnerDetails(data)
     setErrors(found)
     if (Object.keys(found).length === 0) {
-      setStep('property')
+      goTo('property')
     }
   }
 
@@ -47,14 +64,14 @@ function OwnerListingForm() {
     setErrors(found)
     if (Object.keys(found).length === 0) {
       setNotice(undefined)
-      setStep('verification')
+      goTo('verification')
     }
   }
 
   async function submit(verified: VerifiedPhone) {
     const request = toListingRequest(data, verified)
     if (!request) {
-      setStep('property')
+      goTo('property')
       return
     }
     setSubmitting(true)
@@ -80,7 +97,7 @@ function OwnerListingForm() {
       const found = fromServerErrors(error.fieldErrors)
       setErrors(found)
       const ownerFieldFailed = OWNER_FIELDS.some((field) => found[field] !== undefined)
-      setStep(ownerFieldFailed ? 'details' : 'property')
+      goTo(ownerFieldFailed ? 'details' : 'property')
       return
     }
     if (error.code === 'PHONE_VERIFICATION_INVALID') {
@@ -92,7 +109,7 @@ function OwnerListingForm() {
   return (
     <div className="flex flex-col gap-6">
       <h1 className={pageHeading}>List my property</h1>
-      <StepIndicator current={step} />
+      <StepIndicator ref={progressRef} current={step} />
 
       {step === 'details' && (
         <OwnerDetailsStep
@@ -107,13 +124,17 @@ function OwnerListingForm() {
           data={data}
           errors={errors}
           onChange={updateField}
-          onBack={() => setStep('details')}
+          onBack={() => goTo('details')}
           onContinue={continueFromProperty}
         />
       )}
       {step === 'verification' && (
         <div className="flex flex-col gap-4">
-          {notice ? <Alert variant="error">{notice}</Alert> : null}
+          {notice ? (
+            <div ref={noticeRef} tabIndex={-1}>
+              <Alert variant="error">{notice}</Alert>
+            </div>
+          ) : null}
           {submitting ? (
             <p role="status" className="font-body text-text-default">
               Sending your request…
@@ -129,7 +150,7 @@ function OwnerListingForm() {
             variant="secondary"
             className="self-start"
             disabled={submitting}
-            onClick={() => setStep('property')}
+            onClick={() => goTo('property')}
           >
             Back
           </Button>
