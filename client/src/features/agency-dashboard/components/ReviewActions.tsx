@@ -17,8 +17,8 @@ type ReviewedStatus = Exclude<ListingRequestStatus, 'PENDING'>
 type Props = {
   requestId: number
   status: ListingRequestStatus
-  /** The review was saved: the screen shows the new status and the message */
-  onReviewed: (status: ReviewedStatus, message: string) => void
+  /** The review was saved: the screen shows the new status, the message and, for a rejection, its reason */
+  onReviewed: (status: ReviewedStatus, message: string, rejectionReason?: string) => void
   /** Someone reviewed it first (409): the screen loads it again and shows the server's message */
   onAlreadyReviewed: (message: string) => void
   /** Any other failure, with a message that is safe to show */
@@ -132,7 +132,7 @@ function ReviewActions({
     setSending('reject')
     try {
       await rejectListingRequest(requestId, trimmed)
-      onReviewed('REJECTED', 'Request rejected.')
+      onReviewed('REJECTED', 'Request rejected.', trimmed)
     } catch (error) {
       if (isInvalidReason(error)) {
         setReasonError(REASON_REFUSED)

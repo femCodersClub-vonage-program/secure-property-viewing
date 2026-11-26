@@ -126,7 +126,9 @@ function ListingRequests() {
   }
 
   return (
-    <div className="flex flex-col gap-7">
+    // wrap-anywhere: the owners write their names and titles, and one long word must never push
+    // the table wider than a 320 px phone (WCAG 1.4.10), as in D3
+    <div className="flex flex-col gap-7 wrap-anywhere">
       <DashboardHeading ref={headingRef}>Listing requests</DashboardHeading>
 
       <Card>

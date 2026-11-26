@@ -246,7 +246,7 @@ D2 and D5 are tables, and the next visits in D1 follow the same rules.
 - Dates and amounts right-aligned with `tabular-nums`
 - The row links to its details through a real link on its main text, such as the property title in D2, not by making the whole row clickable
 - In D2 the status filters (pending, approved, rejected) use the design system tabs. The selected tab is kept in the address as `?status=`, so the browser's Back button from D3 returns to it
-- In D2 the property cell shows the title as the link and, under it, the operation and the price in `text-sm` and `--color-text-muted`, such as "Rent · 1200 €/month"
+- In D2 the property cell shows the title as the link and, under it, the operation and the price in `text-sm` and `--color-text-muted`, such as "Rent · 1200 €/month". Owners write their names and titles, so the screen breaks long words (`wrap-anywhere`) to fit 320 px
 - On mobile each row becomes a stacked item with its label and value, instead of a table with horizontal scroll
 - In D1 the next visit's row has a 15% `--color-dashboard-highlight` tint and a "Next" label (`NextLabel`, bold `--color-brand-dark` text on mango) next to its time, so it does not rely on color alone. Other tables have no tinted rows
 
@@ -336,7 +336,7 @@ D3 shows one listing request and lets the agent approve or reject it.
 - "Approve and publish" is a `primary` button and "Reject" a `secondary` one. While a review is sent, its button shows the loading state and the other one is disabled
 - "Reject" replaces both buttons with a form: a "Reason for rejecting" field (`Textarea`) with the hint "Up to 1,000 characters. The owner can ask to see it.", a `danger` "Reject request" button and a `secondary` "Cancel" button. The focus moves into the field when the form opens, and back to "Reject" after "Cancel". An empty reason, or one longer than 1,000 characters once trimmed, shows its message under the field and sends nothing, with the same rules the server applies
 - After a review, a message under the heading says what happened, and the focus moves to the heading, because the button that was pressed is no longer available. Its color follows the status badges: `success` for "Request approved and published.", the neutral `info` variant for "Request rejected.", because a rejection is a decision and not an error, `warning` with the server's message when someone else reviewed the request first (`409`), and `error` for any other failure. After a review or a `409`, the request is loaded again, so the buttons and the review date show its new state
-- If loading the request again after a review fails, the screen keeps the request, its new status and the message, because the review was saved
+- After a review, the new status, the review time and, for a rejection, its reason show at once, and loading the request again replaces them with the server's. If that reload fails, they stay, because the review was saved
 
 ### States
 
@@ -357,4 +357,4 @@ D2 filters its requests by status with tabs, and other screens can reuse them.
 - The tab list has a bottom border in `--color-border`
 - The selected tab has bold text in `--color-text-default` and a 4px `--color-brand-primary` bar under it. The other tabs use `--color-text-muted`, so the selection does not rely on color alone
 - Only the selected tab is in the Tab order. The left and right arrow keys move between tabs and wrap around, and Home and End go to the first and last tab
-- Focus uses the common focus ring
+- Focus uses the common focus ring, on the tabs and on the tab panel, which comes next in the Tab order

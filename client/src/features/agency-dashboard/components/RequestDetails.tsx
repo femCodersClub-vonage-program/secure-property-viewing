@@ -39,18 +39,21 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 // Label and value, styled like the table headers and cells (docs/design-system.md → Tables).
-// multiline keeps the line breaks the owner or the agent wrote
+// Its div is the only wrapper a dl allows around dt and dd, so a wider pair gets its column span
+// through className instead of another div. multiline keeps the line breaks the owner or the agent wrote
 function Detail({
   label,
+  className,
   multiline = false,
   children,
 }: {
   label: string
+  className?: string
   multiline?: boolean
   children: ReactNode
 }) {
   return (
-    <div className="flex flex-col gap-0.5">
+    <div className={['flex flex-col gap-0.5', className ?? ''].join(' ').trim()}>
       <dt className="text-sm font-bold text-text-muted">{label}</dt>
       <dd className={multiline ? 'whitespace-pre-line' : undefined}>{children}</dd>
     </div>
@@ -98,6 +101,7 @@ function RequestDetails({ id }: { id: number }) {
     return () => controller.abort()
   }, [id, attempt])
 
+  // Runs after the heading of the new state is on screen, also the "does not exist" one
   useEffect(() => {
     if (refocusHeading.current && load.status !== 'loading') {
       refocusHeading.current = false
@@ -110,7 +114,7 @@ function RequestDetails({ id }: { id: number }) {
   }
 
   if (load.status === 'not-found') {
-    return <ListingRequestNotFound message={load.message} />
+    return <ListingRequestNotFound message={load.message} headingRef={headingRef} />
   }
 
   // The button that was pressed stops being available, so the focus goes to the heading,
@@ -120,11 +124,24 @@ function RequestDetails({ id }: { id: number }) {
     headingRef.current?.focus()
   }
 
-  function handleReviewed(status: Exclude<ListingRequestStatus, 'PENDING'>, text: string) {
-    // The new status shows at once. Loading the request again brings when it was reviewed
+  function handleReviewed(
+    status: Exclude<ListingRequestStatus, 'PENDING'>,
+    text: string,
+    rejectionReason?: string,
+  ) {
+    // The new status, the review time and the reason show at once, so the screen never says
+    // "Not reviewed yet" next to a reviewed badge. Loading the request again replaces them with the server's
     setLoad((current) =>
       current.status === 'ready'
-        ? { status: 'ready', request: { ...current.request, status } }
+        ? {
+            status: 'ready',
+            request: {
+              ...current.request,
+              status,
+              reviewedAt: new Date().toISOString(),
+              rejectionReason: rejectionReason ?? current.request.rejectionReason,
+            },
+          }
         : current,
     )
     // The message takes the color of the status badge: green for an approval, and neutral for a
@@ -199,11 +216,9 @@ function RequestDetails({ id }: { id: number }) {
               )}
             </Detail>
             {request.rejectionReason !== null && (
-              <div className="sm:col-span-2">
-                <Detail label="Reason for rejecting" multiline>
-                  {request.rejectionReason}
-                </Detail>
-              </div>
+              <Detail label="Reason for rejecting" className="sm:col-span-2" multiline>
+                {request.rejectionReason}
+              </Detail>
             )}
           </dl>
           <ReviewActions
@@ -236,11 +251,9 @@ function RequestDetails({ id }: { id: number }) {
           <Detail label="Bedrooms">{formatBedrooms(request.bedrooms, 'bedroom')}</Detail>
           <Detail label="Size">{request.sizeM2} m²</Detail>
           <Detail label="Floor">{request.floor === null ? 'Not given' : request.floor}</Detail>
-          <div className="sm:col-span-2 lg:col-span-3">
-            <Detail label="Description" multiline>
-              {request.description}
-            </Detail>
-          </div>
+          <Detail label="Description" className="sm:col-span-2 lg:col-span-3" multiline>
+            {request.description}
+          </Detail>
         </dl>
       </Section>
     </div>

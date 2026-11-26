@@ -92,6 +92,7 @@ function renderDetails() {
 const title = () => screen.findByRole('heading', { level: 1, name: 'Apartment in Gràcia' })
 const button = (name: string) => screen.getByRole('button', { name })
 const region = (name: string) => screen.getByRole('region', { name })
+const reasonField = () => screen.getByRole('textbox', { name: 'Reason for rejecting' })
 
 beforeEach(() => {
   getMock.mockReset()
@@ -215,13 +216,13 @@ describe('RequestDetails', () => {
     expect(button('Approve and publish')).toHaveAccessibleDescription(
       'This request was already approved',
     )
-    // Loading the request again brings when it was reviewed
+    // Loading the request again brings when the server says it was reviewed
     expect(
       await within(region('Review')).findByText('Wednesday 11 November, 09:30'),
     ).toBeInTheDocument()
   })
 
-  it('keeps the new status and its message when loading the request again fails', async () => {
+  it('keeps the new status, its review time and its message when loading the request again fails', async () => {
     getMock.mockResolvedValueOnce(pending).mockRejectedValueOnce(new TypeError('Failed to fetch'))
     approveMock.mockResolvedValue({ propertyId: 101 })
     renderDetails()
@@ -232,7 +233,22 @@ describe('RequestDetails', () => {
     await waitFor(() => expect(getMock).toHaveBeenCalledTimes(2))
     expect(await screen.findByRole('alert')).toHaveTextContent('Request approved and published.')
     expect(button('Approve and publish')).toBeDisabled()
+    expect(within(region('Review')).queryByText('Not reviewed yet')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
+  })
+
+  it('shows the reason of a rejection even when loading the request again fails', async () => {
+    getMock.mockResolvedValueOnce(pending).mockRejectedValueOnce(new TypeError('Failed to fetch'))
+    rejectMock.mockResolvedValue({ id: 18, status: 'REJECTED' })
+    renderDetails()
+    await title()
+
+    fireEvent.click(button('Reject'))
+    fireEvent.change(reasonField(), { target: { value: '  Duplicated listing  ' } })
+    fireEvent.click(button('Reject request'))
+
+    await waitFor(() => expect(getMock).toHaveBeenCalledTimes(2))
+    expect(await within(region('Review')).findByText('Duplicated listing')).toBeInTheDocument()
   })
 
   it('disables both buttons while an approval is sent, so it cannot be sent twice', async () => {
@@ -255,7 +271,7 @@ describe('RequestDetails', () => {
 
     fireEvent.click(button('Reject'))
 
-    const reason = screen.getByRole('textbox', { name: 'Reason for rejecting' })
+    const reason = reasonField()
     expect(reason).toHaveFocus()
     expect(reason).toBeRequired()
     expect(rejectMock).not.toHaveBeenCalled()
@@ -279,6 +295,33 @@ describe('RequestDetails', () => {
     expect(button('Reject')).toHaveAccessibleDescription('This request was already rejected')
   })
 
+  it('never sends a reason made only of spaces', async () => {
+    getMock.mockResolvedValue(pending)
+    renderDetails()
+    await title()
+
+    fireEvent.click(button('Reject'))
+    fireEvent.change(reasonField(), { target: { value: '   ' } })
+    fireEvent.click(button('Reject request'))
+
+    expect(screen.getByText('Write why you are rejecting this request.')).toBeInTheDocument()
+    expect(rejectMock).not.toHaveBeenCalled()
+  })
+
+  it('sends the longest reason the server accepts', async () => {
+    getMock.mockResolvedValue(pending)
+    rejectMock.mockReturnValue(new Promise(() => {}))
+    renderDetails()
+    await title()
+
+    const longest = 'x'.repeat(1000)
+    fireEvent.click(button('Reject'))
+    fireEvent.change(reasonField(), { target: { value: longest } })
+    fireEvent.click(button('Reject request'))
+
+    expect(rejectMock).toHaveBeenCalledWith(18, longest)
+  })
+
   it('disables both buttons while a rejection is sent, so it cannot be sent twice', async () => {
     getMock.mockResolvedValue(pending)
     rejectMock.mockReturnValue(new Promise(() => {}))
@@ -286,9 +329,7 @@ describe('RequestDetails', () => {
     await title()
 
     fireEvent.click(button('Reject'))
-    fireEvent.change(screen.getByRole('textbox', { name: 'Reason for rejecting' }), {
-      target: { value: 'Duplicated listing' },
-    })
+    fireEvent.change(reasonField(), { target: { value: 'Duplicated listing' } })
     fireEvent.click(button('Reject request'))
 
     expect(button('Reject request')).toBeDisabled()
@@ -301,9 +342,7 @@ describe('RequestDetails', () => {
     await title()
 
     fireEvent.click(button('Reject'))
-    fireEvent.change(screen.getByRole('textbox', { name: 'Reason for rejecting' }), {
-      target: { value: 'x'.repeat(1001) },
-    })
+    fireEvent.change(reasonField(), { target: { value: 'x'.repeat(1001) } })
     fireEvent.click(button('Reject request'))
 
     expect(screen.getByText('Write the reason in 1,000 characters or fewer.')).toBeInTheDocument()
@@ -325,7 +364,7 @@ describe('RequestDetails', () => {
     await title()
 
     fireEvent.click(button('Reject'))
-    const reason = screen.getByRole('textbox', { name: 'Reason for rejecting' })
+    const reason = reasonField()
     fireEvent.change(reason, { target: { value: 'Duplicated listing' } })
     fireEvent.click(button('Reject request'))
 
@@ -337,16 +376,43 @@ describe('RequestDetails', () => {
     expect(reason).toHaveFocus()
   })
 
-  it('closes the reason with Cancel and gives the focus back to Reject', async () => {
+  it('does not blame the reason for a validation error about something else', async () => {
+    getMock.mockResolvedValue(pending)
+    rejectMock.mockRejectedValue(
+      new ApiError({
+        kind: 'business',
+        status: 400,
+        code: 'VALIDATION_FAILED',
+        message: 'One or more fields are invalid.',
+      }),
+    )
+    renderDetails()
+    await title()
+
+    fireEvent.click(button('Reject'))
+    fireEvent.change(reasonField(), { target: { value: 'Duplicated listing' } })
+    fireEvent.click(button('Reject request'))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('One or more fields are invalid.')
+    expect(
+      screen.queryByText('Write why you are rejecting this request, in 1,000 characters or fewer.'),
+    ).not.toBeInTheDocument()
+  })
+
+  it('closes the reason with Cancel, forgets the draft and gives the focus back to Reject', async () => {
     getMock.mockResolvedValue(pending)
     renderDetails()
     await title()
 
     fireEvent.click(button('Reject'))
+    fireEvent.change(reasonField(), { target: { value: 'A first draft' } })
     fireEvent.click(button('Cancel'))
 
     expect(screen.queryByRole('textbox', { name: 'Reason for rejecting' })).not.toBeInTheDocument()
     expect(button('Reject')).toHaveFocus()
+
+    fireEvent.click(button('Reject'))
+    expect(reasonField()).toHaveValue('')
   })
 
   it('says the request was already reviewed when approving answers 409, and loads it again', async () => {
@@ -374,9 +440,7 @@ describe('RequestDetails', () => {
     await title()
 
     fireEvent.click(button('Reject'))
-    fireEvent.change(screen.getByRole('textbox', { name: 'Reason for rejecting' }), {
-      target: { value: 'Duplicated listing' },
-    })
+    fireEvent.change(reasonField(), { target: { value: 'Duplicated listing' } })
     fireEvent.click(button('Reject request'))
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
@@ -423,6 +487,21 @@ describe('RequestDetails', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Request details' })).toHaveFocus()
     const heading = await title()
     await waitFor(() => expect(heading).toHaveFocus())
+  })
+
+  it('keeps the focus on the heading when trying again finds that the request does not exist', async () => {
+    getMock
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockRejectedValueOnce(businessError(404, 'NOT_FOUND', 'The listing request does not exist.'))
+    renderDetails()
+
+    await screen.findByRole('alert')
+    fireEvent.click(button('Try again'))
+
+    expect(await screen.findByText('The listing request does not exist.')).toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 1, name: 'Request details' })).toHaveFocus(),
+    )
   })
 
   it('sends the agent to sign in again when her session has ended, to come back here', async () => {
