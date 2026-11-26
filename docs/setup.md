@@ -117,13 +117,13 @@ The demo data is fictional and lives in `server/src/main/resources/db/seed/`. It
 
 ### Vonage variables
 
-Each Vonage API runs on the Vonage application of one person on the team, so the server has one group of variables per API: the application ID and its private key, plus the signature secret that Messages, Silent Authentication and Voice use to verify their webhooks. Voice also needs the Vonage number it calls from.
+Each Vonage API runs on the Vonage application of one person on the team, so the server has one group of variables per API: the application ID and its private key, plus the signature secret that Messages, Silent Authentication and Voice use to verify their webhooks. Voice also needs the Vonage number it calls from, and Messages the sender the SMS comes from.
 
 | Group | Variables | Values on Railway |
 | :---- | :---- | :---- |
 | Verify | `VONAGE_VERIFY_APPLICATION_ID`, `VONAGE_VERIFY_PRIVATE_KEY` | Candé |
 | Video | `VONAGE_VIDEO_APPLICATION_ID`, `VONAGE_VIDEO_PRIVATE_KEY` | Viviana |
-| Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY`, `VONAGE_MESSAGES_SIGNATURE_SECRET` | Damaris |
+| Messages | `VONAGE_MESSAGES_APPLICATION_ID`, `VONAGE_MESSAGES_PRIVATE_KEY`, `VONAGE_MESSAGES_FROM`, `VONAGE_MESSAGES_SIGNATURE_SECRET` | Damaris |
 | Silent Authentication | `VONAGE_SILENT_AUTH_APPLICATION_ID`, `VONAGE_SILENT_AUTH_PRIVATE_KEY`, `VONAGE_SILENT_AUTH_SIGNATURE_SECRET` | Mayleth |
 | Voice | `VONAGE_VOICE_APPLICATION_ID`, `VONAGE_VOICE_PRIVATE_KEY`, `VONAGE_VOICE_FROM_NUMBER`, `VONAGE_VOICE_SIGNATURE_SECRET` | Irina |
 
@@ -131,8 +131,6 @@ Locally, everyone fills in the Video group, and the Verify group while Silent Au
 
 - **Verify:** your own Vonage application. Verify needs no capability, so any of your applications works
 - **Video:** Viviana's application, with the values from the team's shared Drive folder, as the [video visit spec](../specs/video-visit.md) decides
-
-No code reads the Messages group yet: it is kept for the messages feature (#87), so leave it with its placeholders.
 
 **Silent Authentication.** It is off while its lines stay commented out, as they come in `.env.example`. Phone verification then sends an SMS code, as before, and the Verify status webhook rejects every call. To try it, as the [Silent Authentication spec](../specs/silent-authentication.md) describes, uncomment its lines, fill in its group with Mayleth's application from the Drive folder, which has Network Registry in Test access, and set:
 
@@ -162,6 +160,16 @@ ngrok http 8080
 ```
 
 The address changes each time ngrok starts, unless your account has a fixed domain.
+
+**The visit confirmation by SMS.** The [visit confirmation](../specs/messages.md) is off by default, while its lines stay commented out, as they come in `.env.example`. Each booking still saves its confirmation message, but the server never sends it, so local servers and the tests never send a real SMS. To try it, uncomment its lines and fill in the Messages group with your own Vonage application with the Messages capability. A trial account sends only to its own number and to the test numbers verified in the Vonage dashboard, so book the visit with one of them:
+
+| Variable | Value |
+| :---- | :---- |
+| `MESSAGES_SENDING_ENABLED` | `true` to send the due confirmations every minute. With it on, the server doesn't start while a Messages variable is missing |
+| `VONAGE_MESSAGES_FROM` | The sender the SMS comes from: a Vonage number in E.164 without the `+`, or a sender name |
+| `VONAGE_MESSAGES_SIGNATURE_SECRET` | The signature secret of the Vonage account that owns your application, to check the Messages webhooks |
+
+The SMS is sent without a tunnel, but Vonage reports whether it was delivered through the status webhook. To see those reports locally, start ngrok as above and, in your application in the Vonage dashboard, point the Messages status URL to `/api/webhooks/messages/status` and the inbound URL to `/api/webhooks/messages/inbound` on the ngrok address. Without them, the message stays as submitted. When you turn sending on, bookings saved more than 10 minutes earlier are past their retry window, so they become `FAILED` instead of being sent. Never point Damaris's application at your own tunnel, because Railway stops getting its reports while it does.
 
 **The private key in base64.** Each private key goes on a single line, so the same value works in `server/.env` and on Railway. To copy yours:
 
@@ -227,7 +235,8 @@ Open `http://localhost:5173`. Stop it with `Ctrl+C`.
 | `PHONE_HASH_SECRET is not set`, `VONAGE_VERIFY_… is not set` or `VONAGE_VIDEO_… is not set` | That variable is empty in `server/.env` | Fill it in: the hash secret as in step 4, the Verify group with your own Vonage application and the Video group with Viviana's values from the Drive folder, as in [Vonage variables](#vonage-variables) |
 | `VONAGE_SILENT_AUTH_… is not set` or `SILENT_AUTH_REDIRECT_URL is not set` | `SILENT_AUTH_ENABLED` is `true` and that variable is empty in `server/.env` | Fill it in as in [Vonage variables](#vonage-variables), or set `SILENT_AUTH_ENABLED=false` to go back to SMS only |
 | `VONAGE_VOICE_… is not set` or `SERVER_PUBLIC_URL is not set` | `VOICE_CALLS_ENABLED` is `true` and that variable is empty | Fill in the Voice group with Irina's values from the Drive folder and start ngrok, as in [Vonage variables](#vonage-variables), or set `VOICE_CALLS_ENABLED=false` |
+| `VONAGE_MESSAGES_… is not set` | `MESSAGES_SENDING_ENABLED` is `true` and that variable is empty in `server/.env` | Fill in the Messages group with your own application, as in [Vonage variables](#vonage-variables), or comment out the Messages lines to keep sending off |
 | `SERVER_PUBLIC_URL must start with https://` | Vonage only sends the webhooks of the call over HTTPS | Copy the `https://` address that ngrok shows |
-| `VONAGE_VERIFY_PRIVATE_KEY does not match VONAGE_VERIFY_APPLICATION_ID`, or the same for `VONAGE_VIDEO_…` or `VONAGE_SILENT_AUTH_…` | The key and the ID come from different applications, or the key was not copied whole | Copy both again from the same application, with the key in base64 on a single line |
-| `VONAGE_VERIFY_APPLICATION_ID is not a valid application ID`, or the same for `VONAGE_VIDEO_…` or `VONAGE_SILENT_AUTH_…` | The value is not an application ID, which looks like `aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee` | Copy it again: Verify from your application in the Vonage dashboard, Video and Silent Authentication from the Drive folder |
-| `VONAGE_VERIFY_PRIVATE_KEY is not valid base64`, or the same for `VONAGE_VIDEO_…` or `VONAGE_SILENT_AUTH_…` | The key was pasted as it is, or with spaces or line breaks | Convert it again with the command in [Vonage variables](#vonage-variables) and paste the single line |
+| `VONAGE_VERIFY_PRIVATE_KEY does not match VONAGE_VERIFY_APPLICATION_ID`, or the same for `VONAGE_VIDEO_…`, `VONAGE_SILENT_AUTH_…` or `VONAGE_MESSAGES_…` | The key and the ID come from different applications, or the key was not copied whole | Copy both again from the same application, with the key in base64 on a single line |
+| `VONAGE_VERIFY_APPLICATION_ID is not a valid application ID`, or the same for `VONAGE_VIDEO_…`, `VONAGE_SILENT_AUTH_…` or `VONAGE_MESSAGES_…` | The value is not an application ID, which looks like `aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee` | Copy it again: Verify from your application in the Vonage dashboard, Video and Silent Authentication from the Drive folder, and Messages from your own application |
+| `VONAGE_VERIFY_PRIVATE_KEY is not valid base64`, or the same for `VONAGE_VIDEO_…`, `VONAGE_SILENT_AUTH_…` or `VONAGE_MESSAGES_…` | The key was pasted as it is, or with spaces or line breaks | Convert it again with the command in [Vonage variables](#vonage-variables) and paste the single line |

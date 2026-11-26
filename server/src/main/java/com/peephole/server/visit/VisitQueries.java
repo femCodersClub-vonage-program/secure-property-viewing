@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Component;
 
@@ -98,6 +99,24 @@ class VisitQueries {
                         row.getString("visitor_phone"),
                         row.getObject("ends_at", OffsetDateTime.class)))
                 .list();
+    }
+
+    Optional<VisitForMessage> findForMessage(long visitId) {
+        return jdbcClient
+                .sql("""
+                        SELECT v.id, v.visitor_phone, p.title, s.starts_at
+                        FROM visit v
+                        JOIN visit_slot s ON s.id = v.visit_slot_id
+                        JOIN property p ON p.id = v.property_id
+                        WHERE v.id = :visitId
+                        """)
+                .param("visitId", visitId)
+                .query((row, rowNumber) -> new VisitForMessage(
+                        row.getLong("id"),
+                        row.getString("visitor_phone"),
+                        row.getString("title"),
+                        row.getObject("starts_at", OffsetDateTime.class)))
+                .optional();
     }
 
     private static AgencyVisit toAgencyVisit(ResultSet row, int rowNumber) throws SQLException {

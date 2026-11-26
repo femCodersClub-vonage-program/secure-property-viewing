@@ -94,6 +94,9 @@ class VisitBookingControllerTest {
 
     @AfterEach
     void cleanUpFixtures() {
+        // Messages first, since they point to the visits
+        jdbcTemplate.update(
+                "DELETE FROM message WHERE visit_id IN (SELECT id FROM visit WHERE property_id = ?)", propertyId);
         jdbcTemplate.update("DELETE FROM visit WHERE property_id = ?", propertyId);
         jdbcTemplate.update("DELETE FROM visit_slot WHERE property_id = ?", propertyId);
         verificationIds.forEach(id -> jdbcTemplate.update("DELETE FROM phone_verification WHERE id = ?", id));
@@ -213,6 +216,34 @@ class VisitBookingControllerTest {
                 .isEqualTo(verificationId);
     }
 
+    // The confirmation is saved with the booking, to be sent at once, and it is the only message: the reminder is not
+    // built for the demo (specs/messages.md)
+    @Test
+    void savesTheVisitConfirmationWithTheBooking() throws Exception {
+        long slotId = slot(SLOT_START, "AVAILABLE");
+        MockHttpSession session = new MockHttpSession();
+        long verificationId = verifiedPhone(session, "VISIT", PHONE);
+
+        String body = book(session, bookingBody(slotId, "Laura", PHONE, verificationId))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        long visitId = ((Number) JsonPath.read(body, "$.visitId")).longValue();
+
+        List<Map<String, Object>> messages = jdbcTemplate.queryForList(
+                "SELECT type, channel, status, vonage_message_id FROM message WHERE visit_id = ?", visitId);
+        assertThat(messages).hasSize(1);
+        assertThat(messages.get(0))
+                .containsEntry("type", "CONFIRMATION")
+                .containsEntry("channel", "SMS")
+                .containsEntry("status", "SCHEDULED")
+                .containsEntry("vonage_message_id", null);
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT scheduled_at = ? FROM message WHERE visit_id = ?", Boolean.class, NOW, visitId))
+                .isTrue();
+    }
+
     @Test
     void returnsNotFoundForAnUnknownSlotAndConflictWhenASlotCannotBeBooked() throws Exception {
         MockHttpSession session = new MockHttpSession();
@@ -268,6 +299,12 @@ class VisitBookingControllerTest {
         assertThat(jdbcTemplate.queryForObject(
                         "SELECT count(*) FROM visit WHERE visit_slot_id = ?", Integer.class, slotId))
                 .isEqualTo(1);
+        // The rejected booking leaves no confirmation behind
+        assertThat(jdbcTemplate.queryForObject(
+                        "SELECT count(*) FROM message m JOIN visit v ON v.id = m.visit_id WHERE v.property_id = ?",
+                        Integer.class,
+                        propertyId))
+                .isZero();
     }
 
     @Test
