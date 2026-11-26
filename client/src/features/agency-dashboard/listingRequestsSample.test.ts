@@ -1,111 +1,51 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type * as Api from './api'
-import type * as Sample from './listingRequestDetailsSample'
+import { parseListingRequestSummaries } from './api'
+import type * as DetailsSample from './listingRequestDetailsSample'
+import type * as ListSample from './listingRequestsSample'
 
-// The samples keep the reviews in memory, so each test starts from fresh copies of the modules.
-// api.ts is loaded again too: after resetModules the sample throws the ApiError of a new lib/http.ts,
-// and the checks in api.ts only recognize it if they come from that same copy
-let api: typeof Api
-let sample: typeof Sample
+// Both modules share the reviews in memory, so each test loads fresh copies of them together
+let details: typeof DetailsSample
+let list: typeof ListSample
 
 beforeEach(async () => {
   vi.resetModules()
-  api = await import('./api')
-  sample = await import('./listingRequestDetailsSample')
+  details = await import('./listingRequestDetailsSample')
+  list = await import('./listingRequestsSample')
 })
 
-describe('listing request details sample', () => {
-  it('has the shape of the API contract, with one request in each status', () => {
-    const requests = sample.sampleListingRequests()
+describe('listing requests sample', () => {
+  it.each(['PENDING', 'APPROVED', 'REJECTED'] as const)(
+    'lists only the %s requests, in the shape of the API contract',
+    async (status) => {
+      const requests = await list.getListingRequests(status)
 
-    for (const request of requests) {
-      expect(api.parseListingRequestDetails(request)).toEqual(request)
-    }
-    expect(new Set(requests.map((request) => request.status))).toEqual(
-      new Set(['PENDING', 'APPROVED', 'REJECTED']),
-    )
+      expect(requests.length).toBeGreaterThan(0)
+      expect(requests.every((request) => request.status === status)).toBe(true)
+      expect(parseListingRequestSummaries(requests)).toEqual(requests)
+    },
+  )
+
+  it('lists the newest requests first, as the server does', async () => {
+    const pending = await list.getListingRequests('PENDING')
+
+    expect(pending.map((request) => request.id)).toEqual([22, 21, 18])
   })
 
-  it('answers one request by its id', async () => {
-    await expect(sample.getListingRequest(18)).resolves.toMatchObject({
-      id: 18,
-      title: 'Apartment in Gràcia',
-      status: 'PENDING',
-    })
-  })
+  it('moves a request reviewed in D3 to its new tab', async () => {
+    await details.approveListingRequest(18)
 
-  it('answers 404 for an unknown request, with the server message', async () => {
-    const error: unknown = await sample.getListingRequest(999).catch((caught: unknown) => caught)
-
-    expect(api.isNotFound(error)).toBe(true)
-    expect(api.errorMessage(error)).toBe('The listing request does not exist.')
+    const pending = await list.getListingRequests('PENDING')
+    const approved = await list.getListingRequests('APPROVED')
+    expect(pending.map((request) => request.id)).not.toContain(18)
+    expect(approved.map((request) => request.id)).toContain(18)
   })
 
   it('fails like fetch when the screen cancels the call', async () => {
     const controller = new AbortController()
-    const call = sample.getListingRequest(18, controller.signal)
+    const call = list.getListingRequests('PENDING', controller.signal)
 
     controller.abort()
 
     await expect(call).rejects.toMatchObject({ name: 'AbortError' })
-  })
-
-  it('approves a pending request once, and answers 409 the second time', async () => {
-    await expect(sample.approveListingRequest(18)).resolves.toEqual({
-      propertyId: expect.any(Number),
-    })
-
-    const approved = await sample.getListingRequest(18)
-    expect(approved.status).toBe('APPROVED')
-    expect(approved.reviewedAt).not.toBeNull()
-
-    const error: unknown = await sample.approveListingRequest(18).catch((caught: unknown) => caught)
-    expect(api.isAlreadyReviewed(error)).toBe(true)
-    expect(api.errorMessage(error)).toBe(
-      'The listing request has already been approved or rejected.',
-    )
-  })
-
-  it('rejects a pending request with the trimmed reason, and answers 409 the second time', async () => {
-    await expect(sample.rejectListingRequest(21, '  Duplicated listing  ')).resolves.toEqual({
-      id: 21,
-      status: 'REJECTED',
-    })
-
-    const rejected = await sample.getListingRequest(21)
-    expect(rejected).toMatchObject({ status: 'REJECTED', rejectionReason: 'Duplicated listing' })
-    expect(rejected.reviewedAt).not.toBeNull()
-
-    const error: unknown = await sample
-      .rejectListingRequest(21, 'Again')
-      .catch((caught: unknown) => caught)
-    expect(api.isAlreadyReviewed(error)).toBe(true)
-  })
-
-  it('refuses a blank reason and leaves the request pending', async () => {
-    const error: unknown = await sample
-      .rejectListingRequest(18, '   ')
-      .catch((caught: unknown) => caught)
-
-    expect(api.isInvalidReason(error)).toBe(true)
-    await expect(sample.getListingRequest(18)).resolves.toMatchObject({ status: 'PENDING' })
-  })
-
-  it('refuses a reason longer than the server accepts', async () => {
-    const tooLong = 'x'.repeat(api.REJECTION_REASON_MAX_LENGTH + 1)
-
-    const error: unknown = await sample
-      .rejectListingRequest(18, tooLong)
-      .catch((caught: unknown) => caught)
-
-    expect(api.isInvalidReason(error)).toBe(true)
-  })
-
-  it('accepts the longest reason once the spaces around it are trimmed', async () => {
-    const longest = 'x'.repeat(api.REJECTION_REASON_MAX_LENGTH)
-
-    await sample.rejectListingRequest(18, `  ${longest} `)
-
-    await expect(sample.getListingRequest(18)).resolves.toMatchObject({ rejectionReason: longest })
   })
 })
