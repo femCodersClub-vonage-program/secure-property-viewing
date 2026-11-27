@@ -174,6 +174,24 @@ class VoiceWebhookControllerTest {
     }
 
     @Test
+    void recordsAnAnswerWithNoKeyWhenTheTimeoutCarriesNoCallId() throws Exception {
+        // Vonage's input webhook reference: uuid "might not appear when an input reaches a DTMF timeout"
+        String body = """
+                {"speech":{"results":[]},"dtmf":{"digits":"","timed_out":true},"from":"34911067298",
+                 "to":"34600000001","conversation_uuid":"CON-1","timestamp":"2026-11-23T10:47:00.000Z"}
+                """;
+        mockMvc.perform(post("/api/webhooks/voice/input")
+                        .param("callId", String.valueOf(callId))
+                        .header(HttpHeaders.AUTHORIZATION, TestVoiceWebhookTokens.authorizationFor(SECRET, body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].text").value(NO_VALID_KEY_TEXT));
+
+        assertThat(callRow()).containsEntry("status", "ANSWERED").containsEntry("answer", null);
+    }
+
+    @Test
     void recordsAKeyThatArrivesBeforeTheCallIdIsStored() throws Exception {
         PostVisitCallFixtures fixtures = new PostVisitCallFixtures(jdbcTemplate);
         long visitId =
