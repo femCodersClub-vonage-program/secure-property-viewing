@@ -1,6 +1,7 @@
 package com.peephole.server.listing;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -40,6 +41,7 @@ class AgencyListingRequestControllerTest {
 
     private static final String PATH = "/api/agency/listing-requests";
     private static final String EMAIL = "marta.listing-test@peephole.example";
+    private static final String ADMIN_EMAIL = "jordi.listing-test@peephole.example";
     private static final String PASSWORD = "Listing-test-password-1";
     private static final OffsetDateTime TIME = OffsetDateTime.parse("2099-03-10T09:00:00Z");
     private static final OffsetDateTime REVIEW_TIME = OffsetDateTime.parse("2099-03-12T10:00:00Z");
@@ -66,6 +68,7 @@ class AgencyListingRequestControllerTest {
 
     private long agencyId;
     private long agentId;
+    private long adminId;
     private int phoneVerifications;
 
     // Rolled back with the test: the demo data has its own listing requests
@@ -79,15 +82,8 @@ class AgencyListingRequestControllerTest {
                 Long.class,
                 "Listing Test Agency",
                 "agency.listing-test@peephole.example");
-        agentId = jdbcTemplate.queryForObject(
-                "INSERT INTO agency_user (agency_id, full_name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)"
-                        + " RETURNING id",
-                Long.class,
-                agencyId,
-                "Marta Ruiz",
-                EMAIL,
-                passwordEncoder.encode(PASSWORD),
-                "AGENT");
+        agentId = insertUser("Marta Ruiz", EMAIL, "AGENT");
+        adminId = insertUser("Jordi Mas", ADMIN_EMAIL, "ADMIN");
     }
 
     // The list (D2)
@@ -205,9 +201,9 @@ class AgencyListingRequestControllerTest {
         details(id)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(17))
-                .andExpect(jsonPath("$.floor").isEmpty())
-                .andExpect(jsonPath("$.reviewedAt").isEmpty())
-                .andExpect(jsonPath("$.rejectionReason").isEmpty());
+                .andExpect(jsonPath("$.floor").value(nullValue()))
+                .andExpect(jsonPath("$.reviewedAt").value(nullValue()))
+                .andExpect(jsonPath("$.rejectionReason").value(nullValue()));
     }
 
     @Test
@@ -224,15 +220,6 @@ class AgencyListingRequestControllerTest {
         mockMvc.perform(get(PATH + "/" + id))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"));
-    }
-
-    @Test
-    void neverLogsTheOwnerOfARequest(CapturedOutput output) throws Exception {
-        long id = insertListingRequest("Ana Torres", "PENDING", TIME);
-
-        details(id).andExpect(status().isOk());
-
-        assertThat(output).doesNotContain("600000003").doesNotContain("Ana Torres");
     }
 
     @Test
@@ -323,7 +310,7 @@ class AgencyListingRequestControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("APPROVED"))
                 .andExpect(jsonPath("$.reviewedAt").value("2099-03-12T11:00:00+01:00"))
-                .andExpect(jsonPath("$.rejectionReason").isEmpty());
+                .andExpect(jsonPath("$.rejectionReason").value(nullValue()));
         assertThat(reviewerOf(id)).isEqualTo(agentId);
     }
 
@@ -478,6 +465,67 @@ class AgencyListingRequestControllerTest {
                 .doesNotContain("Ana Torres");
     }
 
+    // Every endpoint
+
+    // In the MVP both roles can review
+    @Test
+    void letsAnAdminReviewRequestsToo() throws Exception {
+        long toApprove = insertListingRequest("Ana Torres", "PENDING", TIME);
+        long toReject = insertListingRequest("Joan Puig", "PENDING", TIME);
+        MockHttpSession admin = signIn(ADMIN_EMAIL);
+
+        mockMvc.perform(post(PATH + "/" + toApprove + "/approve").with(csrf()).session(admin))
+                .andExpect(status().isOk());
+        mockMvc.perform(post(PATH + "/" + toReject + "/reject")
+                        .with(csrf())
+                        .session(admin)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(REASON))
+                .andExpect(status().isOk());
+
+        assertThat(reviewerOf(toApprove)).isEqualTo(adminId);
+        assertThat(reviewerOf(toReject)).isEqualTo(adminId);
+    }
+
+    @Test
+    void answersBadRequestForAnIdThatIsNotANumber() throws Exception {
+        MockHttpSession session = signIn();
+
+        mockMvc.perform(get(PATH + "/abc").session(session))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
+        mockMvc.perform(post(PATH + "/abc/approve").with(csrf()).session(session))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
+        mockMvc.perform(post(PATH + "/abc/reject")
+                        .with(csrf())
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(REASON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
+    }
+
+    // The owner's details and the reason are personal data, so neither reading nor reviewing writes them to the logs
+    @Test
+    void neverLogsTheOwnerOrTheReason(CapturedOutput output) throws Exception {
+        long toApprove = insertListingRequest("Ana Torres", "PENDING", TIME);
+        long toReject = insertListingRequest("Ana Torres", "PENDING", TIME);
+        String reason = "Ana Torres gave an address outside Barcelona";
+
+        details(toApprove).andExpect(status().isOk());
+        approve(toApprove).andExpect(status().isOk());
+        reject(toReject, "{\"reason\":\"" + reason + " " + "x".repeat(1000) + "\"}")
+                .andExpect(status().isBadRequest());
+        reject(toReject, "{\"reason\":\"" + reason + "\"}").andExpect(status().isOk());
+
+        assertThat(output)
+                .doesNotContain("600000003")
+                .doesNotContain("Ana Torres")
+                .doesNotContain("Carrer de Verdi")
+                .doesNotContain("outside Barcelona");
+    }
+
     private ResultActions list(String query) throws Exception {
         return mockMvc.perform(get(PATH + query).session(signIn()));
     }
@@ -511,14 +559,30 @@ class AgencyListingRequestControllerTest {
     }
 
     private MockHttpSession signIn() throws Exception {
+        return signIn(EMAIL);
+    }
+
+    private MockHttpSession signIn(String email) throws Exception {
         return (MockHttpSession) mockMvc.perform(post("/api/agency/session")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"" + EMAIL + "\",\"password\":\"" + PASSWORD + "\"}"))
+                        .content("{\"email\":\"" + email + "\",\"password\":\"" + PASSWORD + "\"}"))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getRequest()
                 .getSession(false);
+    }
+
+    private long insertUser(String fullName, String email, String role) {
+        return jdbcTemplate.queryForObject(
+                "INSERT INTO agency_user (agency_id, full_name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)"
+                        + " RETURNING id",
+                Long.class,
+                agencyId,
+                fullName,
+                email,
+                passwordEncoder.encode(PASSWORD),
+                role);
     }
 
     private long insertListingRequest(String ownerName, String status, OffsetDateTime createdAt) {
