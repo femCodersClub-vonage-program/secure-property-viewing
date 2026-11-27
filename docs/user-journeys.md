@@ -45,10 +45,10 @@ Every agency screen needs a signed-in agent; a signed-out agent goes to the sign
 
 ## Build status
 
-What works in `dev` on November 24, 2026. Each spec in `specs/` describes the full feature; this table says how much of it is built.
+What works in `dev` on November 26, 2026. Each spec in `specs/` describes the full feature; this table says how much of it is built.
 
 | Journey | Built | Not built yet |
 | :---- | :---- | :---- |
-| A · Visitor | Screens 1 to 7: catalog with map, details, calendar, phone verification by SMS code, confirmation and video visit. Silent Authentication, off until `SILENT_AUTH_ENABLED=true`. The post-visit call's server and its alerts on the dashboard, off until `VOICE_CALLS_ENABLED=true` | Silent Authentication with a real number, still to be tested. Real post-visit calls, which wait for the Spanish Vonage number. The confirmation SMS (#87) |
+| A · Visitor | Screens 1 to 7: catalog with map, details, calendar, phone verification by SMS code, confirmation and video visit. Silent Authentication, off until `SILENT_AUTH_ENABLED=true`. The post-visit call's server and its alerts on the dashboard, off until `VOICE_CALLS_ENABLED=true`. The confirmation SMS (#87), off until `MESSAGES_SENDING_ENABLED=true` | Silent Authentication with a real number: in Test access, the operator rejects the silent check and the visitor gets the SMS code instead. Real post-visit calls, which wait for the Spanish Vonage number |
 | B · Property owner | The server receives listing requests (`POST /api/listing-requests`) | Screens 1 to 5 (#29). Step 6, the video call with the agency, has no spec yet |
-| Agency dashboard | Sign-in, screen 1 (the dashboard) and screen 4 (the visits calendar) | Screens 2 and 3 (#58) and their server (#57). Screen 5 (#119), whose server is built |
+| Agency dashboard | Sign-in, screen 1 (the dashboard) and screen 4 (the visits calendar). The server of screens 2 and 3: listing, viewing, approving and rejecting requests (#57) | Screens 2 and 3 (#58). Screen 5 (#119), whose server is built |
