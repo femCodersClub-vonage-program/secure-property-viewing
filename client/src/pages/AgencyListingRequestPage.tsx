@@ -5,8 +5,9 @@ import { ListingRequestNotFound, RequestDetails } from '../features/agency-dashb
 function AgencyListingRequestPage() {
   const { id } = useParams()
   const requestId = Number(id)
-  // Only a positive whole number is a request id: "abc" or "1.5" say it does not exist, without asking
-  const valid = Number.isInteger(requestId) && requestId > 0
+  // Only a positive whole number the server can read is a request id. "abc", "1.5" or an id too long
+  // for a number say it does not exist without asking, because the server would answer 400 to them
+  const valid = Number.isSafeInteger(requestId) && requestId > 0
 
   return (
     <>

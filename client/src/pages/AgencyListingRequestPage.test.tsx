@@ -14,7 +14,8 @@ function renderAt(path: string) {
 }
 
 describe('AgencyListingRequestPage', () => {
-  it.each(['abc', '1.5', '0', '-3'])(
+  // The server answers 400 to an id it cannot read as a number, so the page never asks for these
+  it.each(['abc', '1.5', '0', '-3', '99999999999999999999'])(
     'says the request %s does not exist, without asking for it',
     (id) => {
       renderAt(`/agency/listing-requests/${id}`)
