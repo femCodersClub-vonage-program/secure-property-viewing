@@ -1,6 +1,6 @@
 package com.peephole.server.listing;
 
-enum ListingRequestStatus {
+public enum ListingRequestStatus {
     PENDING,
     APPROVED,
     REJECTED

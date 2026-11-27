@@ -28,10 +28,26 @@ public class MessageService {
         repository.save(Message.visitConfirmation(visitId, now));
     }
 
+    // In the transaction that saves the request or its review, so a failure in Vonage never undoes either
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void scheduleListingRequestReceived(long listingRequestId, OffsetDateTime now) {
+        repository.save(Message.listingRequestReceived(listingRequestId, now));
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void scheduleListingRequestDecision(long listingRequestId, OffsetDateTime now) {
+        repository.save(Message.listingRequestDecision(listingRequestId, now));
+    }
+
     @Transactional(readOnly = true)
-    List<DueMessage> dueVisitConfirmations(OffsetDateTime now) {
-        return repository.findDueVisitConfirmations(now).stream()
-                .map(message -> new DueMessage(message.getId(), message.getVisitId(), message.getScheduledAt()))
+    List<DueMessage> dueMessages(OffsetDateTime now) {
+        return repository.findDueMessages(now).stream()
+                .map(message -> new DueMessage(
+                        message.getId(),
+                        message.getVisitId(),
+                        message.getListingRequestId(),
+                        message.getType(),
+                        message.getScheduledAt()))
                 .toList();
     }
 

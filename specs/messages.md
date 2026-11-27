@@ -18,7 +18,7 @@ Visitors and owners need to hear from Peephole after they leave the page: the co
 
 - [ ] Booking a visit creates its confirmation, to be sent at once, and its reminder, scheduled 1 hour before the visit starts
 - [ ] A visit booked less than 1 hour before it starts gets the confirmation only
-- [ ] Sending a listing request creates the "request received" message, and approving or rejecting it creates the "request approved" or "request rejected" message
+- [x] Sending a listing request creates the "request received" message, and approving or rejecting it creates the "request approved" or "request rejected" message
 - [ ] Each message is saved in the same transaction as the booking or review that triggers it, and sent afterwards, so a failure in Vonage never undoes a booking or a review
 - [ ] A scheduled task sends every `SCHEDULED` message whose `scheduledAt` has passed, once a minute. Messages that were due while the server was down are sent when it starts again, within the retry window
 - [ ] A reminder is not sent if its visit is no longer `CONFIRMED` or has already started

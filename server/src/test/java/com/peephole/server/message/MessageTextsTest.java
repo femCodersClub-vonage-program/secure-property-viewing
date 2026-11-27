@@ -20,4 +20,15 @@ class MessageTextsTest {
                 .isEqualTo(
                         "Peephole: your video visit for Bright test flat is confirmed for Wednesday 1 July at 15:00.");
     }
+
+    @Test
+    void writesTheThreeListingRequestMessagesOfTheSpec() {
+        assertThat(MessageTexts.listingRequestReceived("Apartment in Gràcia"))
+                .isEqualTo("Peephole: we have received your request for Apartment in Gràcia."
+                        + " The agency will review it and text you with its decision.");
+        assertThat(MessageTexts.listingRequestApproved("Apartment in Gràcia"))
+                .isEqualTo("Peephole: your property Apartment in Gràcia has been approved and is now published.");
+        assertThat(MessageTexts.listingRequestRejected("Apartment in Gràcia"))
+                .isEqualTo("Peephole: your request for Apartment in Gràcia has not been approved.");
+    }
 }

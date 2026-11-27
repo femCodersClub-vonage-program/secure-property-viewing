@@ -14,6 +14,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.peephole.server.phoneverification.PhoneVerificationService;
 import com.peephole.server.vonage.CodeCheckResult;
 import com.peephole.server.vonage.PhoneVerifier;
+import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -97,6 +98,10 @@ class ListingRequestControllerTest {
             jdbcTemplate.update("DELETE FROM agency WHERE id = ?", agencyId);
         }
         verificationIds.forEach(id -> {
+            jdbcTemplate.update(
+                    "DELETE FROM message WHERE listing_request_id IN"
+                            + " (SELECT id FROM listing_request WHERE phone_verification_id = ?)",
+                    id);
             jdbcTemplate.update("DELETE FROM listing_request WHERE phone_verification_id = ?", id);
             jdbcTemplate.update("DELETE FROM phone_verification WHERE id = ?", id);
         });
@@ -135,6 +140,33 @@ class ListingRequestControllerTest {
                 .containsEntry("reviewed_by", null)
                 .containsEntry("rejection_reason", null)
                 .containsEntry("reviewed_at", null);
+    }
+
+    // The SMS is only saved here, so sending it later can never undo the request (specs/messages.md)
+    @Test
+    void schedulesTheRequestReceivedSmsWithTheRequest() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        long verificationId = verifiedPhone(session, "LISTING_REQUEST", PHONE);
+
+        String body = submit(session, requestFromSpec(verificationId))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        long id = ((Number) JsonPath.read(body, "$.id")).longValue();
+        assertThat(jdbcTemplate.queryForList(
+                        "SELECT visit_id, type, channel, status, scheduled_at FROM message WHERE listing_request_id = ?",
+                        id))
+                .singleElement()
+                .satisfies(message -> assertThat(message)
+                        .containsEntry("visit_id", null)
+                        .containsEntry("type", "CONFIRMATION")
+                        .containsEntry("channel", "SMS")
+                        .containsEntry("status", "SCHEDULED")
+                        .extractingByKey("scheduled_at")
+                        .satisfies(scheduledAt -> assertThat(((Timestamp) scheduledAt).toInstant())
+                                .isEqualTo(clock.instant())));
     }
 
     @Test

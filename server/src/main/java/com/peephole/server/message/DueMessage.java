@@ -2,4 +2,5 @@ package com.peephole.server.message;
 
 import java.time.OffsetDateTime;
 
-record DueMessage(long id, long visitId, OffsetDateTime scheduledAt) {}
+// Exactly one of visitId and listingRequestId is set, as the message table checks
+record DueMessage(long id, Long visitId, Long listingRequestId, MessageType type, OffsetDateTime scheduledAt) {}

@@ -20,4 +20,18 @@ final class MessageTexts {
         return "Peephole: your video visit for " + title + " is confirmed for " + DAY.format(inMadrid) + " at "
                 + TIME.format(inMadrid) + ".";
     }
+
+    static String listingRequestReceived(String title) {
+        return "Peephole: we have received your request for " + title
+                + ". The agency will review it and text you with its decision.";
+    }
+
+    static String listingRequestApproved(String title) {
+        return "Peephole: your property " + title + " has been approved and is now published.";
+    }
+
+    // The rejection reason is never sent: the agency writes it for the dashboard
+    static String listingRequestRejected(String title) {
+        return "Peephole: your request for " + title + " has not been approved.";
+    }
 }

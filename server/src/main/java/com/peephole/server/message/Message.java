@@ -52,8 +52,10 @@ class Message {
 
     protected Message() {}
 
-    private Message(Long visitId, MessageType type, OffsetDateTime scheduledAt, OffsetDateTime now) {
+    private Message(
+            Long visitId, Long listingRequestId, MessageType type, OffsetDateTime scheduledAt, OffsetDateTime now) {
         this.visitId = visitId;
+        this.listingRequestId = listingRequestId;
         this.type = type;
         this.channel = MessageChannel.SMS;
         this.status = MessageStatus.SCHEDULED;
@@ -62,7 +64,16 @@ class Message {
     }
 
     static Message visitConfirmation(long visitId, OffsetDateTime now) {
-        return new Message(visitId, MessageType.CONFIRMATION, now, now);
+        return new Message(visitId, null, MessageType.CONFIRMATION, now, now);
+    }
+
+    static Message listingRequestReceived(long listingRequestId, OffsetDateTime now) {
+        return new Message(null, listingRequestId, MessageType.CONFIRMATION, now, now);
+    }
+
+    // A request is reviewed only once, so its STATUS_UPDATE means whatever its final status is (specs/messages.md)
+    static Message listingRequestDecision(long listingRequestId, OffsetDateTime now) {
+        return new Message(null, listingRequestId, MessageType.STATUS_UPDATE, now, now);
     }
 
     static boolean retryWindowHasPassed(OffsetDateTime scheduledAt, OffsetDateTime now) {

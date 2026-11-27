@@ -5,6 +5,7 @@ import com.peephole.server.listing.dto.ListingRequestDetailsResponse;
 import com.peephole.server.listing.dto.ListingRequestResponse;
 import com.peephole.server.listing.dto.ListingRequestSummaryResponse;
 import com.peephole.server.listing.dto.NewListingRequest;
+import com.peephole.server.message.MessageService;
 import com.peephole.server.phoneverification.PhoneVerificationInvalidException;
 import com.peephole.server.phoneverification.PhoneVerificationPurpose;
 import com.peephole.server.phoneverification.PhoneVerificationService;
@@ -24,7 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-class ListingRequestService {
+public class ListingRequestService {
 
     private static final PhoneVerificationPurpose PURPOSE = PhoneVerificationPurpose.LISTING_REQUEST;
     private static final String VERIFICATION_USED_CONSTRAINT = "listing_request_phone_verification_id_key";
@@ -33,16 +34,19 @@ class ListingRequestService {
     private final ListingRequestRepository repository;
     private final PhoneVerificationService phoneVerificationService;
     private final PropertyService propertyService;
+    private final MessageService messageService;
     private final Clock clock;
 
     ListingRequestService(
             ListingRequestRepository repository,
             PhoneVerificationService phoneVerificationService,
             PropertyService propertyService,
+            MessageService messageService,
             Clock clock) {
         this.repository = repository;
         this.phoneVerificationService = phoneVerificationService;
         this.propertyService = propertyService;
+        this.messageService = messageService;
         this.clock = clock;
     }
 
@@ -54,6 +58,7 @@ class ListingRequestService {
             throw new PhoneVerificationInvalidException(PURPOSE);
         }
 
+        OffsetDateTime now = OffsetDateTime.now(clock);
         ListingRequest listingRequest = new ListingRequest(
                 new ListingRequest.OwnerDetails(request.ownerName(), request.ownerPhone()),
                 new ListingRequest.PropertyDetails(
@@ -68,12 +73,13 @@ class ListingRequestService {
                         request.sizeM2(),
                         request.floor() == null ? null : request.floor().shortValue()),
                 verificationId,
-                OffsetDateTime.now(clock));
+                now);
         try {
             listingRequest = repository.saveAndFlush(listingRequest);
         } catch (DataIntegrityViolationException exception) {
             throw mapConstraintViolation(exception);
         }
+        messageService.scheduleListingRequestReceived(listingRequest.getId(), now);
         return new ListingRequestResponse(
                 listingRequest.getId(), listingRequest.getStatus().name());
     }
@@ -112,15 +118,28 @@ class ListingRequestService {
                 request.getBedrooms(),
                 request.getSizeM2(),
                 request.getFloor()));
-        request.approve(reviewerId, OffsetDateTime.now(clock));
+        OffsetDateTime now = OffsetDateTime.now(clock);
+        request.approve(reviewerId, now);
+        messageService.scheduleListingRequestDecision(request.getId(), now);
         return new ApprovedListingResponse(propertyId);
     }
 
     @Transactional
     ListingRequestResponse reject(long id, String reason, long reviewerId) {
         ListingRequest request = pendingWithLock(id);
-        request.reject(reviewerId, reason, OffsetDateTime.now(clock));
+        OffsetDateTime now = OffsetDateTime.now(clock);
+        request.reject(reviewerId, reason, now);
+        messageService.scheduleListingRequestDecision(request.getId(), now);
         return new ListingRequestResponse(request.getId(), request.getStatus().name());
+    }
+
+    @Transactional(readOnly = true)
+    public ListingRequestForMessage forMessage(long id) {
+        ListingRequest request = repository
+                .findById(id)
+                .orElseThrow(() -> new IllegalStateException("Listing request " + id + " was not found"));
+        return new ListingRequestForMessage(
+                request.getId(), request.getOwnerPhone(), request.getTitle(), request.getStatus());
     }
 
     // The lock makes a second agent reviewing the same request wait, and then find it already reviewed

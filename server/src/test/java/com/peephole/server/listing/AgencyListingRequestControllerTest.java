@@ -12,9 +12,11 @@ import com.jayway.jsonpath.JsonPath;
 import com.peephole.server.listing.dto.ListingRequestDetailsResponse;
 import com.peephole.server.listing.dto.RejectListingRequest;
 import jakarta.persistence.EntityManager;
+import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -335,6 +337,29 @@ class AgencyListingRequestControllerTest {
                         approved,
                         rejected))
                 .isZero();
+        assertThat(messagesOf(approved)).isEmpty();
+        assertThat(messagesOf(rejected)).isEmpty();
+    }
+
+    // The owner hears about the decision by SMS, saved in the review's transaction (specs/messages.md)
+    @Test
+    void schedulesTheOwnersSmsWithEachReview() throws Exception {
+        long approved = insertListingRequest("Ana Torres", "PENDING", TIME);
+        long rejected = insertListingRequest("Joan Puig", "PENDING", TIME);
+
+        approve(approved).andExpect(status().isOk());
+        reject(rejected, "{\"reason\":\"The address is outside Barcelona\"}").andExpect(status().isOk());
+
+        for (long id : List.of(approved, rejected)) {
+            assertThat(messagesOf(id))
+                    .singleElement()
+                    .satisfies(message -> assertThat(message)
+                            .containsEntry("type", "STATUS_UPDATE")
+                            .containsEntry("status", "SCHEDULED")
+                            .extractingByKey("scheduled_at")
+                            .satisfies(scheduledAt -> assertThat(((Timestamp) scheduledAt).toInstant())
+                                    .isEqualTo(REVIEW_TIME.toInstant())));
+        }
     }
 
     @Test
@@ -559,6 +584,12 @@ class AgencyListingRequestControllerTest {
     private Long reviewerOf(long id) {
         entityManager.flush();
         return jdbcTemplate.queryForObject("SELECT reviewed_by FROM listing_request WHERE id = ?", Long.class, id);
+    }
+
+    private List<Map<String, Object>> messagesOf(long id) {
+        entityManager.flush();
+        return jdbcTemplate.queryForList(
+                "SELECT type, status, scheduled_at FROM message WHERE listing_request_id = ?", id);
     }
 
     private MockHttpSession signIn() throws Exception {

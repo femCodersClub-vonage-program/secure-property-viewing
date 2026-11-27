@@ -70,6 +70,7 @@ class ListingRequestReviewConcurrencyTest {
 
     @AfterEach
     void deleteTheTestData() {
+        jdbcTemplate.update("DELETE FROM message WHERE listing_request_id = ?", requestId);
         jdbcTemplate.update("DELETE FROM property WHERE listing_request_id = ?", requestId);
         jdbcTemplate.update("DELETE FROM listing_request WHERE id = ?", requestId);
         jdbcTemplate.update("DELETE FROM phone_verification WHERE id = ?", verificationId);

@@ -10,16 +10,16 @@ import org.springframework.data.jpa.repository.Query;
 
 interface MessageRepository extends JpaRepository<Message, Long> {
 
-    // Only visit confirmations for now: the other messages of the spec are not built for the demo
+    // Visit confirmations and every listing request message. Reminders are not built for the demo, so they wait
     @Query("""
             SELECT m FROM Message m
             WHERE m.status = com.peephole.server.message.MessageStatus.SCHEDULED
-              AND m.type = com.peephole.server.message.MessageType.CONFIRMATION
-              AND m.visitId IS NOT NULL
               AND m.scheduledAt <= :now
+              AND (m.listingRequestId IS NOT NULL
+                   OR (m.visitId IS NOT NULL AND m.type = com.peephole.server.message.MessageType.CONFIRMATION))
             ORDER BY m.scheduledAt, m.id
             """)
-    List<Message> findDueVisitConfirmations(OffsetDateTime now);
+    List<Message> findDueMessages(OffsetDateTime now);
 
     // The scheduled task and the status webhook lock the row, so their changes are applied one after the other
     @Lock(LockModeType.PESSIMISTIC_WRITE)

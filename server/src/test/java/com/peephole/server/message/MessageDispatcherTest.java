@@ -10,6 +10,8 @@ import static org.mockito.Mockito.when;
 import com.peephole.server.vonage.MessageSendException;
 import com.peephole.server.vonage.MessageSender;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
@@ -30,6 +32,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 class MessageDispatcherTest {
 
     private static final String PHONE = "+34611222333";
+    private static final String OWNER_PHONE = "+34611444555";
     // Before every real message in the database, so the dispatcher only finds the ones each test saves
     private static final OffsetDateTime NOW = OffsetDateTime.parse("2000-01-01T12:00:00Z");
     private static final OffsetDateTime VISIT_STARTS_AT = OffsetDateTime.parse("2099-01-01T14:00:00Z");
@@ -51,6 +54,7 @@ class MessageDispatcherTest {
     private long slotId;
     private long verificationId;
     private long visitId;
+    private final List<Long> listingRequestIds = new ArrayList<>();
 
     @BeforeEach
     void createVisit() {
@@ -91,6 +95,11 @@ class MessageDispatcherTest {
 
     @AfterEach
     void deleteRows() {
+        for (long listingRequestId : listingRequestIds) {
+            jdbcTemplate.update("DELETE FROM message WHERE listing_request_id = ?", listingRequestId);
+            jdbcTemplate.update("DELETE FROM listing_request WHERE id = ?", listingRequestId);
+        }
+        jdbcTemplate.update("DELETE FROM phone_verification WHERE vonage_request_id LIKE 'message-test-listing-%'");
         jdbcTemplate.update("DELETE FROM message WHERE visit_id = ?", visitId);
         jdbcTemplate.update("DELETE FROM visit WHERE id = ?", visitId);
         jdbcTemplate.update("DELETE FROM phone_verification WHERE id = ?", verificationId);
@@ -216,6 +225,100 @@ class MessageDispatcherTest {
                 .contains("Sent message " + id)
                 .doesNotContain("611222333")
                 .doesNotContain("Bright test flat");
+    }
+
+    // Listing requests (#128)
+
+    @Test
+    void sendsTheRequestReceivedSmsToTheOwner() {
+        long id = listingRequestMessage(listingRequest("PENDING"), "CONFIRMATION");
+        when(messageSender.sendSms(eq(OWNER_PHONE), any(), eq(String.valueOf(id))))
+                .thenReturn(MESSAGE_UUID);
+
+        dispatcher.sendDueMessages(NOW);
+
+        verify(messageSender)
+                .sendSms(
+                        OWNER_PHONE,
+                        "Peephole: we have received your request for Loft for a test owner."
+                                + " The agency will review it and text you with its decision.",
+                        String.valueOf(id));
+        assertThat(stored(id)).containsEntry("status", "SUBMITTED").containsEntry("vonage_message_id", MESSAGE_UUID);
+    }
+
+    @Test
+    void tellsTheOwnerTheDecisionOfTheReview() {
+        long approved = listingRequestMessage(listingRequest("APPROVED"), "STATUS_UPDATE");
+        long rejected = listingRequestMessage(listingRequest("REJECTED"), "STATUS_UPDATE");
+        when(messageSender.sendSms(eq(OWNER_PHONE), any(), any())).thenReturn(MESSAGE_UUID);
+
+        dispatcher.sendDueMessages(NOW);
+
+        verify(messageSender)
+                .sendSms(
+                        OWNER_PHONE,
+                        "Peephole: your property Loft for a test owner has been approved and is now published.",
+                        String.valueOf(approved));
+        verify(messageSender)
+                .sendSms(
+                        OWNER_PHONE,
+                        "Peephole: your request for Loft for a test owner has not been approved.",
+                        String.valueOf(rejected));
+    }
+
+    @Test
+    void neverTellsTheOwnerADecisionThatWasNotMade() {
+        long id = listingRequestMessage(listingRequest("PENDING"), "STATUS_UPDATE");
+
+        dispatcher.sendDueMessages(NOW);
+
+        verify(messageSender, never()).sendSms(any(), any(), eq(String.valueOf(id)));
+        assertThat(stored(id)).containsEntry("status", "SCHEDULED");
+    }
+
+    @Test
+    void neverLogsTheOwnersPhoneOrTheTitle(CapturedOutput output) {
+        long listingRequestId = listingRequest("PENDING");
+        long id = listingRequestMessage(listingRequestId, "CONFIRMATION");
+        when(messageSender.sendSms(eq(OWNER_PHONE), any(), eq(String.valueOf(id))))
+                .thenReturn(MESSAGE_UUID);
+
+        dispatcher.sendDueMessages(NOW);
+
+        assertThat(output)
+                .contains("Sent message " + id + " for listing request " + listingRequestId)
+                .doesNotContain("611444555")
+                .doesNotContain("Loft for a test owner")
+                .doesNotContain("Marta Test");
+    }
+
+    private long listingRequest(String status) {
+        long verification = jdbcTemplate.queryForObject(
+                "INSERT INTO phone_verification (purpose, phone_hash, vonage_request_id, status, verified_at)"
+                        + " VALUES ('LISTING_REQUEST', ?, ?, 'VERIFIED', ?) RETURNING id",
+                Long.class,
+                "message-test-hash-" + UUID.randomUUID(),
+                "message-test-listing-" + UUID.randomUUID(),
+                NOW);
+        long id = jdbcTemplate.queryForObject("""
+                INSERT INTO listing_request (phone_verification_id, owner_full_name, owner_phone, title, description,
+                    property_type, operation, area, address, price_euros, bedrooms, size_m2, floor, status, created_at)
+                VALUES (?, 'Marta Test', ?, 'Loft for a test owner', 'A loft for message tests', 'APARTMENT',
+                    'RENT', 'Gràcia', 'Fictional test address', 1200, 1, 50, NULL, ?, ?)
+                RETURNING id
+                """, Long.class, verification, OWNER_PHONE, status, NOW);
+        listingRequestIds.add(id);
+        return id;
+    }
+
+    private long listingRequestMessage(long listingRequestId, String type) {
+        return jdbcTemplate.queryForObject(
+                "INSERT INTO message (listing_request_id, type, channel, status, scheduled_at)"
+                        + " VALUES (?, ?, 'SMS', 'SCHEDULED', ?) RETURNING id",
+                Long.class,
+                listingRequestId,
+                type,
+                NOW);
     }
 
     private long message(OffsetDateTime scheduledAt) {
