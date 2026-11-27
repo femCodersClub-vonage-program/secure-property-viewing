@@ -64,12 +64,12 @@ describe('HomePage', () => {
     )
   })
 
-  it('links to the agency sign-up from the hero and the section for owners', () => {
+  it('links to the owner listing from the hero and the section for owners', () => {
     renderHome()
     const links = screen.getAllByRole('link', { name: 'List my property' })
     expect(links.map((link) => link.getAttribute('href'))).toEqual([
-      '/agencies/sign-up',
-      '/agencies/sign-up',
+      '/list-property',
+      '/list-property',
     ])
   })
 

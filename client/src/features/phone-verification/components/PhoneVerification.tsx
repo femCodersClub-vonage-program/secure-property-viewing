@@ -24,6 +24,8 @@ import type {
 
 type Props = {
   purpose: PhoneVerificationPurpose
+  /** A number the host page already asked for. It fills the field, and the person can change it. */
+  initialPhone?: string
   onVerified: (result: VerifiedPhone) => void
   /**
    * The host page's form. With it, the screen tries the silent check from a phone, and saves the
@@ -113,9 +115,9 @@ function checkingFrom(resumed: ResumedSilentCheck | undefined): Checking | undef
   }
 }
 
-function PhoneVerification({ purpose, onVerified, formToKeep, resumed }: Props) {
+function PhoneVerification({ purpose, initialPhone = '', onVerified, formToKeep, resumed }: Props) {
   const [step, setStep] = useState<Step>(() => checkingFrom(resumed) ?? { name: 'phone' })
-  const [phone, setPhone] = useState(() => resumed?.saved.phone ?? '')
+  const [phone, setPhone] = useState(() => resumed?.saved.phone ?? initialPhone)
   const [code, setCode] = useState('')
   const [fieldError, setFieldError] = useState<string>()
   const [alert, setAlert] = useState<string>()

@@ -166,6 +166,15 @@ From `lg` up, the calendar, the times and the visit are three cards of the same 
 - The confirmation has a photo header like the catalog's, with a white check on the gradient circle. Under it, from `lg` up, the visit in a `dark` `Card` and the room links in a default one are side by side, with the same height. The icons of the visit are decorative, in `--color-brand-accent`
 - The other states, such as an error, keep one narrow column (`max-w-lg`)
 
+## Listing a property
+
+The screens of journey B are in the `owner-listing` feature. From `md` up, B1 has the headline, the three trust points and the "List my property" button next to a decorative `ParallaxImage` with `--radius-lg`. On a phone the photo goes first. Each trust point has a check icon in `--color-brand-primary` on a circle with a 10% tint of that color.
+
+- The step indicator (`StepIndicator`) says "Step 2 of 3: Property" above the list of the three steps, each with its number in a circle. The current step has a `--color-brand-primary` circle with a white number and a bold name, and `aria-current="step"`, so it does not rely on color alone. The focus moves to the sentence when the step changes
+- Each step of the form is one `flush` `Card` with its own padding. The property's fields are grouped in sections (`FormSection`): a `fieldset` under a `--color-border` line, with a `text-xl` legend in `--color-brand-dark` next to a decorative icon on the same tinted circle
+- Operation and property type are choice buttons (`ChoiceGroup`), as in [Form fields](#form-fields): `pill` buttons with a decorative icon, `primary` when selected and `secondary` otherwise, with `aria-pressed`. The group is named by its label, and its error goes under the buttons
+- B5 is one `flush` `Card` with a white check on a circle with a gradient from `--color-brand-primary` to `--color-brand-accent`, the heading, which takes the focus, the three next steps in an ordered list with an icon on the tinted circle, and a button to the home page
+
 ## Back to top
 
 `PublicLayout` has a round "Back to top" button (`BackToTop`) on every public page, in the bottom right corner, once the visitor has scrolled a whole screen.
