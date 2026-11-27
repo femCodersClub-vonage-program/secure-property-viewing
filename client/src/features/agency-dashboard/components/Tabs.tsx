@@ -72,12 +72,14 @@ function Tabs({ label, tabs, selectedId, onSelect, children }: TabsProps) {
           )
         })}
       </div>
+      {/* The panel takes the focus after the tabs, so it shows the common focus ring
+          instead of the browser's outline (docs/design-system.md → Tabs) */}
       <div
         role="tabpanel"
         id={panelId}
         aria-labelledby={tabId(selectedId)}
         tabIndex={0}
-        className="pt-4"
+        className="pt-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary"
       >
         {children}
       </div>

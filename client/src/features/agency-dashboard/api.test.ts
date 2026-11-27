@@ -1,13 +1,23 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError, SYSTEM_ERROR_MESSAGE } from '../../lib/http'
 import {
+  approveListingRequest,
   errorMessage,
   getAgencySummary,
   getAgencyVisits,
+  getListingRequest,
+  getListingRequests,
   getSession,
+  isAlreadyReviewed,
+  isInvalidReason,
+  isListingRequestStatus,
+  isNotFound,
   parseAgencySummary,
   parseAgencyUser,
   parseAgencyVisits,
+  parseListingRequestDetails,
+  parseListingRequestSummaries,
+  rejectListingRequest,
   signIn,
   signOut,
 } from './api'
@@ -327,5 +337,308 @@ describe('errorMessage', () => {
 
   it('shows the general message for anything else', () => {
     expect(errorMessage(new TypeError('Failed to fetch'))).toBe(SYSTEM_ERROR_MESSAGE)
+  })
+})
+
+// specs/agency-dashboard.md, "API": one item of GET /api/agency/listing-requests, verbatim
+const listingRequestExample = {
+  id: 18,
+  ownerName: 'Ana Torres',
+  title: 'Apartment in Gràcia',
+  operation: 'RENT',
+  priceEuros: 1200,
+  createdAt: '2026-11-10T11:00:00+01:00',
+  status: 'PENDING',
+}
+
+// specs/agency-dashboard.md, "API": response of GET /api/agency/listing-requests/{id}, verbatim
+const listingRequestDetailsExample = {
+  id: 18,
+  status: 'REJECTED',
+  ownerName: 'Ana Torres',
+  ownerPhone: '+34600000000',
+  title: 'Apartment in Gràcia',
+  description: '...',
+  propertyType: 'APARTMENT',
+  operation: 'RENT',
+  area: 'Gràcia',
+  address: '...',
+  priceEuros: 1200,
+  bedrooms: 3,
+  sizeM2: 85,
+  floor: 2,
+  createdAt: '2026-11-10T11:00:00+01:00',
+  reviewedAt: '2026-11-11T09:30:00+01:00',
+  rejectionReason: '...',
+}
+
+// The same request before anyone reviews it: the fields that can be null are null
+const pendingDetails = {
+  ...listingRequestDetailsExample,
+  status: 'PENDING',
+  floor: null,
+  reviewedAt: null,
+  rejectionReason: null,
+}
+
+describe('isListingRequestStatus', () => {
+  it.each(['PENDING', 'APPROVED', 'REJECTED'])('accepts %s', (status) => {
+    expect(isListingRequestStatus(status)).toBe(true)
+  })
+
+  // It also checks ?status= in the address, where anything can be written
+  it.each(['approved', 'ALL', '', null])('refuses %s', (status) => {
+    expect(isListingRequestStatus(status)).toBe(false)
+  })
+})
+
+describe('parseListingRequestSummaries', () => {
+  it('reads the requests of the spec example', () => {
+    expect(parseListingRequestSummaries([listingRequestExample])).toEqual([listingRequestExample])
+  })
+
+  it('reads a status with no requests', () => {
+    expect(parseListingRequestSummaries([])).toEqual([])
+  })
+
+  it.each([
+    { name: 'a body that is not a list', data: { requests: [listingRequestExample] } },
+    { name: 'no body', data: null },
+    {
+      name: 'a request with an unknown status',
+      data: [{ ...listingRequestExample, status: 'DRAFT' }],
+    },
+    {
+      name: 'a request with an unknown operation',
+      data: [{ ...listingRequestExample, operation: 'SWAP' }],
+    },
+    {
+      name: 'a request with its price as text',
+      data: [{ ...listingRequestExample, priceEuros: '1200' }],
+    },
+    {
+      name: 'a request with an unreadable date',
+      data: [{ ...listingRequestExample, createdAt: 'yesterday' }],
+    },
+    {
+      name: 'a request without an owner',
+      data: [{ ...listingRequestExample, ownerName: undefined }],
+    },
+    { name: 'a request with its id as text', data: [{ ...listingRequestExample, id: '18' }] },
+  ])('refuses $name', ({ data }) => {
+    expect(() => parseListingRequestSummaries(data)).toThrow()
+  })
+})
+
+describe('getListingRequests', () => {
+  it('asks for the requests of one status with a relative path and the signal that can cancel it', async () => {
+    const fetchMock = answerWith([listingRequestExample])
+    vi.stubGlobal('fetch', fetchMock)
+    const controller = new AbortController()
+
+    await expect(getListingRequests('PENDING', controller.signal)).resolves.toEqual([
+      listingRequestExample,
+    ])
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/agency/listing-requests?status=PENDING',
+      expect.objectContaining({ signal: controller.signal }),
+    )
+  })
+
+  it('turns an answer that breaks the contract into a system error', async () => {
+    vi.stubGlobal('fetch', answerWith([{ ...listingRequestExample, status: 'DRAFT' }]))
+
+    const error: unknown = await getListingRequests('PENDING').catch((caught: unknown) => caught)
+
+    expect(error).toBeInstanceOf(ApiError)
+    expect(error).toMatchObject({ kind: 'system', message: SYSTEM_ERROR_MESSAGE })
+  })
+})
+
+describe('parseListingRequestDetails', () => {
+  it('reads the request of the spec example', () => {
+    expect(parseListingRequestDetails(listingRequestDetailsExample)).toEqual(
+      listingRequestDetailsExample,
+    )
+  })
+
+  it('reads a pending request, with no floor, no review and no reason', () => {
+    expect(parseListingRequestDetails(pendingDetails)).toEqual(pendingDetails)
+  })
+
+  it('reads a floor below the street', () => {
+    expect(parseListingRequestDetails({ ...pendingDetails, floor: -1 })).toEqual({
+      ...pendingDetails,
+      floor: -1,
+    })
+  })
+
+  it.each([
+    { name: 'no body', data: null },
+    {
+      name: 'an unknown property type',
+      data: { ...listingRequestDetailsExample, propertyType: 'CASTLE' },
+    },
+    { name: 'a floor as text', data: { ...listingRequestDetailsExample, floor: '2' } },
+    // null means "not yet": a missing field means the contract changed
+    { name: 'a missing floor', data: { ...listingRequestDetailsExample, floor: undefined } },
+    {
+      name: 'an unreadable review date',
+      data: { ...listingRequestDetailsExample, reviewedAt: 'today' },
+    },
+    {
+      name: 'a missing review date',
+      data: { ...listingRequestDetailsExample, reviewedAt: undefined },
+    },
+    {
+      name: 'a reason that is not text',
+      data: { ...listingRequestDetailsExample, rejectionReason: 42 },
+    },
+    {
+      name: 'no owner phone',
+      data: { ...listingRequestDetailsExample, ownerPhone: undefined },
+    },
+    {
+      name: 'no description',
+      data: { ...listingRequestDetailsExample, description: null },
+    },
+    { name: 'a negative size', data: { ...listingRequestDetailsExample, sizeM2: -85 } },
+  ])('refuses a request with $name', ({ data }) => {
+    expect(() => parseListingRequestDetails(data)).toThrow()
+  })
+})
+
+describe('getListingRequest', () => {
+  it('asks for one request with a relative path and the signal that can cancel it', async () => {
+    const fetchMock = answerWith(listingRequestDetailsExample)
+    vi.stubGlobal('fetch', fetchMock)
+    const controller = new AbortController()
+
+    await expect(getListingRequest(18, controller.signal)).resolves.toEqual(
+      listingRequestDetailsExample,
+    )
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/agency/listing-requests/18',
+      expect.objectContaining({ signal: controller.signal }),
+    )
+  })
+
+  it('says the request does not exist when the server answers 404', async () => {
+    vi.stubGlobal('fetch', failWith(404, 'NOT_FOUND', 'The listing request does not exist.'))
+
+    const error: unknown = await getListingRequest(99).catch((caught: unknown) => caught)
+
+    expect(isNotFound(error)).toBe(true)
+    expect(errorMessage(error)).toBe('The listing request does not exist.')
+  })
+})
+
+describe('reviewing a listing request', () => {
+  beforeEach(() => {
+    // With the cookie already set, the client does not make an extra GET to get one
+    document.cookie = 'XSRF-TOKEN=test-token; path=/'
+  })
+
+  it('approves with POST and the CSRF token, and returns the new property', async () => {
+    const fetchMock = answerWith({ propertyId: 13 })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(approveListingRequest(18)).resolves.toEqual({ propertyId: 13 })
+
+    const init = fetchMock.mock.calls[0]?.[1]
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/agency/listing-requests/18/approve',
+      expect.objectContaining({ method: 'POST' }),
+    )
+    expect(new Headers(init?.headers).get('X-XSRF-TOKEN')).toBe('test-token')
+  })
+
+  it('rejects with the reason in the body and the CSRF token', async () => {
+    const fetchMock = answerWith({ id: 18, status: 'REJECTED' })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(rejectListingRequest(18, 'The photos do not match')).resolves.toEqual({
+      id: 18,
+      status: 'REJECTED',
+    })
+
+    const init = fetchMock.mock.calls[0]?.[1]
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/agency/listing-requests/18/reject',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ reason: 'The photos do not match' }),
+      }),
+    )
+    expect(new Headers(init?.headers).get('X-XSRF-TOKEN')).toBe('test-token')
+  })
+
+  it.each([
+    { name: 'approving', review: () => approveListingRequest(18) },
+    { name: 'rejecting', review: () => rejectListingRequest(18, 'Duplicated') },
+  ])('says the request was already reviewed when $name answers 409', async ({ review }) => {
+    vi.stubGlobal(
+      'fetch',
+      failWith(
+        409,
+        'LISTING_REQUEST_ALREADY_REVIEWED',
+        'The listing request has already been approved or rejected.',
+      ),
+    )
+
+    const error: unknown = await review().catch((caught: unknown) => caught)
+
+    expect(isAlreadyReviewed(error)).toBe(true)
+    expect(errorMessage(error)).toBe('The listing request has already been approved or rejected.')
+  })
+
+  it('says the reason was refused when the server answers 400 for it', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(
+        async () =>
+          new Response(
+            JSON.stringify({
+              title: 'Validation failed',
+              status: 400,
+              detail: 'One or more fields are invalid.',
+              code: 'VALIDATION_FAILED',
+              errors: { reason: 'must explain why the request is rejected' },
+            }),
+            { status: 400, headers: { 'Content-Type': 'application/problem+json' } },
+          ),
+      ),
+    )
+
+    const error: unknown = await rejectListingRequest(18, ' ').catch((caught: unknown) => caught)
+
+    expect(isInvalidReason(error)).toBe(true)
+    expect(isAlreadyReviewed(error)).toBe(false)
+  })
+
+  it('turns a rejection answer with another status into a system error', async () => {
+    vi.stubGlobal('fetch', answerWith({ id: 18, status: 'APPROVED' }))
+
+    const error: unknown = await rejectListingRequest(18, 'Duplicated').catch(
+      (caught: unknown) => caught,
+    )
+
+    expect(error).toMatchObject({ kind: 'system', message: SYSTEM_ERROR_MESSAGE })
+  })
+
+  it('turns an approval answer without the property into a system error', async () => {
+    vi.stubGlobal('fetch', answerWith({ id: 18 }))
+
+    const error: unknown = await approveListingRequest(18).catch((caught: unknown) => caught)
+
+    expect(error).toMatchObject({ kind: 'system', message: SYSTEM_ERROR_MESSAGE })
+  })
+
+  it('reads a system error as none of the review errors', () => {
+    const error = new TypeError('Failed to fetch')
+
+    expect(isAlreadyReviewed(error)).toBe(false)
+    expect(isNotFound(error)).toBe(false)
+    expect(isInvalidReason(error)).toBe(false)
   })
 })

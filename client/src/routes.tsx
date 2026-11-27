@@ -7,6 +7,8 @@ import { AgencyLayout, RequireAgencySession } from './features/agency-dashboard'
 import { PublicLayout } from './features/public-site'
 import AgencyCalendarPage from './pages/AgencyCalendarPage'
 import AgencyDashboardPage from './pages/AgencyDashboardPage'
+import AgencyListingRequestPage from './pages/AgencyListingRequestPage'
+import AgencyListingRequestsPage from './pages/AgencyListingRequestsPage'
 import AgencyPlaceholderPage from './pages/AgencyPlaceholderPage'
 import AgencySignInPage from './pages/AgencySignInPage'
 import AgencyVideoRoomPage from './pages/AgencyVideoRoomPage'
@@ -46,14 +48,8 @@ export const routes: RouteObject[] = [
         children: [
           { index: true, element: <AgencyDashboardPage /> },
           { path: 'properties', element: <AgencyPlaceholderPage title="Properties" /> },
-          {
-            path: 'listing-requests',
-            element: <AgencyPlaceholderPage title="Listing requests" />,
-          },
-          {
-            path: 'listing-requests/:id',
-            element: <AgencyPlaceholderPage title="Request details" />,
-          },
+          { path: 'listing-requests', element: <AgencyListingRequestsPage /> },
+          { path: 'listing-requests/:id', element: <AgencyListingRequestPage /> },
           { path: 'calendar', element: <AgencyCalendarPage /> },
           { path: 'messages', element: <AgencyPlaceholderPage title="Messages" /> },
           { path: 'profile', element: <AgencyPlaceholderPage title="Profile" /> },
