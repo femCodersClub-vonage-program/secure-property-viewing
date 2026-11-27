@@ -105,6 +105,13 @@ class AgencyListingRequestController {
     @SecurityRequirement(name = OpenApiConfig.AGENCY_SESSION)
     @ApiResponse(responseCode = "200", description = "The request was approved, with the id of its new property")
     @ApiResponse(
+            responseCode = "400",
+            description = "VALIDATION_FAILED: the id is not a number",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemResponse.class)))
+    @ApiResponse(
             responseCode = "401",
             description = "AUTHENTICATION_REQUIRED: there is no session",
             content =
@@ -145,7 +152,8 @@ class AgencyListingRequestController {
     @ApiResponse(responseCode = "200", description = "The request was rejected")
     @ApiResponse(
             responseCode = "400",
-            description = "VALIDATION_FAILED: the reason is missing, blank or longer than 1000 characters",
+            description = "VALIDATION_FAILED: the id is not a number, or the reason is missing, blank or longer than"
+                    + " 1000 characters",
             content =
                     @Content(
                             mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,

@@ -15,7 +15,6 @@ interface ListingRequestRepository extends JpaRepository<ListingRequest, Long> {
 
     List<ListingRequest> findAllByStatusOrderByCreatedAtDescIdDesc(ListingRequestStatus status);
 
-    // When two agents review the same request at once, the second waits and then finds it already reviewed
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT r FROM ListingRequest r WHERE r.id = :id")
     Optional<ListingRequest> findWithLockById(@Param("id") long id);
