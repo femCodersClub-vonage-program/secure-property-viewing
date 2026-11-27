@@ -12,7 +12,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 
-// Only the fields an owner sends are mapped for now: the agency's review adds its own in #57
+// What the owner sends never changes. The agency's review fills in the status, reviewed_by, rejection_reason and
+// reviewed_at
 @Entity
 @Table(name = "listing_request")
 class ListingRequest {
@@ -68,6 +69,15 @@ class ListingRequest {
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
+    @Column(name = "reviewed_by")
+    private Long reviewedBy;
+
+    @Column(name = "rejection_reason")
+    private String rejectionReason;
+
+    @Column(name = "reviewed_at")
+    private OffsetDateTime reviewedAt;
+
     protected ListingRequest() {}
 
     ListingRequest(OwnerDetails owner, PropertyDetails property, long phoneVerificationId, OffsetDateTime createdAt) {
@@ -88,12 +98,89 @@ class ListingRequest {
         this.createdAt = createdAt;
     }
 
+    boolean isPending() {
+        return status == ListingRequestStatus.PENDING;
+    }
+
+    void approve(long reviewerId, OffsetDateTime now) {
+        status = ListingRequestStatus.APPROVED;
+        reviewedBy = reviewerId;
+        reviewedAt = now;
+    }
+
+    void reject(long reviewerId, String reason, OffsetDateTime now) {
+        status = ListingRequestStatus.REJECTED;
+        reviewedBy = reviewerId;
+        rejectionReason = reason;
+        reviewedAt = now;
+    }
+
     Long getId() {
         return id;
     }
 
+    String getOwnerFullName() {
+        return ownerFullName;
+    }
+
+    String getOwnerPhone() {
+        return ownerPhone;
+    }
+
+    String getTitle() {
+        return title;
+    }
+
+    String getDescription() {
+        return description;
+    }
+
+    PropertyType getPropertyType() {
+        return propertyType;
+    }
+
+    PropertyOperation getOperation() {
+        return operation;
+    }
+
+    String getArea() {
+        return area;
+    }
+
+    String getAddress() {
+        return address;
+    }
+
+    Integer getPriceEuros() {
+        return priceEuros;
+    }
+
+    Short getBedrooms() {
+        return bedrooms;
+    }
+
+    Integer getSizeM2() {
+        return sizeM2;
+    }
+
+    Short getFloor() {
+        return floor;
+    }
+
     ListingRequestStatus getStatus() {
         return status;
+    }
+
+    OffsetDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    String getRejectionReason() {
+        return rejectionReason;
+    }
+
+    OffsetDateTime getReviewedAt() {
+        return reviewedAt;
     }
 
     record OwnerDetails(String fullName, String phone) {

@@ -98,6 +98,38 @@ class OpenApiDocsTest {
     }
 
     @Test
+    void documentsTheAgencyListingRequestEndpointsAndTheirErrors() throws Exception {
+        String list = "$.paths['/api/agency/listing-requests'].get";
+        String details = "$.paths['/api/agency/listing-requests/{id}'].get";
+        String approve = "$.paths['/api/agency/listing-requests/{id}/approve'].post";
+        String reject = "$.paths['/api/agency/listing-requests/{id}/reject'].post";
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(jsonPath(list + ".responses['200']").exists())
+                .andExpect(jsonPath(list + ".responses['400']").exists())
+                .andExpect(jsonPath(list + ".responses['401']").exists())
+                .andExpect(jsonPath(list + ".security[0].agencySession").exists())
+                .andExpect(jsonPath(details + ".responses['200']").exists())
+                .andExpect(jsonPath(details + ".responses['400']").exists())
+                .andExpect(jsonPath(details + ".responses['401']").exists())
+                .andExpect(jsonPath(details + ".responses['404']").exists())
+                .andExpect(jsonPath(details + ".security[0].agencySession").exists())
+                .andExpect(jsonPath(approve + ".responses['200']").exists())
+                .andExpect(jsonPath(approve + ".responses['400']").exists())
+                .andExpect(jsonPath(approve + ".responses['401']").exists())
+                .andExpect(jsonPath(approve + ".responses['403']").exists())
+                .andExpect(jsonPath(approve + ".responses['404']").exists())
+                .andExpect(jsonPath(approve + ".responses['409']").exists())
+                .andExpect(jsonPath(approve + ".security[0].agencySession").exists())
+                .andExpect(jsonPath(reject + ".responses['200']").exists())
+                .andExpect(jsonPath(reject + ".responses['400']").exists())
+                .andExpect(jsonPath(reject + ".responses['401']").exists())
+                .andExpect(jsonPath(reject + ".responses['403']").exists())
+                .andExpect(jsonPath(reject + ".responses['404']").exists())
+                .andExpect(jsonPath(reject + ".responses['409']").exists())
+                .andExpect(jsonPath(reject + ".security[0].agencySession").exists());
+    }
+
+    @Test
     void listsOnlyTheErrorsEachEndpointCanReturn() throws Exception {
         // With springdoc.override-with-generic-response=false, the handlers in RestExceptionHandler are not added to
         // every endpoint: /api/health takes no input, so it must not list a 400

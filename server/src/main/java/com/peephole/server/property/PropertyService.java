@@ -38,6 +38,16 @@ public class PropertyService {
         return repository.findById(id).map(PropertyService::toOverview);
     }
 
+    /** For other features: publishes an active property in the catalog and returns its id. */
+    @Transactional
+    public long publish(NewProperty newProperty) {
+        // The agency comes from the signed-in user, so a missing one is a programming error
+        Agency agency = repository
+                .findAgencyById(newProperty.agencyId())
+                .orElseThrow(() -> new IllegalStateException("Agency " + newProperty.agencyId() + " does not exist"));
+        return repository.save(new Property(agency, newProperty)).getId();
+    }
+
     private static PropertyOverview toOverview(Property property) {
         return new PropertyOverview(
                 property.getId(),

@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 /** The signed-in agency user, kept in the session. The password hash is erased after a successful sign-in. */
 final class AgencyUserDetails implements UserDetails, CredentialsContainer {
 
+    private final long userId;
     private final long agencyId;
     private final String email;
     private final String fullName;
@@ -17,11 +18,16 @@ final class AgencyUserDetails implements UserDetails, CredentialsContainer {
     private String passwordHash;
 
     AgencyUserDetails(AgencyUser user) {
+        this.userId = user.getId();
         this.agencyId = user.getAgencyId();
         this.email = user.getEmail();
         this.fullName = user.getFullName();
         this.role = user.getRole();
         this.passwordHash = user.getPasswordHash();
+    }
+
+    long getUserId() {
+        return userId;
     }
 
     long getAgencyId() {
