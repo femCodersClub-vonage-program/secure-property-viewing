@@ -49,6 +49,6 @@ What works in `dev` on November 26, 2026. Each spec in `specs/` describes the fu
 
 | Journey | Built | Not built yet |
 | :---- | :---- | :---- |
-| A · Visitor | Screens 1 to 7: catalog with map, details, calendar, phone verification, confirmation and video visit. The confirmation SMS (#87). Silent Authentication, on in Railway with the SMS code as its fallback; with real Spanish numbers on Orange's network, the silent step fails in Vonage's Test access and the visitor gets the SMS code. The post-visit call and its alerts on the dashboard, tested with a real call | The rear camera for the agency in the video visit (#121) |
+| A · Visitor | Screens 1 to 7: catalog with map, details, calendar, phone verification, confirmation and video visit. The confirmation SMS (#87). Silent Authentication, on in Railway with the SMS code as its fallback; the demo shows the silent check with a `+990` number in Vonage's test environment. The post-visit call and its alerts on the dashboard, tested with a real call | The rear camera for the agency in the video visit (#121) |
 | B · Property owner | The server receives listing requests (`POST /api/listing-requests`) | Screens 1 to 5 (#29). Step 6, the video call with the agency, has no spec yet |
 | Agency dashboard | Sign-in, screen 1 (the dashboard) and screen 4 (the visits calendar). The server of screens 2 and 3: listing, viewing, approving and rejecting requests (#57) | Screens 2 and 3 (#58). Screen 5 (#119), whose server is built |
