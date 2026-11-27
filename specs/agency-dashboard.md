@@ -139,7 +139,7 @@ The response also carries `alerts`, the visits where the visitor reported being 
 
 `POST /api/agency/listing-requests/{id}/approve` returns `200` with `{ "propertyId": 13 }`. `POST /api/agency/listing-requests/{id}/reject` receives `{ "reason": "..." }` and returns `200` with `{ "id": 18, "status": "REJECTED" }`. Both return `409 LISTING_REQUEST_ALREADY_REVIEWED` if the request was already approved or rejected.
 
-Decided with the tech lead in [#57](https://github.com/femCodersClub-vonage-program/secure-property-viewing/issues/57):
+Decided with the tech lead in [#126](https://github.com/femCodersClub-vonage-program/secure-property-viewing/pull/126):
 
 - The list shows the newest requests first, with or without the status filter
 - Approving or rejecting saves the signed-in agent in `reviewed_by` and the time in `reviewed_at`. The request is locked while it is reviewed, so when two agents review it at once, the second gets the `409`
