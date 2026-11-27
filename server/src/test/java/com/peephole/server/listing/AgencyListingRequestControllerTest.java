@@ -106,15 +106,18 @@ class AgencyListingRequestControllerTest {
     }
 
     @Test
-    void filtersTheRequestsByStatus() throws Exception {
+    void filtersTheRequestsByStatusTheNewestFirst() throws Exception {
         long pending = insertListingRequest("Ana Torres", "PENDING", TIME);
         long approved = insertListingRequest("Joan Puig", "APPROVED", TIME);
         long rejected = insertListingRequest("Laia Vidal", "REJECTED", TIME);
+        // Inserted last but sent earlier, so the order can only come from the date
+        long olderPending = insertListingRequest("Marc Soler", "PENDING", TIME.minusDays(1));
 
         list("?status=PENDING")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].id").value(pending));
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].id").value(pending))
+                .andExpect(jsonPath("$[1].id").value(olderPending));
         list("?status=APPROVED")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
