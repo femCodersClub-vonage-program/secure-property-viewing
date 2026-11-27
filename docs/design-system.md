@@ -252,7 +252,7 @@ D2 and D5 are tables, and the next visits in D1 follow the same rules.
 
 #### Status badges
 
-A badge always shows the status as text, with a `lucide-react` icon when it carries meaning. It uses `text-xs`, `--radius-sm`, a 1px border and text in the same color, on a 10% tint of that color, which helps when scanning a table row quickly.
+A badge always shows the status as text, with a `lucide-react` icon when it carries meaning. It uses `text-xs`, `--radius-sm`, a 1px border and text in the same color, on a 10% tint of that color, which helps when scanning a table row quickly. The `approved` badge is the exception: it sits on `--color-surface-card`, because `--color-success` text on its own 10% tint is 4.48:1, under AA, and on the card background it is 5.12:1.
 
 | Status | Color | Icon |
 | :---- | :---- | :---- |

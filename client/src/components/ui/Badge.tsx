@@ -8,7 +8,9 @@ interface BadgeProps {
 
 const variantClasses: Record<BadgeVariant, string> = {
   pending: 'bg-text-muted/10 text-text-muted border border-text-muted',
-  approved: 'bg-success/10 text-success border border-success',
+  // The card background, not a 10% tint: green text on its own tint is 4.48:1, under AA,
+  // and on the card it is 5.12:1 on any page background
+  approved: 'bg-surface-card text-success border border-success',
   rejected: 'bg-error/10 text-error border border-error',
   warning: 'bg-warning/10 text-warning border border-warning',
 }
